@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 17 non-assignment statement(s) remain.
+# NOT TRANSLATED: 19 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('scriptDirectory', 'DirectoryName[ExpandFileName[$InputFileName]]', ()),
     ('projectDirectory', 'FileNameJoin[{scriptDirectory, ".."}]', ()),
@@ -42,7 +42,7 @@ _ASSIGNMENTS = [
     ('volumeErrors', 'volumeRows[[All, 5]]', ()),
     ('acceptanceData', 'Transpose[{\n  truncations, ConstantArray[derivativeTolerance, Length[truncations]]}]', ()),
     ('derivativePlot', 'ListLogPlot[\n  Append[derivativePlotData, acceptanceData],\n  Frame -> True,\n  FrameLabel -> {\n    Style["Fourier truncation  M = N", 12],\n    Style["Maximum relative first-derivative error", 12]},\n  PlotStyle -> {\n    Directive[RGBColor[0.10, 0.35, 0.70], Thick],\n    Directive[Black, Thick, Dashed],\n    Directive[RGBColor[0.65, 0.20, 0.12], Thick, DotDashed],\n    Directive[RGBColor[0.10, 0.45, 0.25], Thick, Dotted],\n    Directive[GrayLevel[0.45], Thin, Dashed]},\n  Joined -> True,\n  PlotMarkers -> {\n    {Automatic, 7}, {Automatic, 7}, {Automatic, 7}, {Automatic, 7}, None},\n  PlotLegends -> Placed[\n    LineLegend[Append[\n      groups[[All, 1]], Row[{"acceptance  ", Superscript["10", "-2"]}]]],\n    Below],\n  PlotRange -> {{2, 48}, {10^-5, 2}},\n  FrameTicks -> {{\n    Table[{10^exponent, Superscript["10", ToString[exponent]]},\n      {exponent, -5, 0}], None}, {Automatic, None}},\n  GridLines -> {None, {derivativeTolerance}},\n  GridLinesStyle -> Directive[GrayLevel[0.65], Dashed],\n  ImageSize -> 520,\n  BaseStyle -> {FontFamily -> "Latin Modern Roman", 11}]', ()),
-    ('fieldTeX', '<|\n  "II_tz" -> "\\\\mathrm{II}_{\\\\vartheta\\\\zeta}",\n  "II_tt" -> "\\\\mathrm{II}_{\\\\vartheta\\\\vartheta}",\n  "II_zz" -> "\\\\mathrm{II}_{\\\\zeta\\\\zeta}"|>', ()),
+    ('fieldTeX', '<|\n  "II_tz" -> "\\\\mathrm{II}_{\\\\vartheta\\\\zeta}"', ()),
     ('worstFieldTeX', 'Lookup[fieldTeX, worstDerivative[[1]], "\\\\texttt{" <>\n    StringReplace[worstDerivative[[1]], "_" -> "\\\\_"] <> "}"]', ()),
     ('directionTeX', 'If[worstDerivative[[2]] == "theta", "\\\\vartheta",\n  "\\\\zeta_{\\\\mathrm{per}}"]', ()),
     ('finalVolume', 'Last[volumeRows]', ()),

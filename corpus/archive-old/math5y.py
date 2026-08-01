@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 138 non-assignment statement(s) remain.
+# NOT TRANSLATED: 144 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('l0', '{3, 5, 1}', ()),
     ('l1', '{a, b, c, d}', ()),
@@ -37,16 +37,19 @@ _ASSIGNMENTS = [
     ('lx', '{x1, x2, x3, x4, x5}', ()),
     ('lt', 'lx == l4', ()),
     ('n', '5', ()),
+    ('lx', 'Thread[Subscript[x, Range[0, n]]]', ()),
     ('lt', 'lx == l4', ()),
     ('lst', 'Table[a[i], {i, 20}]', ()),
     ('le', 'lst[[Table[k, {k, 1, Length[lst], 2}]]]', ()),
     ('le', 'lst[[Table[k, {k, 2, Length[lst], 2}]]]', ()),
     ('le', 'lst[[Table[k, {k, 1, Length[lst], 3}]]]', ()),
     ('lx', '{x1, x2, x3, x4, x5}', ()),
+    ('ly', '{y1, y2, y3, y4, y5}', ()),
     ('lxy', 'Transpose[{lx, ly}]', ()),
     ('li', '{r1, r2, r3, r4, r5}', ()),
     ('ls', 'FoldList[Plus, r1, Drop[li, 1]]', ()),
     ('lr', 'RandomReal[{0, 1}, 1000]', ()),
+    ('l1', '{a, b, c}', ()),
     ('l2', '{a, 2, r}', ()),
     ('l3', '{a, b, c, d}', ()),
     ('la', 'Union[l1, l2, l3]', ()),

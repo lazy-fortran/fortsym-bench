@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 32 non-assignment statement(s) remain.
+# NOT TRANSLATED: 34 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('points', 'Table[N[x + I*y], {x, -Pi/2, Pi/2, Pi/14}, {y, -1, 1, 2/10}]', ()),
     ('coords', 'Map[{Re[#1], Im[#1]} & , points, {2}]', ()),
@@ -30,6 +30,7 @@ _ASSIGNMENTS = [
     ('ny', 'MyCartesianMap[(Exp[#1] - 1)/(Exp[#1] + 1) & , {-Pi/2, Pi/2, Pi/16}, {-Pi, Pi, Pi/16}]', ()),
     ('fc', '-Conjugate[2*I*Sqrt[Exp[x + I*y] - 1] - Log[(1 + I*Sqrt[Exp[x + I*y] - 1])/(1 - I*Sqrt[Exp[x + I*y] - 1])]]', ()),
     ('c1', 'ListPlot[{{-5, 0}, {0, 0}, {0, 7}}, Joined -> True, PlotStyle -> {Black, Thick}]', ()),
+    ('c2', 'ListPlot[N[{{-5, -Pi}, {9, -Pi}}], Joined -> True, PlotStyle -> {Black, Thick}]', ()),
     ('conf', 'ParametricPlot[Through[{Re, Im}[fc]], {x, -5, 3}, {y, 0.0001, Pi}, PlotStyle -> None]', ()),
 ]
 

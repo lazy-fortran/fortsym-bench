@@ -7,13 +7,24 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 7 non-assignment statement(s) remain.
+# NOT TRANSLATED: 16 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('$Assumptions', 'Element[{B0ph, B0th}, Reals]', ()),
     ('R', 'R0*(1 + (r/R0)*Cos[th])', ()),
-    ('Brctr', '(1/sqrtg)*(D[Aph, th] - D[Ath, ph]), Null, Bthctr = FullSimplify[(1/sqrtg)*(D[Ar, ph] - D[Aph, r])], Null, Bphctr = FullSimplify[(1/sqrtg)*(D[Ath, r] - D[Ar, th])], Null, Bthcov = FullSimplify[gthth*Bthctr], Null, Bphcov = FullSimplify[gphph*Bphctr]', ()),
+    ('Ar', '0', ()),
+    ('Ath', 'B0ph*(r^2/2 - (r^3/(3*R0))*Cos[th])', ()),
+    ('Aph', '(-B0th)*R0*r', ()),
+    ('sqrtg', 'r*R', ()),
+    ('gthth', 'r^2', ()),
+    ('gphph', 'R^2', ()),
+    ('Brctr', '(1/sqrtg)*(D[Aph, th] - D[Ath, ph])', ()),
+    ('Bthctr', 'FullSimplify[(1/sqrtg)*(D[Ar, ph] - D[Aph, r])]', ()),
+    ('Bphctr', 'FullSimplify[(1/sqrtg)*(D[Ath, r] - D[Ar, th])]', ()),
+    ('Bthcov', 'FullSimplify[gthth*Bthctr]', ()),
+    ('Bphcov', 'FullSimplify[gphph*Bphctr]', ()),
     ('Bmod', 'FullSimplify[Sqrt[Bthctr*Bthcov + Bphctr*Bphcov]]', ()),
-    ('hthcov', 'Simplify[Bthcov/Bmod], Null, hphcov = Simplify[Bphcov/Bmod], Null, FullSimplify[Series[hthcov /. r -> eps*R0, {eps, 0, 1}] /. eps -> r/R0], Null, FullSimplify[Series[hphcov /. r -> eps*R0, {eps, 0, 1}] /. eps -> r/R0]', ()),
+    ('hthcov', 'Simplify[Bthcov/Bmod]', ()),
+    ('hphcov', 'Simplify[Bphcov/Bmod]', ()),
 ]
 
 def results():

@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 82 non-assignment statement(s) remain.
+# NOT TRANSLATED: 80 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('z', '2 + I*Pi', ()),
     ('p', 'LegendreP[7, Cos[θ]]', ()),
@@ -20,6 +20,7 @@ _ASSIGNMENTS = [
     ('m', '{{1, 0, 4}, {0, 5, 4}, {-4, 4, 3}}', ()),
     ('im', 'Inverse[m]', ()),
     ('b', 'm - x*IdentityMatrix[3]', ()),
+    ('sys', '{a*x + b*y == c, c*x + d*y == f}', ()),
     ('ma', '{{a, b}, {c, d}}', ()),
     ('v', '{c, f}', ()),
     ('mx', '{x, y}', ()),
@@ -33,6 +34,9 @@ _ASSIGNMENTS = [
     ('sn', 'NSolve[p5 == 0]', ()),
     ('f', 'Sin[x] - Cos[x]', ()),
     ('g', '(Tan[x] - x)/(x/3 + Cos[x])', ()),
+    ('r', '{x[t], y[t]}', ('t',)),
+    ('v', 'D[r[t], t]', ('t',)),
+    ('a', 'D[v[t], t]', ('t',)),
     ('m', '1', ()),
     ('g', '10', ()),
     ('c', '0.3', ()),

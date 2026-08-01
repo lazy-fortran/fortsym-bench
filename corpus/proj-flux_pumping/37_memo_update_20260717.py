@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 25 non-assignment statement(s) remain.
+# NOT TRANSLATED: 22 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('sExp', 's0 + eps u1 Cos[phi] + eps^2 (u20 + u22 Cos[2 phi])', ()),
     ('psiExp', 'Normal@Series[Psi0F[sExp] + eps Cos[phi] QQ[sExp], {eps, 0, 2}]', ()),
@@ -21,6 +21,8 @@ _ASSIGNMENTS = [
     ('avgExp', 'Integrate[integrandSeries, {phi, 0, 2 Pi}]/(2 Pi)', ()),
     ('invAvg', 'Normal@Series[1/avgExp, {eps, 0, 2}]', ()),
     ('dIotaDerived', 'FullSimplify[Coefficient[invAvg, eps, 2]]', ()),
+    ('dioF', 'PP[ss]/(m TT[ss])', ('ss',)),
+    ('yF', '(pp[ss] - PP[ss] tt[ss]/TT[ss])/m', ('ss',)),
     ('dIotaPrinted17', 'FullSimplify[\n  -(1/(dioF[s0] TT[s0]^2)) (1/2) (pp[s0]/m) yF[s0] -\n  (dioF[s0]/TT[s0]) (1/2) (QQ[s0]/m) (D[yF[ss]/(dioF[ss]^2 TT[ss]), ss] /.\n     ss -> s0) -\n  (1/(2 dioF[s0] TT[s0]^2)) (1/2) (QQ[s0]/m)^2 (D[1/dioF[ss], {ss, 2}] /.\n     ss -> s0)]', ()),
     ('printedDiff17', 'FullSimplify[dIotaDerived - dIotaPrinted17]', ()),
     ('g0pp', 'D[m TT[ss]/PP[ss], {ss, 2}] /. ss -> s0', ()),
@@ -55,6 +57,7 @@ _ASSIGNMENTS = [
     ('fixtureRules', '{\n    m -> mNum,\n    PP[s0] -> (detExpr /. x -> xOfS[s0v]),\n    pp[s0] -> (phaseExpr /. x -> xOfS[s0v]),\n    TT[s0] -> (bz0Expr/capRNum /. x -> xOfS[s0v]),\n    tt[s0] -> (hExpr/capRNum /. x -> xOfS[s0v]),\n    QQ[s0] -> (x fExpr /. x -> xOfS[s0v]),\n    Derivative[1][PP][s0] -> (D[detExpr, x]/x /. x -> xOfS[s0v]),\n    Derivative[1][pp][s0] -> (D[phaseExpr, x]/x /. x -> xOfS[s0v]),\n    Derivative[1][TT][s0] -> 0,\n    Derivative[1][tt][s0] -> (D[hExpr/capRNum, x]/x /. x -> xOfS[s0v]),\n    Derivative[1][QQ][s0] -> (D[x fExpr, x]/x /. x -> xOfS[s0v]),\n    Derivative[2][PP][s0] -> (D[D[detExpr, x]/x, x]/x /. x -> xOfS[s0v]),\n    Derivative[2][pp][s0] -> (D[D[phaseExpr, x]/x, x]/x /. x -> xOfS[s0v]),\n    Derivative[2][TT][s0] -> 0,\n    Derivative[2][tt][s0] -> (D[D[hExpr/capRNum, x]/x, x]/x /. x -> xOfS[s0v]),\n    Derivative[2][QQ][s0] -> (D[D[x fExpr, x]/x, x]/x /. x -> xOfS[s0v])}', ()),
     ('printedFixture17', 'N[(dIotaPrinted17 /. fixtureRules) /. s0v -> rhoCheck^2/2, 20]', ()),
     ('derivedFixture', 'N[(dIotaDerived /. fixtureRules) /. s0v -> rhoCheck^2/2, 20]', ()),
+    ('tophat', 'UnitStep[dr - x] UnitStep[dr + x]', ('x', 'dr')),
 ]
 
 def results():

@@ -75,7 +75,8 @@ A missing result is visible. A silently different one is not.
 Run `python tools/translate_wl_corpus.py` from the repository root. It extracts
 plain `Set`/`SetDelayed` assignments, evaluates them in order with SymPy, and
 writes one companion beside every `.wl` file that does not already have one.
-The runtime covers common calculus, algebra, replacement, table, list, and
+Use `--refresh-generated` after changing the translator to rewrite generated
+companions while preserving hand translations. The runtime covers common calculus, algebra, replacement, table, list, and
 matrix operations. It intentionally refuses or skips side effects, plotting,
 opaque control flow, and Wolfram constructs whose semantics cannot be inferred
 from an isolated assignment. Those source statements remain counted in the

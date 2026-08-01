@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fortsym_bench.backends import Backend, _parse_wolfram_output
+from fortsym_bench.backends import Backend, RunFailure, _parse_wolfram_output
 from fortsym_bench.cache import ReferenceCache
 from fortsym_bench.cli import run_one
 
@@ -73,6 +73,11 @@ def test_reference_runner_version_invalidates_old_results(tmp_path):
     cache.put_result(old, source, 5.0, {"answer": "2"})
 
     assert cache.get(old, source, 5.0) is not None
+    assert cache.get(current, source, 5.0) is not None
+
+    cache.put_failure(
+        old, source, 5.0, RunFailure("error", "no results parsed from: T\\t0.1")
+    )
     assert cache.get(current, source, 5.0) is None
 
 

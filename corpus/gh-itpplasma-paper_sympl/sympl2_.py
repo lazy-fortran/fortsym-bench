@@ -7,13 +7,21 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 14 non-assignment statement(s) remain.
+# NOT TRANSLATED: 16 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('$Assumptions', '{Element[{h0ph, h0th, B0}, Reals], h0ph > 0, h0ph < 1}', ()),
     ('R', 'R0*(1 + (r/R0)*Cos[th])', ()),
+    ('Ar', '0', ()),
+    ('Ath', 'h0ph*B0*(r^2/2 - (r^3/(3*R0))*Cos[th])', ()),
+    ('Aph', '(-h0th)*B0*R0*r', ()),
+    ('sqrtg', 'r*R', ()),
+    ('gthth', 'r^2', ()),
+    ('gphph', 'R^2', ()),
     ('Bmod', 'B0*(1 - (r/R0)*Cos[th])', ()),
-    ('hth', 'r*h0th, Null, hph = R*h0ph', ()),
-    ('pthofw', 'm*vpar*hth + (e/c)*Ath, Null, pphofw = m*vpar*hph + (e/c)*Aph', ()),
+    ('hth', 'r*h0th', ()),
+    ('hph', 'R*h0ph', ()),
+    ('pthofw', 'm*vpar*hth + (e/c)*Ath', ()),
+    ('pphofw', 'm*vpar*hph + (e/c)*Aph', ()),
     ('dpdq', 'FullSimplify[{{D[pthofw, th], D[pthofw, ph]}, {D[pphofw, th], D[pphofw, ph]}}]', ()),
     ('dpdw', 'FullSimplify[{{D[pthofw, r], D[pthofw, vpar]}, {D[pphofw, r], D[pphofw, vpar]}}]', ()),
     ('dwdp', 'FullSimplify[Inverse[dpdw] /. {e -> 1, m -> 1, c -> 1, B0 -> 1, R0 -> 1}]', ()),

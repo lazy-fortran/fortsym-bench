@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 10 non-assignment statement(s) remain.
+# NOT TRANSLATED: 15 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('$Assumptions', 'Element[{p, e, m, c, x, y, z, px, py, pz, Ax, Ay, Az, Phi}, Reals]', ()),
     ('Asimple', '(1/2)*{-y, x, 0}', ()),
@@ -21,7 +21,9 @@ _ASSIGNMENTS = [
     ('pdotsimple', '-Grad[H /. {r -> {x, y, z}, p -> {px, py, pz}, A -> Asimple, Phi -> 0}, {x, y, z}]', ()),
     ('n', '3', ()),
     ('k', '2', ()),
+    ('A', 'Table[a[i, j], {i, 1, 2*n}, {j, 1, 2*k}]', ()),
     ('J2n', 'ConstantArray[0, {2*n, 2*n}]', ()),
+    ('J2k', 'ConstantArray[0, {2*k, 2*k}]', ()),
     ('As', 'Transpose[J2k] . Transpose[A] . J2n', ()),
 ]
 

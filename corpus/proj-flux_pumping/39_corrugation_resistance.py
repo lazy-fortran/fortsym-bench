@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 40 non-assignment statement(s) remain.
+# NOT TRANSLATED: 38 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('figdir', 'FileNameJoin[{DirectoryName[$InputFileName], "figures"}]', ()),
     ('$Assumptions', 'r > 0 && rho > 0 &&', ()),
@@ -26,6 +26,8 @@ _ASSIGNMENTS = [
     ('detuning', 'm Bth[r]/r + k B0', ()),
     ('pRule', '{p -> Function[x, Delta[x] (m Bth[x]/x + k B0)]}', ()),
     ('ord', '2', ()),
+    ('rOf', 'rho - eps Delta[rho] Cos[chi] +\n  eps^2 (rr2[rho] + rr2c[rho] Cos[2 chi])', ('rho', 'chi')),
+    ('jacJ', 'Normal@Series[\n  rOf[rho, chi] D[rOf[rho, chi], rho], {eps, 0, ord}]', ('rho', 'chi')),
     ('avg', 'Normal@Series[\n  Integrate[Normal@Series[X jacJ[rho, chi], {eps, 0, ord}],\n    {chi, 0, 2 Pi}]/\n  Integrate[jacJ[rho, chi], {chi, 0, 2 Pi}], {eps, 0, ord}]', ('X',)),
     ('onSurf', '{r -> rOf[rho, chi], th -> chi/m, z -> 0}', ()),
     ('BgradChi', 'Normal@Series[\n  ((m Bvec[[2]]/r + k Bvec[[3]]) /. pRule /. alpha -> 0) /.\n    {Cos[chiOf[th, z]] -> Cos[chi], Sin[chiOf[th, z]] -> Sin[chi]} /.\n    onSurf, {eps, 0, ord}]', ()),

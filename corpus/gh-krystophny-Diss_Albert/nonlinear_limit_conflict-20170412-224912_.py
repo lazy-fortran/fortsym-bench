@@ -7,9 +7,11 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 2 non-assignment statement(s) remain.
+# NOT TRANSLATED: 4 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
-    ('y', 'Sign[y]*Sqrt[J + 2*Cos[th]], Null, Jac = {{1, 0}, {D[y[th, J], th], D[y[th, J], J]}}, Null, Jaci = Inverse[Jac]', ('th', 'J')),
+    ('y', 'Sign[y]*Sqrt[J + 2*Cos[th]]', ('th', 'J')),
+    ('Jac', '{{1, 0}, {D[y[th, J], th], D[y[th, J], J]}}', ()),
+    ('Jaci', 'Inverse[Jac]', ()),
     ('gp0barpr', 'FullSimplify[C/Integrate[Sqrt[J + 2*Cos[th]], {th, -Pi, Pi}, Assumptions -> J > 2]]', ()),
 ]
 

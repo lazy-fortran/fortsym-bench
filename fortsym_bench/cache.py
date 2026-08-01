@@ -63,10 +63,10 @@ class ReferenceCache:
                         candidate.get("outcome") == "ok"
                         or candidate.get("timeout") == timeout
                     ):
-                        if candidate.get("cache_version", 1) == backend.cache_version:
+                        if self._cache_version_compatible(backend, candidate):
                             entry = candidate
                             break
-        if entry is not None and entry.get("cache_version", 1) != backend.cache_version:
+        if entry is not None and not self._cache_version_compatible(backend, entry):
             entry = None
         if entry is None:
             return None
@@ -185,6 +185,26 @@ class ReferenceCache:
         }
         encoded = json.dumps(identity, sort_keys=True).encode()
         return hashlib.sha256(encoded).hexdigest()
+
+    @staticmethod
+    def _cache_version_compatible(backend: Backend, entry: dict) -> bool:
+        """Accept Mathics answers across the protocol-only cache bump.
+
+        Version 3 changed only the parser's treatment of a valid ``T`` line
+        with no ``R`` lines. Successful older Mathics answers and named old
+        failures remain valid; the old ``no results parsed`` failures are the
+        one class that must be rerun because they may actually be empty result
+        sets under the new protocol.
+        """
+        version = entry.get("cache_version", 1)
+        if version == backend.cache_version:
+            return True
+        if backend.name != "mathics" or version > backend.cache_version:
+            return False
+        if entry.get("outcome") != "failure":
+            return True
+        detail = entry.get("failure", {}).get("detail", "")
+        return not detail.startswith("no results parsed")
 
     @staticmethod
     def _display_source(source: Path) -> str:

@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 73 non-assignment statement(s) remain.
+# NOT TRANSLATED: 62 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('pass', '0', ()),
     ('fail', '0', ()),
@@ -56,10 +56,21 @@ _ASSIGNMENTS = [
     ('normalizationAssumptions', 'Element[{majorRadius, mu0, density, lambdaMishka, lambdaGliss}, Reals] &&', ()),
     ('lambdaGlissFromMishka', '-stiffnessScale lambdaMishka/massScale', ()),
     ('lambdaMishkaFromGliss', '-massScale lambdaGliss/stiffnessScale', ()),
+    ('toroidalFlux', 'Integrate[2 u psiEdge qProfile[u], {u, 0, r},\n  Assumptions -> r > 0]', ('r',)),
+    ('normalizedToroidalFlux', 'toroidalFlux[r]/phiEdge', ('r',)),
     ('variableQFlux', 'FullSimplify[\n  normalizedToroidalFlux[r] /. {\n    qProfile[u_] :> 1 + a u^2, phiEdge -> psiEdge (1 + a/2)}]', ()),
     ('axisFlux', 'Integrate[\n   2 u psiEdge (qAxis + qSlope u + qCurve u^2), {u, 0, r}]/phiEdge', ()),
+    ('cubicRightValue', '3 x^2 - 2 x^3', ('x',)),
+    ('cubicLeftValue', '3 (1 - x)^2 - 2 (1 - x)^3', ('x',)),
+    ('cubicRightSlope', 'h (x - 1) x^2', ('x', 'h')),
+    ('cubicLeftSlope', 'h x (1 - x)^2', ('x', 'h')),
+    ('quadraticBubble', '4 x (1 - x)', ('x',)),
+    ('quadraticRightValue', '2 (x - 1/2) x', ('x',)),
+    ('quadraticLeftValue', '2 (x - 1/2) (x - 1)', ('x',)),
     ('axisMapAssumptions', 'Element[{r, qAxis, psiEdge}, Reals] &&', ()),
     ('mishkaP', '2 r psiEdge', ()),
+    ('storedPower', '1 - m/2', ('m',)),
+    ('gamma', 'k unitRoundoff/(1 - k unitRoundoff)', ('k',)),
     ('roundoffAssumptions', 'Element[{unitRoundoff, absoluteContribution, compensatedValue,\n    ordinaryValue, exactValue, potentialError, matrixError,\n    termSumError, termError1, termError2, termError3, termError4,\n    potentialBound, matrixBound, termSumBound, termBound1, termBound2,\n    termBound3, termBound4, ordinaryErrorBound, energyScale,\n    closureTolerance, totalBound}, Reals] &&', ()),
     ('ordinaryBound', 'gamma[2 dimension + 2] absoluteContribution', ()),
     ('closureError', 'potentialError + matrixError - termSumError -\n  termError1 - termError2 - termError3 - termError4', ()),

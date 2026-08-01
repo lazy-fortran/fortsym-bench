@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 34 non-assignment statement(s) remain.
+# NOT TRANSLATED: 40 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('f', 'Cos[x] - Sin[x]', ()),
     ('x0', 'FindRoot[f == 0, {x, {-6, -2, 0, 4}}]', ()),
@@ -18,12 +18,25 @@ _ASSIGNMENTS = [
     ('r', '{Re[x], Im[x]} /. x0', ()),
     ('x0', 'NSolve[(1/(2*x))*Exp[x] == 1, x]', ()),
     ('f', 'x^4 - 2*x^3 + x^2 + 3*x', ()),
+    ('k', 'Plot[f, {x, -1, 1}, Background -> RGBColor[0., 1., 0.], PlotStyle -> Blue, BaseStyle -> Yellow, AxesLabel -> {"x", "f(x)"}, PlotLabel -> f]', ()),
     ('y0', 'Solve[9*x^2 - 12*y*x - 16*x + 4*y^2 + 8*y - 27 == 0, y]', ()),
     ('T', '(2/Pi)*EllipticK[Sin[a/2]^2]', ()),
+    ('xticks', '({#1, ""} & ) /@ Range[0, 2*Pi, Pi*(10/180)]', ()),
+    ('xticks', 'MapAt[#1[[1]] & , xticks, Partition[Range[1, 37, 3], 1]]', ()),
+    ('yticks', '({#1, ""} & ) /@ Range[0, 7, 1/2]', ()),
+    ('yticks', 'MapAt[#1[[1]] & , yticks, Partition[Range[1, 15, 2], 1]]', ()),
     ('k1', '3', ()),
     ('k2', '2', ()),
+    ('y1', 'Table[{x, k1*(k2/x)}, {x, -k1, -0.01, 0.01}]', ()),
+    ('y2', 'Table[{x, k1*(k2/x)}, {x, 0.01, k1, 0.01}]', ()),
+    ('y3', 'Table[{x, k1*(k2/x)}, {x, (-3/2)*k1, -k1, 0.01}]', ()),
+    ('y4', 'Table[{x, k1*(k2/x)}, {x, k1, (3/2)*k1, 0.01}]', ()),
     ('V1', 'Table[{r, r^2}, {r, 0, 1, 0.01}]', ()),
+    ('V12', 'Table[{r, r^2}, {r, 1, 3, 0.01}]', ()),
+    ('V21', 'Table[{r, 1/r}, {r, 0.01, 1, 0.01}]', ()),
+    ('V2', 'Table[{r, 1/r}, {r, 1, 3, 0.01}]', ()),
     ('f', 'Table[{Cos[p], Sin[p]}, {p, 0, 2*Pi*(4/5), 2*(Pi/5)}]', ()),
+    ('l', '{"A", "B", "C", "D", "E"}', ()),
 ]
 
 def results():

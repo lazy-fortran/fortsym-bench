@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 32 non-assignment statement(s) remain.
+# NOT TRANSLATED: 43 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('$Assumptions', 'r > 0 && Element[{chi, eps, m, k}, Reals] && B0 > 0', ()),
     ('vv', '{v1, v2, v3}', ()),
@@ -43,7 +43,7 @@ _ASSIGNMENTS = [
     ('velDiag', 'Simplify[b0full . Map[ComplexExpand[Re[#]] &,\n  Cross[vHat, Conjugate[bHat]]/2]]', ()),
     ('meanParE', 'Simplify[avgChi[b0full . EOhm]]', ()),
     ('identityII', 'Simplify[ComplexExpand[\n  velDiag - (avgChi[b0full . (etaTot Jtot)] - meanParE -\n    b0full . Cross[v0v, b0full])]]', ()),
-    ('mhdSourceLedger', '<|\n  "M3D-A1" -> HoldComplete[\n    dtOp[nDen] + divOp[nDen vel] == diffN lapOp[nDen] + sourceN],\n  "M3D-A2" -> HoldComplete[dtOp[mag] == -curlOp[elec]],\n  "M3D-A3" -> HoldComplete[\n    nDen massI (dtOp[vel] + divOp[vel, vel]) ==\n      -gradOp[pres] + Cross[cur, mag] + viscDyn lapOp[vel]],\n  "M3D-A4" -> HoldComplete[\n    3 nDen dtOp[temp]/2 + 3 nDen divOp[vel, temp]/2 +\n      nDen temp divOp[vel] == viscDyn gradOp[vel]^2 +\n      etaRes cur^2 + tensorDivOp[heatFluxTensor] + sourceT],\n  "M3D-A5" -> HoldComplete[mag == curlOp[vecPot]],\n  "M3D-A6" -> HoldComplete[elec == -Cross[vel, mag] + etaRes cur],\n  "M3D-A7" -> HoldComplete[cur == curlOp[mag]/mu0],\n  "JOREK-1" -> HoldComplete[\n    dtOp[vecPot] == Cross[vel, mag] -\n      etaRes (cur - currentSource) ePhi - gradOp[scalarPot]],\n  "JOREK-2" -> HoldComplete[\n    rhoDen dtOp[vel] == -rhoDen divOp[vel, vel] + Cross[cur, mag] -\n      gradOp[pres] + tensorDivOp[viscDyn gradOp[vel]] - sourceRho vel],\n  "JOREK-3" -> HoldComplete[\n    dtOp[rhoDen] == -divOp[rhoDen vel] +\n      tensorDivOp[diffPerp gradOp[rhoDen] + diffPar fieldDivOp[rhoDen]] +\n      sourceRho],\n  "JOREK-4i" -> HoldComplete[\n    dtOp[pres] == -divOp[vel, pres] - gammaGas pres divOp[vel] +\n      tensorDivOp[kappaPerpI gradOp[tempI] +\n        kappaParI fieldDivOp[tempI]] + sourceTI],\n  "JOREK-4e" -> HoldComplete[\n    dtOp[pres] == -divOp[vel, pres] - gammaGas pres divOp[vel] +\n      tensorDivOp[kappaPerpE gradOp[tempE] +\n        kappaParE fieldDivOp[tempE]] + sourceTE]', ()),
+    ('mhdSourceLedger', '<|\n  "M3D-A1" -> HoldComplete[\n    dtOp[nDen] + divOp[nDen vel] == diffN lapOp[nDen] + sourceN]', ()),
     ('gradU', '{gR, gPhi, gZ}', ()),
     ('ePhi', '{0, 1, 0}', ()),
     ('bJardin', '{BR, FF/RR, BZ}', ()),

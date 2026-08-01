@@ -7,10 +7,10 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 4 non-assignment statement(s) remain.
+# NOT TRANSLATED: 6 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('fun', 'Sum[Cos[k*Pi*x1]*(Cos[k*Pi*x2]/k^4), {k, 1, Infinity}]', ()),
-    ('fpr', 'D[fun, x2], Null, Plot[fpr /. x1 -> 0, {x2, -1, 1}]', ()),
+    ('fpr', 'D[fun, x2]', ()),
     ('fprpr', 'D[fpr, x2]', ()),
 ]
 

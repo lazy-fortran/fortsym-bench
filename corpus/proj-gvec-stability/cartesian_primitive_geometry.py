@@ -7,13 +7,14 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 96 non-assignment statement(s) remain.
+# NOT TRANSLATED: 92 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('pass', '0', ()),
     ('fail', '0', ()),
     ('check', 'If[TrueQ[FullSimplify[condition]],\n  pass++; Print["PASS  ", name], fail++; Print["FAIL  ", name]]', ('name', 'condition')),
     ('phase', '2 Pi (m theta - n zeta)', ()),
     ('complexHarmonic', '(c - I d) Exp[I phase]', ()),
+    ('rotation', '{{Cos[angle], -Sin[angle], 0},\n  {Sin[angle], Cos[angle], 0}, {0, 0, 1}}', ('angle',)),
     ('generator', '{{0, -1, 0}, {1, 0, 0}, {0, 0, 0}}', ()),
     ('hatted', '{hx[s, theta, u], hy[s, theta, u], hz[s, theta, u]}', ()),
     ('rotationRate', '2 Pi windingSymbol/nfpSymbol', ()),
@@ -104,6 +105,9 @@ _ASSIGNMENTS = [
     ('expectedTorusMetric', 'DiagonalMatrix[{minor^2/(4 s),\n   (2 Pi minor Sqrt[s])^2, (2 Pi torusRadius)^2}]', ()),
     ('torusNormal', '{Cos[2 Pi theta] Cos[2 Pi zeta],\n  Cos[2 Pi theta] Sin[2 Pi zeta], Sin[2 Pi theta]}', ()),
     ('torusSecond', '{{torusNormal . D[torus, {theta, 2}],\n    torusNormal . D[torus, theta, zeta]},\n   {torusNormal . D[torus, theta, zeta],\n    torusNormal . D[torus, {zeta, 2}]}}', ()),
+    ('manufacturedPhi', '2 + 7 s', ('s',)),
+    ('manufacturedChi', '-1 - 3 s', ('s',)),
+    ('manufacturedPressure', '1000 (1 - s)^2', ('s',)),
 ]
 
 def results():

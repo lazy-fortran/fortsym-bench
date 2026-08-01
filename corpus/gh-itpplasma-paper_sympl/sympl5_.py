@@ -7,10 +7,18 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 1 non-assignment statement(s) remain.
+# NOT TRANSLATED: 11 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('$Assumptions', '{Element[r, Reals], Element[th, Reals], Element[ph, Reals], Element[r0, Reals], r > 0, r < 1, r0 > 0, r0 < 1}', ()),
-    ('R', '1, Null, gtt = r0^2, Null, gpp = R^2, Null, gipp = 1/R^2, Null, sqrtg = r0*R, Null, Bfun = 1 - (r0/2)*th^2, Null, Bphd = B0ph*r0, Null, Bph = (Bphd/sqrtg)*gpp, Null, Bthd = (sqrtg/Sqrt[gtt])*Sqrt[Bfun^2 - (Bphd/sqrtg)*Bph], Null, FullSimplify[(Bthd^2/sqrtg^2)*gtt + B0ph^2*gipp]', ()),
+    ('R', '1', ()),
+    ('gtt', 'r0^2', ()),
+    ('gpp', 'R^2', ()),
+    ('gipp', '1/R^2', ()),
+    ('sqrtg', 'r0*R', ()),
+    ('Bfun', '1 - (r0/2)*th^2', ()),
+    ('Bphd', 'B0ph*r0', ()),
+    ('Bph', '(Bphd/sqrtg)*gpp', ()),
+    ('Bthd', '(sqrtg/Sqrt[gtt])*Sqrt[Bfun^2 - (Bphd/sqrtg)*Bph]', ()),
     ('B', 'FullSimplify[Sqrt[(Bthd^2/sqrtg^2)*gtt + (Bphd/sqrtg)*Bph]]', ()),
     ('Aph', 'FullSimplify[Integrate[Bthd, r]]', ()),
     ('Ath', 'Integrate[Bphd, r]', ()),

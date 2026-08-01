@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 16 non-assignment statement(s) remain.
+# NOT TRANSLATED: 18 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('$results', '{}', ()),
     ('$suite', '"unnamed"', ()),
