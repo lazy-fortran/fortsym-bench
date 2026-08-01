@@ -283,12 +283,27 @@ def strip_assumptions(expr):
     """
     import sympy
 
-    if not hasattr(expr, "free_symbols"):
+    if not hasattr(expr, "args"):
         return expr
-    replacements = {
-        s: sympy.Symbol(s.name) for s in expr.free_symbols if s.assumptions0
-    }
-    return expr.subs(replacements, simultaneous=True) if replacements else expr
+    if isinstance(expr, sympy.Symbol):
+        return sympy.Symbol(expr.name) if expr.assumptions0 else expr
+
+    # ``Tuple.subs`` can fail when one of its members is an opaque applied
+    # function containing an assumed symbol. Rebuild the small expression tree
+    # instead of asking SymPy to substitute through that mixed container.
+    arguments = tuple(strip_assumptions(argument) for argument in expr.args)
+    if arguments == expr.args:
+        return expr
+    try:
+        return expr.func(*arguments)
+    except Exception:
+        try:
+            return expr.func(*arguments, evaluate=False)
+        except Exception:
+            # Assumption stripping is a comparison convenience. If a backend
+            # emits a non-reconstructible opaque node, leave it intact so the
+            # comparison reports a difference rather than crashing the audit.
+            return expr
 
 
 def check_oracles(sympy_value, mathics_value, strictness: str) -> Comparison | None:

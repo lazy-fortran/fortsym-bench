@@ -60,6 +60,18 @@ def test_cross_language_comparison_ignores_sympy_assumption_metadata():
     assert result.outcome == AGREE
 
 
+def test_cross_language_assumption_stripping_handles_nested_tuples():
+    result = compare_cross_text(
+        "{f[x], {x}}",
+        "inputform",
+        "Tuple(Function('f')(Symbol('x', real=True)), Tuple(Symbol('x', real=True)))",
+        "srepr",
+        "structural",
+    )
+
+    assert result.outcome == AGREE
+
+
 def test_native_score_requires_agreement_between_both_oracles():
     scored = _score_against_oracles(
         {"value": "1"},
