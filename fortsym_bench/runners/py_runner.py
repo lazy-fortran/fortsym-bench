@@ -71,10 +71,17 @@ def main() -> int:
     seconds = time.perf_counter() - start
 
     compare = getattr(module, "COMPARE", {})
+    if not isinstance(compare, dict):
+        compare = {}
+    # Keep comparison policy alongside the result mapping so the benchmark
+    # cache preserves it. The CLI treats this reserved key as metadata, not a
+    # result binding.
     srepr = _srepr_for(backend)
+    results = {name: srepr(value) for name, value in values.items()}
+    if compare:
+        results["__compare__"] = compare
     payload = {
-        "results": {name: srepr(value) for name, value in values.items()},
-        "compare": compare,
+        "results": results,
         "seconds": seconds,
     }
     json.dump(payload, sys.stdout)

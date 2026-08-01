@@ -42,8 +42,8 @@ class Backend:
 BACKENDS = {
     b.name: b
     for b in (
-        Backend("sympy", ".py", "srepr", is_oracle=True, cache_version=3),
-        Backend("fortsym-sympy", ".py", "srepr"),
+        Backend("sympy", ".py", "srepr", is_oracle=True, cache_version=4),
+        Backend("fortsym-sympy", ".py", "srepr", cache_version=2),
         Backend("mathics", ".wl", "inputform", is_oracle=True,
                 command=("mathics", "-q", "--no-readline", "-c"),
                 cache_version=3),

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sympy as sp
 
-from fortsym_bench.cli import _score
+from fortsym_bench.cli import _score, _strictness
 from fortsym_bench.compare import (
     AGREE,
     DIFFER,
@@ -26,6 +26,25 @@ def test_candidate_only_binding_is_reported_outside_the_scored_overlap():
     )
 
     assert scored["candidate_only"]["outcome"] == ORACLE_MISSING
+
+
+def test_compare_metadata_is_not_scored_as_a_binding():
+    scored = _score(
+        {"__compare__": {"value": "equivalent"}, "value": "Integer(4)"},
+        {"value": "Integer(4)"},
+        BACKENDS["fortsym-wl"],
+        "mathics",
+        {},
+    )
+
+    assert list(scored) == ["value"]
+    assert scored["value"]["outcome"] == AGREE
+
+
+def test_compare_metadata_controls_strictness_for_the_pair():
+    assert _strictness({"sympy": {"__compare__": {"value": "equivalent"}}}) == {
+        "value": "equivalent"
+    }
 
 
 def test_malformed_sympy_expression_is_an_error_not_a_benchmark_crash():
