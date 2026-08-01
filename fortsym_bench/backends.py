@@ -16,6 +16,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -65,6 +66,11 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
     Returns the raw result mapping and the evaluation time in seconds, with
     process startup excluded where the runner can separate it.
     """
+    # Resolved before use, not passed through as given. Each run gets a
+    # throwaway working directory (below), so a corpus path relative to the
+    # repo root would no longer name anything by the time the child looks.
+    script = script.resolve()
+
     if backend.syntax == "srepr":
         argv = [sys.executable, str(RUNNERS / "py_runner.py"), str(script), backend.name]
     elif backend.name == "fortsym-wl":
@@ -77,15 +83,25 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
 
     env = dict(os.environ, PYTHONHASHSEED="0")
     try:
-        proc = subprocess.run(
-            argv, capture_output=True, text=True, timeout=timeout, env=env,
-            stdin=subprocess.DEVNULL,
-            # The corpus contains Greek identifiers, and a backend that slices
-            # a multi-byte character emits an invalid sequence. Replacing is
-            # right here: one mangled identifier costs one result, while a
-            # strict decode raises and destroys the entire run's measurement.
-            errors="replace",
-        )
+        # A throwaway working directory per run. The corpus is real research
+        # code: it calls Export, Put and Save, and those write to the current
+        # directory. Run from the repo root and a scoring pass silently commits
+        # a scattering of other people's intermediate output; run two backends
+        # from the same directory and each one reads files the other just
+        # wrote, which turns an independent oracle into a correlated one.
+        # Scripts are handed an absolute path (above) so the change of
+        # directory cannot cost them their own source or a Get'd sibling.
+        with tempfile.TemporaryDirectory(prefix="fortsym-bench-") as sandbox:
+            proc = subprocess.run(
+                argv, capture_output=True, text=True, timeout=timeout, env=env,
+                stdin=subprocess.DEVNULL, cwd=sandbox,
+                # The corpus contains Greek identifiers, and a backend that
+                # slices a multi-byte character emits an invalid sequence.
+                # Replacing is right here: one mangled identifier costs one
+                # result, while a strict decode raises and destroys the entire
+                # run's measurement.
+                errors="replace",
+            )
     except subprocess.TimeoutExpired:
         raise RunFailure("timeout", f"exceeded {timeout}s") from None
     except FileNotFoundError:

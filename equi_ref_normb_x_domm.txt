@@ -1,1 +1,0 @@
-{normb_x_domm =  <> F90Format[BDommaschk[x, phi, z]]}
