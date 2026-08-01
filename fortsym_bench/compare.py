@@ -107,6 +107,8 @@ def strip_assumptions(expr):
     """
     import sympy
 
+    if not hasattr(expr, "free_symbols"):
+        return expr
     replacements = {
         s: sympy.Symbol(s.name) for s in expr.free_symbols if s.assumptions0
     }
