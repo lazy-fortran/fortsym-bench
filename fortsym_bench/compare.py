@@ -39,8 +39,27 @@ def parse(text: str, syntax: str):
     if syntax == "srepr":
         return sympy.sympify(text)
     if syntax == "inputform":
-        return parse_mathematica(text)
+        return parse_mathematica(_normalise_inputform(text))
     raise ValueError(f"unknown syntax: {syntax}")
+
+
+def _normalise_inputform(text: str) -> str:
+    """Bridge Mathics' Unicode pretty-printer to SymPy's input parser.
+
+    Mathics emits these Unicode spellings for ordinary Wolfram operators in
+    several result classes. SymPy's Mathematica parser accepts the ASCII
+    spellings but not the pretty-printed ones. The phi variant is also parsed
+    as a non-callable symbol, so an opaque function such as ``A[r, ϕ, z]``
+    fails before comparison; ``phi`` is the parser's callable spelling.
+    These are syntax normalisations, not mathematical rewrites.
+    """
+    return (
+        text.replace("⇾", "->")
+        .replace("⩵", "==")
+        .replace("≥", ">=")
+        .replace("∧", "&&")
+        .replace("ϕ", "phi")
+    )
 
 
 def compare(candidate, reference, strictness: str) -> Comparison:
