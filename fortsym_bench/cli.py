@@ -15,6 +15,7 @@ from .compare import (
     DIFFER,
     ERROR,
     ORACLE_DISAGREEMENT,
+    ORACLE_MISSING,
     TIMEOUT,
     UNAVAILABLE,
     UNSUPPORTED,
@@ -198,7 +199,14 @@ def _score(results, oracle_results, backend, oracle_name, strictness) -> dict:
     scored = {}
     for key, text in results.items():
         if key not in oracle_results:
-            scored[key] = {"outcome": ERROR, "detail": "absent from oracle"}
+            # The candidate can emit more bindings than a partial oracle. The
+            # result is useful coverage, but it is not a scored comparison;
+            # treating it as an error made the oracle ceiling look like wrong
+            # answers and contradicted the overlap rule in the README.
+            scored[key] = {
+                "outcome": ORACLE_MISSING,
+                "detail": "binding absent from oracle; not scored",
+            }
             continue
         try:
             candidate = parse(text, backend.syntax)
@@ -240,7 +248,8 @@ def summarise(report: dict) -> int:
     already produced something.
     """
     tally = {AGREE: 0, DIFFER: 0, UNSUPPORTED: 0, UNTRANSLATED: 0,
-             UNAVAILABLE: 0, TIMEOUT: 0, ERROR: 0, ORACLE_DISAGREEMENT: 0}
+             UNAVAILABLE: 0, TIMEOUT: 0, ERROR: 0, ORACLE_DISAGREEMENT: 0,
+             ORACLE_MISSING: 0}
     for script in report["scripts"].values():
         for results in script["outcomes"].values():
             for entry in results.values():
