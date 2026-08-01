@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import json
+import os
 import statistics
 import sys
 from pathlib import Path
@@ -22,6 +24,7 @@ from .compare import (
     UNTRANSLATED,
     check_oracles,
     compare,
+    compare_text,
     parse,
 )
 
@@ -94,6 +97,12 @@ def main(argv: list[str] | None = None) -> int:
     runner.add_argument("paths", nargs="*", type=Path, default=[CORPUS])
     runner.add_argument("--backend", nargs="+", default=list(DEFAULT_BACKENDS))
     runner.add_argument("--repeat", type=int, default=1)
+    runner.add_argument(
+        "--jobs",
+        type=int,
+        default=min(4, os.cpu_count() or 1),
+        help="number of corpus scripts to evaluate concurrently (default: 4)",
+    )
     runner.add_argument("--timeout", type=float, default=300.0)
     runner.add_argument("--report", type=Path)
     runner.add_argument(
@@ -118,6 +127,8 @@ def main(argv: list[str] | None = None) -> int:
     if not scripts:
         print("no corpus scripts found", file=sys.stderr)
         return 2
+    if args.jobs < 1:
+        parser.error("--jobs must be at least 1")
 
     cache = None
     if not args.no_cache:
@@ -126,8 +137,17 @@ def main(argv: list[str] | None = None) -> int:
         "cache": None if cache is None else str(args.cache),
         "scripts": {},
     }
-    for script in scripts:
-        report["scripts"][str(script)] = evaluate(script, args, cache)
+    if args.jobs == 1:
+        for script in scripts:
+            report["scripts"][str(script)] = evaluate(script, args, cache)
+    else:
+        with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+            pending = [
+                (script, pool.submit(evaluate, script, args, cache))
+                for script in scripts
+            ]
+            for script, future in pending:
+                report["scripts"][str(script)] = future.result()
 
     if args.report:
         args.report.write_text(json.dumps(report, indent=1))
@@ -136,6 +156,7 @@ def main(argv: list[str] | None = None) -> int:
 
 def evaluate(script: Path, args, cache: ReferenceCache | None = None) -> dict:
     raw, timing, failures = {}, {}, {}
+    parsed_cache = {}
     for name in args.backend:
         results, times, failure, cached = run_one(
             name,
@@ -169,7 +190,9 @@ def evaluate(script: Path, args, cache: ReferenceCache | None = None) -> dict:
         oracle = "sympy" if backend.source == ".py" else "mathics"
         if name == oracle:
             continue
-        outcomes[name] = _score(results, raw.get(oracle), backend, oracle, strictness)
+        outcomes[name] = _score(
+            results, raw.get(oracle), backend, oracle, strictness, parsed_cache
+        )
 
     return {
         "outcomes": outcomes,
@@ -186,7 +209,9 @@ def _strictness(raw: dict) -> dict:
     return {}
 
 
-def _score(results, oracle_results, backend, oracle_name, strictness) -> dict:
+def _score(
+    results, oracle_results, backend, oracle_name, strictness, parsed_cache=None
+) -> dict:
     if oracle_results is None:
         # Keyed like every other entry so the tally can walk one shape. A bare
         # dict here made summarise index a string and crash the whole run.
@@ -208,13 +233,13 @@ def _score(results, oracle_results, backend, oracle_name, strictness) -> dict:
                 "detail": "binding absent from oracle; not scored",
             }
             continue
-        try:
-            candidate = parse(text, backend.syntax)
-            reference = parse(oracle_results[key], BACKENDS[oracle_name].syntax)
-        except Exception as exc:
-            scored[key] = {"outcome": ERROR, "detail": f"unparseable: {exc}"}
-            continue
-        verdict = compare(candidate, reference, strictness.get(key, "structural"))
+        verdict = compare_text(
+            text,
+            oracle_results[key],
+            backend.syntax,
+            strictness.get(key, "structural"),
+            parsed_cache,
+        )
         scored[key] = {"outcome": verdict.outcome, "detail": verdict.detail}
     return scored
 

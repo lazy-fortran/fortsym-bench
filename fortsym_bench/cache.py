@@ -14,6 +14,7 @@ import os
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+from threading import RLock
 
 from .backends import Backend, RunFailure
 
@@ -33,10 +34,17 @@ class ReferenceCache:
 
     def __init__(self, path: Path):
         self.path = Path(path)
+        self._lock = RLock()
         self._entries: dict[str, dict] = {}
         self._load()
 
     def get(
+        self, backend: Backend, source: Path, timeout: float
+    ) -> CachedReference | None:
+        with self._lock:
+            return self._get(backend, source, timeout)
+
+    def _get(
         self, backend: Backend, source: Path, timeout: float
     ) -> CachedReference | None:
         entry = self._entries.get(self._key(backend, source))
@@ -93,16 +101,17 @@ class ReferenceCache:
         timeout: float,
         results: dict,
     ) -> None:
-        self._entries[self._key(backend, source)] = {
-            "backend": backend.name,
-            "cache_version": backend.cache_version,
-            "source": self._display_source(source),
-            "source_sha256": _sha256(source.read_bytes()),
-            "timeout": timeout,
-            "outcome": "ok",
-            "results": results,
-        }
-        self._save()
+        with self._lock:
+            self._entries[self._key(backend, source)] = {
+                "backend": backend.name,
+                "cache_version": backend.cache_version,
+                "source": self._display_source(source),
+                "source_sha256": _sha256(source.read_bytes()),
+                "timeout": timeout,
+                "outcome": "ok",
+                "results": results,
+            }
+            self._save()
 
     def put_failure(
         self,
@@ -111,16 +120,17 @@ class ReferenceCache:
         timeout: float,
         failure: RunFailure,
     ) -> None:
-        self._entries[self._key(backend, source)] = {
-            "backend": backend.name,
-            "cache_version": backend.cache_version,
-            "source": self._display_source(source),
-            "source_sha256": _sha256(source.read_bytes()),
-            "timeout": timeout,
-            "outcome": "failure",
-            "failure": {"kind": failure.kind, "detail": str(failure)},
-        }
-        self._save()
+        with self._lock:
+            self._entries[self._key(backend, source)] = {
+                "backend": backend.name,
+                "cache_version": backend.cache_version,
+                "source": self._display_source(source),
+                "source_sha256": _sha256(source.read_bytes()),
+                "timeout": timeout,
+                "outcome": "failure",
+                "failure": {"kind": failure.kind, "detail": str(failure)},
+            }
+            self._save()
 
     def _load(self) -> None:
         if not self.path.exists():
