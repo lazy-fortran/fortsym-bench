@@ -1,0 +1,81 @@
+"""Generated SymPy translation of ``corpus/proj-flux_pumping/34_memo_maxwell_20260714.wl``.
+
+The assignment text is lowered by the shared deterministic translator.
+Unsupported control-flow or side-effect statements are not guessed;
+their count is recorded in translation-manifest.json.
+"""
+
+from fortsym_bench.wl_to_sympy import evaluate_assignments
+
+# NOT TRANSLATED: 42 non-assignment statement(s) remain.
+_ASSIGNMENTS = [
+    ('alpha', 'm theta + n phi', ()),
+    ('jac', 'jacobian[rho, alpha]', ()),
+    ('jphiGeneral', 'jphi[rho, alpha]', ()),
+    ('jthetaGeneral', '-n jphiGeneral/m + cSurface[rho]/jac', ()),
+    ('divergenceNumerator', 'D[jac jthetaGeneral, theta] + D[jac jphiGeneral, phi]', ()),
+    ('radiusMap', 'radius[rho, alpha]', ()),
+    ('jthetaFree', 'jtheta[rho, alpha]', ()),
+    ('jphiFree', 'jphi[rho, alpha]', ()),
+    ('jrChain', 'D[radiusMap, theta] jthetaFree +\n  D[radiusMap, phi] jphiFree', ()),
+    ('jrChainCorrect', '(m jthetaFree + n jphiFree) *\n  Derivative[0, 1][radius][rho, alpha]', ()),
+    ('jrChainPrinted', '(m jthetaFree + n jphiFree) *\n  Derivative[1, 0][radius][rho, alpha]', ()),
+    ('typoFixtureRules', '{\n  radius -> Function[{s, a}, s (1 + s Cos[a])],\n  jtheta -> Function[{s, a}, s^2 + Sin[a]],\n  jphi -> Function[{s, a}, Cos[a] - s],\n  m -> 2, n -> 1, rho -> 1/2, theta -> Pi/5, phi -> Pi/7}', ()),
+    ('phase', 'Exp[I alpha]', ()),
+    ('jphiCyl', 'current[r] phase', ()),
+    ('jthetaCyl', '-n current[r] phase/m', ()),
+    ('divJCyl', '(D[capR r jthetaCyl, theta] +\n    D[capR r jphiCyl, phi])/(capR r)', ()),
+    ('physicalJ', 'capR scriptJ[r]', ('r',)),
+    ('meanContravariant', 'D[r scriptJ[r] displacement[r] phaseCorrelation, r]/(2 r)', ()),
+    ('meanPhysicalFromMemo', 'capR meanContravariant', ()),
+    ('meanPhysicalReport', 'D[r physicalJ[r] displacement[r] phaseCorrelation, r]/(2 r)', ()),
+    ('enclosedPhysicalDerivative', '2 Pi r meanPhysicalReport', ()),
+    ('boundaryCurrentDerivative', 'D[\n  Pi r physicalJ[r] displacement[r] phaseCorrelation, r]', ()),
+    ('bphiCov', 'bphi[r] phase', ()),
+    ('bthetaCov', '(m/n) bphi[r] phase', ()),
+    ('brCov', 'br[r] phase', ()),
+    ('curlContravariant', '{\n  (D[bphiCov, theta] - D[bthetaCov, phi])/(r capR),\n  (D[brCov, phi] - D[bphiCov, r])/(r capR),\n  (D[bthetaCov, r] - D[brCov, theta])/(r capR)}', ()),
+    ('bthetaCovProse', '-(m/n) bphi[r] phase', ()),
+    ('curlRadialProse', '(D[bphiCov, theta] - D[bthetaCovProse, phi])/(r capR)', ()),
+    ('ampereSource', '4 Pi n r capR current[r]/(cl m)', ()),
+    ('phiAmpereLhs', "bphi'[r] - I n br[r]", ()),
+    ('bthetaContrav', 'bthetaCov/r^2', ()),
+    ('bphiContrav', 'bphiCov/capR^2', ()),
+    ('divB', '(D[r capR brCov, r] + D[r capR bthetaContrav, theta] +\n    D[r capR bphiContrav, phi])/(r capR)', ()),
+    ('memoDivAmplitude', 'n D[r br[r], r]/r +\n  I (m^2/r^2 + n^2/capR^2) bphi[r]', ()),
+    ('brFromAmpere', "I (ampereSource - bphi'[r])/n", ()),
+    ('covariantResidual', "D[r bphi'[r], r]/r -\n  (m^2/r^2 + n^2/capR^2) bphi[r] -\n  4 Pi n capR D[r^2 current[r], r]/(cl m r)", ()),
+    ('divAfterAmpere', 'n D[r brFromAmpere, r]/r +\n  I (m^2/r^2 + n^2/capR^2) bphi[r]', ()),
+    ('kz', 'n/capR', ()),
+    ('fourierResidual', "D[r y'[r], r]/r -\n  (m^2/r^2 + n^2/capR^2) y[r] -\n  4 Pi n D[r^2 current[r], r]/(cl m capR r)", ()),
+    ('brLocalMemo', "I capR/kz (4 Pi kz r current[r]/(cl m) - y'[r])", ()),
+    ('brIntegral', '-I capR^2 radialIntegral[r]/(n r)', ()),
+    ('integralRule', "radialIntegral'[r] ->\n  r (m^2/r^2 + n^2/capR^2) y[r]", ()),
+    ('prefactor', '4 Pi signedK kappa/(cl signedM)', ()),
+    ('green', 'prefactor (ireg[r] upperK[r] + kdec[r] lowerI[r])', ()),
+    ('momentDerivativeRules', "{\n  lowerI'[r] -> r^2 ireg'[r] current[r]/kappa,\n  upperK'[r] -> -r^2 kdec'[r] current[r]/kappa}", ()),
+    ('radialWronskian', "ireg[r] kdec'[r] - ireg'[r] kdec[r]", ()),
+    ('greenPrimeMemo', "prefactor (ireg'[r] upperK[r] +\n    kdec'[r] lowerI[r] + r current[r]/kappa)", ()),
+    ('homogeneousRules', "{\n  ireg''[r] -> -ireg'[r]/r + (ell^2/r^2 + kappa^2) ireg[r],\n  kdec''[r] -> -kdec'[r]/r + (ell^2/r^2 + kappa^2) kdec[r]}", ()),
+    ('greenSecond', 'D[greenPrimeMemo, r] /. momentDerivativeRules', ()),
+    ('greenResidual', "greenSecond + greenPrimeMemo/r -\n  (ell^2/r^2 + kappa^2) green -\n  4 Pi signedK (r current'[r] + 2 current[r])/(cl signedM)", ()),
+    ('brGreenFromAmpere', 'I capR/signedK (\n    4 Pi signedK r current[r]/(cl signedM) -\n    greenPrimeMemo)', ()),
+    ('brGreenMemo', "prefactor capR/(I signedK) (ireg'[r] upperK[r] +\n    kdec'[r] lowerI[r])", ()),
+    ('homogeneousRadialOperator', "D[r y'[r], r]/r -\n  (m^2/r^2 + n^2/capR^2) y[r]", ()),
+    ('greenPrinted', '4 Pi kappa^2/(cl signedM) *\n  (ireg[r] upperK[r] + kdec[r] lowerI[r])', ()),
+    ('greenPrintedPrime', "4 Pi kappa^2/(cl signedM) *\n  (ireg'[r] upperK[r] + kdec'[r] lowerI[r] + r current[r]/kappa)", ()),
+    ('greenPrintedSecond', 'D[greenPrintedPrime, r] /. momentDerivativeRules', ()),
+    ('greenPrintedResidual', "greenPrintedSecond + greenPrintedPrime/r -\n  (ell^2/r^2 + kappa^2) greenPrinted -\n  4 Pi signedK (r current'[r] + 2 current[r])/(cl signedM)", ()),
+    ('momentRules', "{\n  lowerMoment'[r] -> r^(ell + 1) current[r],\n  lowerMoment''[r] -> (ell + 1) r^ell current[r] +\n    r^(ell + 1) current'[r],\n  upperMoment'[r] -> -r^(1 - ell) current[r],\n  upperMoment''[r] -> -(1 - ell) r^-ell current[r] -\n    r^(1 - ell) current'[r]}", ()),
+    ('yLong', '2 Pi n/(cl signedM capR) (r^-ell lowerMoment[r] -\n    r^ell upperMoment[r])', ()),
+    ('brLong', '2 Pi I capR ell/(cl signedM r) (r^-ell lowerMoment[r] +\n    r^ell upperMoment[r])', ()),
+    ('longRadialResidual', 'D[r D[yLong, r], r]/r - ell^2 yLong/r^2 -\n  4 Pi n D[r^2 current[r], r]/(cl signedM capR r)', ()),
+    ('longAmpereResidual', 'capR^2 D[yLong, r] - I n brLong -\n  4 Pi n r capR current[r]/(cl signedM)', ()),
+    ('fixtureCurrent', 's Exp[-s]', ('s',)),
+    ('printedNegativeM', '-2 Pi (Integrate[fixtureCurrent[s], {s, 0, 1}] -\n    Integrate[s^2 fixtureCurrent[s], {s, 1, Infinity}])', ()),
+    ('correctNegativeM', '-2 Pi (Integrate[s^2 fixtureCurrent[s], {s, 0, 1}] -\n    Integrate[fixtureCurrent[s], {s, 1, Infinity}])', ()),
+    ('kernelRelativeError', 'Abs[\n  BesselI[1, 1/10] BesselK[1, 1/10]/(1/2) - 1]', ()),
+]
+
+def results():
+    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/34_memo_maxwell_20260714.wl')
