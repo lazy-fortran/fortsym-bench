@@ -121,6 +121,7 @@ fortsym-bench run                          # SymPy, Mathics, native Fortran
 fortsym-bench run corpus/mhd1d             # one project
 fortsym-bench run --backend sympy mathics fortsym-wl
 fortsym-bench run --repeat 5 --report results.json
+fortsym-bench run --jobs 4 --report results.json
 ```
 
 SymPy and Mathics reference outcomes are cached incrementally in
@@ -133,6 +134,13 @@ to the timeout that produced them. The runner version is part of the cache
 identity, so changing the Mathics wrapper cannot reuse stale results. Use
 `--refresh-reference` after upgrading an oracle, or `--no-cache` for a
 completely fresh run.
+
+Corpus scripts run concurrently (four workers by default); use `--jobs 1` for
+a serial, easier-to-reproduce timing pass. The comparison path first accepts
+identical serialized results, does not call expensive `simplify` for a
+structural mismatch, and bounds non-identical serialized operands at 4 MiB.
+An oversized operand is reported as an explicit comparison error rather than
+allowing one expanded expression to stall the complete audit.
 
 Regenerate missing Python companions with:
 
@@ -196,9 +204,11 @@ diagnostic, not evidence.
 **384 `.wl` scripts across 50 projects**, ingested 2026-08-01. Every script has
 a Python companion; the manifest distinguishes generated, hand, and preserved
 translations and counts statements that still need manual work. The latest
-60-second native sweep produced result sets for 380 scripts, timed out on 3,
-and explicitly refused one unsupported assumption construct; it had no native
-crashes.
+60-second native sweep, using four workers, produced result sets for 382
+scripts, timed out on 1, and explicitly refused 1 unsupported construct; it
+had no native crashes. The corresponding full cached audit served all 384
+SymPy and all 384 Mathics reference outcomes from cache and completed in about
+64 seconds wall time.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.

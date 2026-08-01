@@ -19,6 +19,12 @@ UNAVAILABLE = "unavailable"
 TIMEOUT = "timeout"
 UNTRANSLATED = "untranslated"
 
+# A malformed or unexpectedly expanded CAS result must not pin the whole
+# corpus audit in SymPy's parser.  Four MiB is well above every ordinary
+# result in this corpus; larger values are retained in the report as an
+# explicit comparison error unless their raw text already matches.
+MAX_COMPARISON_TEXT = 4 * 1024 * 1024
+
 
 @dataclass
 class Comparison:
@@ -54,12 +60,6 @@ def compare(candidate, reference, strictness: str) -> Comparison:
             return Comparison(ERROR, f"comparison failed: {type(exc).__name__}: {exc}")
         if equal:
             return Comparison(AGREE)
-        if _equivalent(candidate, reference):
-            return Comparison(
-                DIFFER,
-                "mathematically equivalent but structurally different; "
-                "declared strictness is 'structural'",
-            )
         try:
             detail = f"{sympy.srepr(candidate)} != {sympy.srepr(reference)}"
         except Exception as exc:
@@ -82,6 +82,49 @@ def compare(candidate, reference, strictness: str) -> Comparison:
         return Comparison(DIFFER, detail)
 
     raise ValueError(f"unknown strictness: {strictness}")
+
+
+def compare_text(
+    candidate_text: str,
+    reference_text: str,
+    syntax: str,
+    strictness: str,
+    parsed_cache: dict | None = None,
+) -> Comparison:
+    """Compare serialized results without reparsing avoidable work.
+
+    Exact serialized equality is already a stronger witness than the
+    structural comparison used below.  It is common for cached oracle output
+    and a native result to be byte-for-byte identical, so parsing both sides
+    in that case only burns time.  Conversely, a giant non-identical result is
+    reported as an explicit error instead of allowing a parser to consume
+    unbounded CPU and memory; the raw values remain available in the runner's
+    diagnostic path.
+    """
+    if candidate_text == reference_text:
+        return Comparison(AGREE)
+    largest = max(len(candidate_text), len(reference_text))
+    if largest > MAX_COMPARISON_TEXT:
+        return Comparison(
+            ERROR,
+            "comparison operand is too large to parse: "
+            f"{largest} characters exceeds {MAX_COMPARISON_TEXT}",
+        )
+
+    def parse_once(text: str):
+        if parsed_cache is None:
+            return parse(text, syntax)
+        key = (syntax, text)
+        if key not in parsed_cache:
+            parsed_cache[key] = parse(text, syntax)
+        return parsed_cache[key]
+
+    try:
+        candidate = parse_once(candidate_text)
+        reference = parse_once(reference_text)
+    except Exception as exc:
+        return Comparison(ERROR, f"unparseable: {exc}")
+    return compare(candidate, reference, strictness)
 
 
 def _equivalent(a, b) -> bool:

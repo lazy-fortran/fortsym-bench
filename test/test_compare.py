@@ -3,7 +3,15 @@ from __future__ import annotations
 import sympy as sp
 
 from fortsym_bench.cli import _score
-from fortsym_bench.compare import ERROR, ORACLE_MISSING, check_oracles, compare
+from fortsym_bench.compare import (
+    AGREE,
+    ERROR,
+    MAX_COMPARISON_TEXT,
+    ORACLE_MISSING,
+    check_oracles,
+    compare,
+    compare_text,
+)
 from fortsym_bench.backends import BACKENDS
 
 
@@ -29,3 +37,18 @@ def test_malformed_sympy_expression_is_an_error_not_a_benchmark_crash():
 
 def test_cross_oracle_booleans_are_not_treated_as_sympy_expressions():
     assert check_oracles(True, True, "structural") is None
+
+
+def test_identical_serialized_results_are_agree_without_parsing():
+    result = compare_text("x + 1", "x + 1", "inputform", "structural")
+
+    assert result.outcome == AGREE
+
+
+def test_oversized_nonidentical_result_is_bounded():
+    result = compare_text(
+        "x" * (MAX_COMPARISON_TEXT + 1), "y", "srepr", "structural"
+    )
+
+    assert result.outcome == ERROR
+    assert "too large to parse" in result.detail
