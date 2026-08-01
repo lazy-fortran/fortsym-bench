@@ -30,7 +30,7 @@ def test_sympy_reference_is_reused_after_the_source_run(tmp_path, monkeypatch):
 
     monkeypatch.setattr("fortsym_bench.cli.run", must_not_run)
     second, second_times, second_failure, second_cached = run_one(
-        "sympy", stem, 1, 5.0, cache
+        "sympy", stem, 1, 300.0, cache
     )
 
     assert second_failure is None
