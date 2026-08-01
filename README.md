@@ -1,14 +1,14 @@
 # fortsym-bench
 
-A corpus of real symbolic derivations, run across four backends and compared.
-Open-source oracles, one corpus, no duplication.
+A corpus of real symbolic derivations, run across three active backends and
+compared. Open-source oracles, one corpus, no duplication.
 
 | Backend | Reads | Role |
 |---|---|---|
 | `mathics` | `.wl` | oracle for the Wolfram-language path (GPL-3.0, subprocess) |
 | `sympy` | `.py` | oracle for the Python path (BSD-3-Clause) |
 | `fortsym-wl` | `.wl` | native Fortran Wolfram-language subset under test |
-| `fortsym-sympy` | `.py` | fortsym's SymPy subset under test |
+| `fortsym-sympy` | `.py` | optional drop-in hook; requires a separate `fortsym.sympy` package |
 
 Both correctness **and** wall time are reported, on identical inputs.
 
@@ -21,7 +21,12 @@ expanded, and one original hand translation is preserved. Unsupported control
 flow and side effects remain explicit in `translation-manifest.json`; they are
 not silently replaced with invented mathematics.
 
-For the Python path the entire difference is one line in the harness:
+The checked-in Python oracle runs the generated companions with ordinary
+SymPy. An optional `fortsym-sympy` backend can replace that module with a
+separate `fortsym.sympy` implementation when one is installed; this
+Fortran-first checkout does not ship that Python package.
+
+For that optional path the entire difference is one line in the harness:
 
 ```python
 sys.modules["sympy"] = fortsym.sympy
@@ -112,9 +117,9 @@ that is worth knowing.
 ```sh
 pip install -e '.[dev]'
 
-fortsym-bench run                          # everything, all backends
+fortsym-bench run                          # SymPy, Mathics, native Fortran
 fortsym-bench run corpus/mhd1d             # one project
-fortsym-bench run --backend sympy fortsym-sympy
+fortsym-bench run --backend sympy mathics fortsym-wl
 fortsym-bench run --repeat 5 --report results.json
 ```
 
@@ -190,7 +195,10 @@ diagnostic, not evidence.
 
 **384 `.wl` scripts across 50 projects**, ingested 2026-08-01. Every script has
 a Python companion; the manifest distinguishes generated, hand, and preserved
-translations and counts statements that still need manual work.
+translations and counts statements that still need manual work. The latest
+60-second native sweep produced result sets for 380 scripts, timed out on 3,
+and explicitly refused one unsupported assumption construct; it had no native
+crashes.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
@@ -235,6 +243,9 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 ## Status
 
 Harness runs. Corpus ingestion, persistent reference caching, complete Python
-companion coverage, and the native Fortran backend are in place. Translation
-quality and backend parity remain measured by the independent SymPy and
-Mathics runs; the report is the source of truth for current counts.
+companion inventory, and the native Fortran backend are in place. In the latest
+run all 384 SymPy and all 384 Mathics reference outcomes were served from the
+cache; native result comparison produced 324 agrees and 177 declared
+differences among parsed, overlapping bindings. Translation quality and the
+remaining backend parity work stay measured by the independent oracle report;
+the report is the source of truth for current counts.
