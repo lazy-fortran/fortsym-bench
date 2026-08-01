@@ -7,9 +7,17 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 5 non-assignment statement(s) remain.
+# NOT TRANSLATED: 10 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('Acov', '{A1cov[x1, x2], A2cov[x1, x2], A3cov[x1, x2]}*Exp[I*n*x3]', ()),
+    ('Jctr', '{J1ctr[x1, x2], J2ctr[x1, x2], J3ctr[x1, x2]}*Exp[I*n*x3]', ()),
+    ('nucov', '{{nu11[x1, x2], nu12[x1, x2], 0}, {nu21[x1, x2], nu22[x1, x2], 0}, {0, 0, nu33[x1, x2]}}', ()),
+    ('Ectr', '{{0, 1}, {-1, 0}}', ()),
+    ('Curlt', '{D[V, x2], -D[V, x1]}', ('V',)),
+    ('curlt', 'D[v[[2]], x1] - D[v[[1]], x2]', ('v',)),
+    ('Curl3', '{D[v[[3]], x2] - D[v[[2]], x3], D[v[[1]], x3] - D[v[[3]], x1], D[v[[2]], x1] - D[v[[1]], x2]}', ('v',)),
+    ('divt', 'D[v[[1]], x1] + D[v[[2]], x2]', ('v',)),
+    ('gradt', '{D[V, x1], D[V, x2]}]FullSimplify[jctr 〚 {1, 2} 〛]]                                                                                        FullSimplify[jctrt]]                                             FullSimplify[jctr 〚 3 〛]]                                                                                          FullSimplify[jctrl]]                                                                                                                                                                          FullSimplify[jctrlalt]', ('V',)),
     ('jctr', 'Curl3[nucov . Curl3[Acov] /. {n -> 0}]', ()),
 ]
 

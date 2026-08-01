@@ -7,13 +7,14 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 30 non-assignment statement(s) remain.
+# NOT TRANSLATED: 29 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('figdir', 'FileNameJoin[{DirectoryName[$InputFileName], "figures"}]', ()),
     ('$Assumptions', 'vt > 0 && nu > 0 && k > 0', ()),
     ('f0hat', 'Exp[-v^2/(2 vt^2)]/(Sqrt[2 Pi] vt)', ('v',)),
     ('integralG', 'Integrate[v^2 f0hat[v]/(I k v + nu), {v, -Infinity, Infinity},\n  Assumptions -> vt > 0 && nu > 0 && k > 0]', ()),
     ('Gfun', 'Simplify[(nu/vt^2) integralG]', ()),
+    ('Gxi', 'Simplify[Gfun /. {k -> xiv nu/vt} /. vt -> 1 /. nu -> 1]', ('xiv',)),
     ('xiHalf', 'x /. FindRoot[Gxi[x] == 1/2, {x, 0.4}]', ()),
     ('eta0', '2.41 10^-9', ()),
     ('bb0', '2.57', ()),

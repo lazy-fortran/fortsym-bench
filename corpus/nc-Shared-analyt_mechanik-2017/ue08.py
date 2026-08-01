@@ -7,9 +7,10 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 0 non-assignment statement(s) remain.
+# NOT TRANSLATED: 1 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
-    ('U', '-a/(2*m*r^n), Null, Ueff = l^2/(2*m*r^2) + U', ()),
+    ('U', '-a/(2*m*r^n)', ()),
+    ('Ueff', 'l^2/(2*m*r^2) + U', ()),
     ('dUeffdr', 'D[Ueff, r]', ()),
     ('solr0', 'Flatten[Solve[dUeffdr == 0, r]]', ()),
     ('r0', 'r /. solr0', ()),

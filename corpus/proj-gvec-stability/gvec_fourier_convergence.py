@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 12 non-assignment statement(s) remain.
+# NOT TRANSLATED: 14 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('scriptDirectory', 'DirectoryName[ExpandFileName[$InputFileName]]', ()),
     ('projectDirectory', 'FileNameJoin[{scriptDirectory, ".."}]', ()),
@@ -31,7 +31,7 @@ _ASSIGNMENTS = [
     ('plotData', 'groupData /@ groups[[All, 2]]', ()),
     ('acceptanceData', 'Transpose[{\n    truncations, ConstantArray[acceptanceTolerance, Length[truncations]]}]', ()),
     ('convergencePlot', 'ListLogPlot[\n  Append[plotData, acceptanceData],\n  Frame -> True,\n  FrameLabel -> {\n    Style["Fourier truncation  M = N", 12],\n    Style["Maximum relative reconstruction error", 12]},\n  PlotStyle -> {\n    Directive[RGBColor[0.10, 0.35, 0.70], Thick],\n    Directive[Black, Thick, Dashed],\n    Directive[RGBColor[0.65, 0.20, 0.12], Thick, DotDashed],\n    Directive[RGBColor[0.10, 0.45, 0.25], Thick, Dotted],\n    Directive[GrayLevel[0.45], Thin, Dashed]},\n  Joined -> True,\n  PlotMarkers -> {\n    {Automatic, 7}, {Automatic, 7}, {Automatic, 7}, {Automatic, 7}, None},\n  PlotLegends -> Placed[\n    LineLegend[Append[\n      groups[[All, 1]], Row[{"acceptance  ", Superscript["10", "-3"]}]]],\n    Below],\n  PlotRange -> {{2, 48}, {10^-7, 1}},\n  FrameTicks -> {{\n    Table[{10^exponent, Superscript["10", ToString[exponent]]},\n      {exponent, -7, 0}], None}, {Automatic, None}},\n  GridLines -> {None, {acceptanceTolerance}},\n  GridLinesStyle -> Directive[GrayLevel[0.65], Dashed],\n  ImageSize -> 520,\n  BaseStyle -> {FontFamily -> "Latin Modern Roman", 11}]', ()),
-    ('fieldTeX', '<|\n  "II_tz" -> "\\\\mathrm{II}_{\\\\vartheta\\\\zeta}",\n  "II_tt" -> "\\\\mathrm{II}_{\\\\vartheta\\\\vartheta}",\n  "II_zz" -> "\\\\mathrm{II}_{\\\\zeta\\\\zeta}"|>', ()),
+    ('fieldTeX', '<|\n  "II_tz" -> "\\\\mathrm{II}_{\\\\vartheta\\\\zeta}"', ()),
     ('worstFieldTeX', 'Lookup[fieldTeX, worstRow[[2]], "\\\\texttt{" <>\n    StringReplace[worstRow[[2]], "_" -> "\\\\_"] <> "}"]', ()),
     ('numberText', 'StringRiffle[{\n  "\\\\newcommand{\\\\GVECFourierHighestTruncation}{" <>\n    ToString[Last[truncations]] <> "}",\n  "\\\\newcommand{\\\\GVECFourierAcceptanceTolerance}{" <>\n    scientificTeX[acceptanceTolerance, 2] <> "}",\n  "\\\\newcommand{\\\\GVECFourierWorstField}{" <> worstFieldTeX <> "}",\n  "\\\\newcommand{\\\\GVECFourierWorstRelativeError}{" <>\n    scientificTeX[worstRow[[4]], 4] <> "}",\n  "\\\\newcommand{\\\\GVECFourierPointCount}{" <>\n    ToString[4 Last[truncations] + 1] <> "}"}, "\\n"]', ()),
 ]

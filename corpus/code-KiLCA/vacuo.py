@@ -7,11 +7,17 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 0 non-assignment statement(s) remain.
+# NOT TRANSLATED: 19 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('T', '{I*kt[r]*F3[r] - I*kz*F2[r] - I*(om/c)*B1[r], I*kz*F1[r] - D[F3[r], r] - I*(om/c)*B2[r], (1/r)*D[r*F2[r], r] - I*kt[r]*F1[r] - I*(om/c)*B3[r], I*kt[r]*B3[r] - I*kz*B2[r] + I*(oms/c)*F1[r], I*kz*B1[r] - D[B3[r], r] + I*(oms/c)*F2[r], (1/r)*D[r*B2[r], r] - I*kt[r]*B1[r] + I*(oms/c)*F3[r]}', ()),
-    ('Es', '{0, 0, 0}, Null, Es[[1]] = (-I)*kz*(C1*D[BesselI[m, gamma*r], r] + C2*D[BesselK[m, gamma*r], r]) + kt[r]*(om/c)*(C3*BesselI[m, gamma*r] + C4*BesselK[m, gamma*r]), Null, Es[[2]] = kt[r]*kz*(C1*BesselI[m, gamma*r] + C2*BesselK[m, gamma*r]) + I*(om/c)*(C3*D[BesselI[m, gamma*r], r] + C4*D[BesselK[m, gamma*r], r]), Null, Es[[3]] = gamma^2*(C1*BesselI[m, gamma*r] + C2*BesselK[m, gamma*r]), Null, Bs = {0, 0, 0}, Null, Bs[[1]] = (-kt[r])*(oms/c)*(C1*BesselI[m, gamma*r] + C2*BesselK[m, gamma*r]) - I*kz*(C3*D[BesselI[m, gamma*r], r] + C4*D[BesselK[m, gamma*r], r]), Null, Bs[[2]] = (-I)*(oms/c)*(C1*D[BesselI[m, gamma*r], r] + C2*D[BesselK[m, gamma*r], r]) + kt[r]*kz*(C3*BesselI[m, gamma*r] + C4*BesselK[m, gamma*r]), Null, Bs[[3]] = gamma^2*(C3*BesselI[m, gamma*r] + C4*BesselK[m, gamma*r]), Null, dEs = D[Es, r], Null, dBs = D[Bs, r], Null', ()),
-    ('res', 'T /. {D[F1[r], r] -> dEs[[1]], D[F2[r], r] -> dEs[[2]], D[F3[r], r] -> dEs[[3]], D[B1[r], r] -> dBs[[1]], D[B2[r], r] -> dBs[[2]], D[B3[r], r] -> dBs[[3]]}, Null, res = res /. {F1[r] -> Es[[1]], F2[r] -> Es[[2]], F3[r] -> Es[[3]], B1[r] -> Bs[[1]], B2[r] -> Bs[[2]], B3[r] -> Bs[[3]]}, Null, res = FullSimplify[res /. {kt[r] -> m/r, D[kt[r], r] -> -m/r/r, kz -> Sqrt[gamma^2 + om*(oms/c^2)]}], Null, res = Collect[res, {C1, C2, C3, C4}]', ()),
+    ('Es', '{0, 0, 0}', ()),
+    ('Bs', '{0, 0, 0}', ()),
+    ('dEs', 'D[Es, r]', ()),
+    ('dBs', 'D[Bs, r]', ()),
+    ('res', 'T /. {D[F1[r], r] -> dEs[[1]], D[F2[r], r] -> dEs[[2]], D[F3[r], r] -> dEs[[3]], D[B1[r], r] -> dBs[[1]], D[B2[r], r] -> dBs[[2]], D[B3[r], r] -> dBs[[3]]}', ()),
+    ('res', 'res /. {F1[r] -> Es[[1]], F2[r] -> Es[[2]], F3[r] -> Es[[3]], B1[r] -> Bs[[1]], B2[r] -> Bs[[2]], B3[r] -> Bs[[3]]}', ()),
+    ('res', 'FullSimplify[res /. {kt[r] -> m/r, D[kt[r], r] -> -m/r/r, kz -> Sqrt[gamma^2 + om*(oms/c^2)]}]', ()),
+    ('res', 'Collect[res, {C1, C2, C3, C4}]', ()),
 ]
 
 def results():

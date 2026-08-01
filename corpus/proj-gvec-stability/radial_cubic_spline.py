@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 27 non-assignment statement(s) remain.
+# NOT TRANSLATED: 26 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('pass', '0', ()),
     ('fail', '0', ()),
@@ -26,6 +26,7 @@ _ASSIGNMENTS = [
     ('reducedFirst', '(h1 + h2) (2 + h1/h2) m1 +\n  (h2 - h1^2/h2) m2', ()),
     ('m3Eliminated', '((h2 + h3) m2 - h3 m1)/h2', ()),
     ('reducedLast', '(h2 - h3^2/h2) m1 +\n  (h2 + h3) (2 + h3/h2) m2', ()),
+    ('polynomial', 'a0 + a1 t + a2 t^2 + a3 t^3', ('t',)),
     ('points', '{x0, x1, x2, x3}', ()),
     ('values', 'polynomial /@ points', ()),
     ('second', '(D[polynomial[t], {t, 2}] /. t -> #) & /@ points', ()),

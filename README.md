@@ -7,7 +7,7 @@ Open-source oracles, one corpus, no duplication.
 |---|---|---|
 | `mathics` | `.wl` | oracle for the Wolfram-language path (GPL-3.0, subprocess) |
 | `sympy` | `.py` | oracle for the Python path (BSD-3-Clause) |
-| `fortsym-wl` | `.wl` | fortsym's Wolfram-language subset under test |
+| `fortsym-wl` | `.wl` | native Fortran Wolfram-language subset under test |
 | `fortsym-sympy` | `.py` | fortsym's SymPy subset under test |
 
 Both correctness **and** wall time are reported, on identical inputs.
@@ -32,6 +32,13 @@ For the Wolfram path it is which interpreter is handed the same `.wl` file.
 That constraint is deliberate. A compatibility layer needing per-script edits
 reintroduces exactly the drift fortsym exists to eliminate — two copies of a
 derivation that agree today and diverge silently next year.
+
+The `fortsym-wl` executable is the native Fortran backend. It parses and
+evaluates the original `.wl` source in Fortran; it does not call Mathematica,
+Mathics, Python, or a generated per-script wrapper. Consequently all 384
+source files are exercised by the native path from the same inputs as the
+Mathics oracle. A native run can still refuse a construct or time out; those
+are reported explicitly rather than being presented as parity.
 
 ## No Wolfram product is used
 
@@ -58,7 +65,9 @@ TRANSLATION.md                     rules for translating .wl to SymPy
 The two files of a pair should expose the same result names. Generated
 companions expose every binding the shared runtime can lower and record the
 rest as explicit translation coverage, so a partial SymPy oracle cannot be
-mistaken for a complete one.
+mistaken for a complete one. The native Fortran path deliberately keeps the
+`.wl` source as its input: that is the source-level Fortran translation, while
+the Python companions are the separate SymPy translation corpus.
 
 ## Writing a corpus pair
 
@@ -124,6 +133,8 @@ Regenerate missing Python companions with:
 
 ```sh
 python tools/translate_wl_corpus.py
+# Refresh generated companions after changing the translator:
+python tools/translate_wl_corpus.py --refresh-generated
 ```
 
 Existing hand translations are preserved. Use `--force` only when deliberately
@@ -223,6 +234,7 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 ## Status
 
-Harness runs. Corpus ingestion, persistent reference caching, and complete
-companion coverage are in place. Translation quality remains measured by the
-independent SymPy and Mathics runs; tracker: `lazy-fortran/fortsym#27`.
+Harness runs. Corpus ingestion, persistent reference caching, complete Python
+companion coverage, and the native Fortran backend are in place. Translation
+quality and backend parity remain measured by the independent SymPy and
+Mathics runs; the report is the source of truth for current counts.

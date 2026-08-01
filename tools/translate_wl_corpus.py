@@ -36,13 +36,23 @@ def main() -> int:
         action="store_true",
         help="replace existing Python companions, including hand translations",
     )
+    parser.add_argument(
+        "--refresh-generated",
+        action="store_true",
+        help="rewrite generated companions while preserving hand translations",
+    )
     args = parser.parse_args()
 
     manifest = {}
     for source in sorted(args.corpus.rglob("*.wl")):
         target = source.with_suffix(".py")
         relative = source.as_posix()
-        if target.exists() and not args.force:
+        refresh_generated = (
+            args.refresh_generated
+            and target.exists()
+            and "Generated SymPy translation" in target.read_text(errors="replace")
+        )
+        if target.exists() and not args.force and not refresh_generated:
             if relative in MANUAL_TRANSLATIONS:
                 manifest[relative] = {"status": "manual", "assignments": None}
             elif "Generated SymPy translation" in target.read_text(errors="replace"):

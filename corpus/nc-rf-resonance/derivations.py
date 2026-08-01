@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 82 non-assignment statement(s) remain.
+# NOT TRANSLATED: 81 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('$failures', '0', ()),
     ('gammaOfSWR', 'Simplify[Solve[s == (1 + g)/(1 - g), g][[1, 1, 2]],\n   Assumptions -> s > 1]', ()),
@@ -27,6 +27,7 @@ _ASSIGNMENTS = [
     ('deltaInertial', 'Simplify[c/Sqrt[wpe^2 - \\[Omega]^2]]', ()),
     ('kk2', '-I \\[Omega] \\[Mu]0 \\[Sigma]', ()),
     ('bz', 'Ba BesselJ[0, kk r]/BesselJ[0, kk a]', ('r',)),
+    ('ePhiIn', 'Simplify[-(1/(\\[Mu]0 \\[Sigma])) D[bz[r], r]]', ('r',)),
     ('fluxPlasma', 'Integrate[bz[r] 2 Pi r, {r, 0, a},\n   Assumptions -> a > 0 && kk > 0]', ()),
     ('fluxPlasma', 'Simplify[fluxPlasma]', ()),
     ('zTotal', 'I \\[Omega] nn (\\[Mu]0 nn/lc) (Pi (Rc^2 - a^2) + fluxPlasma/Ba)', ()),

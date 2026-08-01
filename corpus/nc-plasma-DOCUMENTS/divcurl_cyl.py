@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 2 non-assignment statement(s) remain.
+# NOT TRANSLATED: 8 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('A', '{Ar, Ap, Az}*BesselK[l, r]*Exp[I*(m*p + n*z)]', ()),
     ('CCA', 'FullSimplify[Curl[Curl[A, {r, p, z}, "Cylindrical"], {r, p, z}, "Cylindrical"]]', ()),
@@ -22,7 +22,9 @@ _ASSIGNMENTS = [
     ('an', 'Simplify[a/Exp[I*m*p]]', ()),
     ('lt', '3', ()),
     ('mt', '1', ()),
-    ('nt', '1, Null, Jt = Simplify[J/Exp[I*m*p] /. solj /. Jr -> 1 /. Jz -> 1 /. l -> lt /. m -> mt /. n -> nt], Null, ant = an /. solj /. Jr -> 1 /. Jz -> 1 /. l -> lt /. m -> mt /. n -> nt, Null, VectorPlot[{Re[Jt[[1]]], Re[Jt[[2]]]}, {r, 1, 2}, {z, -Pi, Pi}, VectorScale -> 0.03], Null, VectorPlot[{Re[(-ant[[2]])*(I*mt)], Re[ant[[1]]*(I*mt)]}, {r, 1, 2}, {z, -Pi, Pi}, VectorScale -> 0.03]', ()),
+    ('nt', '1', ()),
+    ('Jt', 'Simplify[J/Exp[I*m*p] /. solj /. Jr -> 1 /. Jz -> 1 /. l -> lt /. m -> mt /. n -> nt]', ()),
+    ('ant', 'an /. solj /. Jr -> 1 /. Jz -> 1 /. l -> lt /. m -> mt /. n -> nt', ()),
 ]
 
 def results():

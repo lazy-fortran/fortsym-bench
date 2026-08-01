@@ -7,11 +7,15 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 4 non-assignment statement(s) remain.
+# NOT TRANSLATED: 8 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('theta', 'ArcTan[R, Z]', ()),
-    ('AR', 'aRmn*Exp[I*(m*theta + n*phi)], Null, Aphi = aphimn*Exp[I*(m*theta + n*phi)], Null, AZ = aZmn*Exp[I*(m*theta + n*phi)]', ()),
-    ('AR', 'AMPL*R*Cos[phi], Null, Aphi = (-2^(-1))*AMPL2*Z*R, Null, AZ = -Log[R]', ()),
+    ('AR', 'aRmn*Exp[I*(m*theta + n*phi)]', ()),
+    ('Aphi', 'aphimn*Exp[I*(m*theta + n*phi)]', ()),
+    ('AZ', 'aZmn*Exp[I*(m*theta + n*phi)]', ()),
+    ('AR', 'AMPL*R*Cos[phi]', ()),
+    ('Aphi', '(-2^(-1))*AMPL2*Z*R', ()),
+    ('AZ', '-Log[R]', ()),
 ]
 
 def results():

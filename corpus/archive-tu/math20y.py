@@ -7,10 +7,12 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 120 non-assignment statement(s) remain.
+# NOT TRANSLATED: 123 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
-    ('g', 'Sin[c*x], Null, c = 0.3', ('x', 'c')),
+    ('g', 'Sin[c*x]', ('x', 'c')),
+    ('c', '0.3', ()),
     ('eq', 'f1 = a + bx + (c/2)*x^2 + d*3.33*y + Pi*z^3 == 0', ()),
+    ('sig', 'FullForm[If[x > 0, 1, 0]]', ('x',)),
     ('s', 'NDSolve[{Derivative[1][y][x] == 2*y[x], y[0] == 1}, y, {x, 0, 3}]', ()),
     ('sn', '1234567890', ()),
     ('st', '"1234567890"', ()),

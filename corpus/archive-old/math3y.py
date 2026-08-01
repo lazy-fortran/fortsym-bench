@@ -50,6 +50,9 @@ _ASSIGNMENTS = [
     ('s3', 'FindRoot[p3, {x, -I}]', ()),
     ('so', '{s1, s2, s3}', ()),
     ('f', 'z^2 + Conjugate[z]', ()),
+    ('r', '{x[t], y[t]}', ('t',)),
+    ('v', 'D[r[t], t]', ('t',)),
+    ('b', 'D[v[t], t]', ('t',)),
     ('m', '1', ()),
     ('g', '10', ()),
     ('a', '0.3', ()),
@@ -59,7 +62,8 @@ _ASSIGNMENTS = [
     ('anf', '{x[0] == 0, y[0] == 0, Derivative[1][x][0] == 2, Derivative[1][y][0] == 10}', ()),
     ('sol', 'Flatten[NDSolve[Join[sys, anf], {x, y}, {t, 0, 4}]]', ()),
     ('sola', 'Flatten[NDSolve[Join[sysa, anf], {x, y}, {t, 0, 2}]]', ()),
-    ('p', 'ParametricPlot[Evaluate[{x[t], y[t]} /. sol], {t, 0, 2}], Null, pa = ParametricPlot[Evaluate[{x[t], y[t]} /. sola], {t, 0, 1.35}, PlotStyle -> Dashing[{0.01}]]', ()),
+    ('p', 'ParametricPlot[Evaluate[{x[t], y[t]} /. sol], {t, 0, 2}]', ()),
+    ('pa', 'ParametricPlot[Evaluate[{x[t], y[t]} /. sola], {t, 0, 1.35}, PlotStyle -> Dashing[{0.01}]]', ()),
 ]
 
 def results():

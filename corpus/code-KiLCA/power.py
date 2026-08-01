@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 40 non-assignment statement(s) remain.
+# NOT TRANSLATED: 42 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('S', '{{omc^2*Wf[0, 0], omc*Vth*Wf[0, 0] + omc*hth*Wf[0, 1], omc*Vz*Wf[0, 0] + omc*hz*Wf[0, 1]}, {Vth*omc*Wf[0, 0] + hth*omc*Wf[0, 1], Vth^2*Wf[0, 0] + 2*hth*Vth*Wf[0, 1] + hth^2*Wf[1, 1], Vth*Vz*Wf[0, 0] + (hth*Vz + hz*Vth)*Wf[0, 1] + hth*hz*Wf[1, 1]}, {Vz*omc*Wf[0, 0] + hz*omc*Wf[0, 1], Vth*Vz*Wf[0, 0] + (hth*Vz + hz*Vth)*Wf[0, 1] + hth*hz*Wf[1, 1], Vz^2*Wf[0, 0] + 2*hz*Vz*Wf[0, 1] + hz^2*Wf[1, 1]}}', ()),
     ('L', 'Eigenvalues[S]', ()),
@@ -18,8 +18,12 @@ _ASSIGNMENTS = [
     ('a3', 'FullSimplify[Re[J1derNC[1, 1, nu]], Assumptions -> {Element[{Vt, omega, omega0, kp}, Reals], kp > 0, Vt > 0}]', ()),
     ('TT', 'Simplify[L[[3]] /. Wf -> Wfwc, Assumptions -> Element[{Vt, omega, omega0, kp, Vth, Vz, omc, hth, hz, nu}, Reals] && kp > 0 && Vt > 0 && nu > 0]', ()),
     ('Wfnc', 'Re[J1derNC[m1, n1, nu]]', ('m1', 'n1')),
+    ('Wfwc', 'Re[J1der[m1, n1, nu]]', ('m1', 'n1')),
     ('test', 'Simplify[Tr[S] /. Wf -> Wfwc, Assumptions -> Element[{Vt, omega, omega0, kp, nu}, Reals] && kp > 0 && Vt > 0 && nu > 0]', ()),
     ('res', 'test //. {Sqrt[2*Pi] -> sqrt2p, kp^2*(Vt^2/nu^2) -> t1, ((-I)*nu*(omega - omega0) + kp^2*Vt^2)/nu^2 -> t2, (I*nu*(omega - omega0) - kp^2*Vt^2)/nu^2 -> -t2, Gamma[t2] -> Gamma[t2, t1] + gam, Exp[t1] -> Ex, t1^(-t2) -> 1/t1Pt2, omega - omega0 -> dom}', ()),
+    ('res', 'Simplify[res /. {gam -> (1/Ex)*(t1Pt2/t2)*F11}]', ()),
+    ('res', 'Simplify[res //. {t2 -> t1 - I*(dom/nu), t1 -> kp^2*(Vt^2/nu^2), omega -> dom + omega0}]', ()),
+    ('res', 'res //. {Sqrt[2*Pi] -> sqrt2p, kp^2*(Vt^2/nu^2) -> t1, ((-I)*nu*(omega - omega0) + kp^2*Vt^2)/nu^2 -> t2, (I*nu*(omega - omega0) - kp^2*Vt^2)/nu^2 -> -t2, Gamma[t2] -> Gamma[t2, t1] + gam, Exp[t1] -> Ex, t1^(-t2) -> 1/t1Pt2, omega - omega0 -> dom}', ()),
     ('qq', 'N[Re[Simplify[Button[Hypergeometric1F1, Inherited, BaseStyle -> "Link", ButtonData -> "paclet:ref/Hypergeometric1F1"][1, 1 + t1 + I*d, t1]/(t1 + I*d), Assumptions -> t1 > 0]], 20]', ()),
     ('pp', 'Re[Hypergeometric1F1[1, 1 + t1 + I*t3, t1]/(t1 + I*t3)]', ('t1', 't3')),
     ('pp', 'FullSimplify[G[w1, w2, tau, nu]*Exp[(-2^(-1))*(w2^2/Vt^2)]]', ()),

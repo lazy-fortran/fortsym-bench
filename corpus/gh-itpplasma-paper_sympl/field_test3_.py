@@ -7,10 +7,19 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 20 non-assignment statement(s) remain.
+# NOT TRANSLATED: 24 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('R', '1 + r*Cos[th]', ()),
-    ('Bthctr', 'FullSimplify[-D[Aph, r]/sqrtg], Null, Bphctr = FullSimplify[D[Ath, r]/sqrtg], Null, Bth = FullSimplify[Bthctr*gtt], Null, Bph = FullSimplify[Bphctr*gpp], Null, B = FullSimplify[Series[Sqrt[Bth*Bthctr + Bph*Bphctr], {r, 0, 1}]]', ()),
+    ('gtt', 'r^2', ()),
+    ('gpp', 'R^2', ()),
+    ('sqrtg', 'r*R', ()),
+    ('Ath', 'B0ph*(r^2/2) - (B0ph*Cos[th])*(r^3/3)', ()),
+    ('Aph', 'B0th*r', ()),
+    ('Bthctr', 'FullSimplify[-D[Aph, r]/sqrtg]', ()),
+    ('Bphctr', 'FullSimplify[D[Ath, r]/sqrtg]', ()),
+    ('Bth', 'FullSimplify[Bthctr*gtt]', ()),
+    ('Bph', 'FullSimplify[Bphctr*gpp]', ()),
+    ('B', 'FullSimplify[Series[Sqrt[Bth*Bthctr + Bph*Bphctr], {r, 0, 1}]]', ()),
     ('Bfun', '1 - r*Cos[th]', ()),
 ]
 

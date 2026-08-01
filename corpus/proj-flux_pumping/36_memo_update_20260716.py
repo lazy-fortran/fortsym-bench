@@ -7,15 +7,19 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 66 non-assignment statement(s) remain.
+# NOT TRANSLATED: 62 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('b15New', '2^(2/3) Gamma[1/6] Gamma[1/3]/(3^(5/3) Sqrt[Pi])', ()),
     ('b15Ours', '2^(1/3) Gamma[1/3]^3/(3^(7/6) Pi)', ()),
     ('b15Old', '2^(11/3) Gamma[1/3]^2/(3^(8/3) Sqrt[Pi])', ()),
     ('gammaSixth', 'Sqrt[3] Gamma[1/3]^2/(2^(1/3) Sqrt[Pi])', ()),
+    ('gaussian', 'Exp[-x^2/2]', ('x',)),
+    ('forward', 'Integrate[Exp[-I k x] gaussian[x], {x, -Infinity, Infinity}]', ('k',)),
     ('roundTrip', 'FullSimplify[\n  Integrate[Exp[I k y] forward[k], {k, -Infinity, Infinity}]/(2 Pi),\n  Element[y, Reals]]', ()),
+    ('tophat', 'UnitStep[dr - x] UnitStep[dr + x]', ('x', 'dr')),
     ('divCyl', 'D[r br0[r, m th + n ph], r]/r +\n  D[bth0[r, m th + n ph], th] + D[bph0[r, m th + n ph], ph]', ()),
     ('divHel', 'With[{s = r^2/2},\n  (D[(rr br0[rr, hp]) /. rr -> Sqrt[2 ss], ss] /. ss -> r^2/2 /. hp -> m th + n ph) +\n  (D[m bth0[r, hp] + n bph0[r, hp], hp] /. hp -> m th + n ph)]', ()),
+    ('bsF', '-Integrate[D[bpF[sp, p], p], {sp, 0, s}]', ('s', 'p')),
     ('mNum', '1', ()),
     ('nNum', '1', ()),
     ('capRNum', '5', ()),

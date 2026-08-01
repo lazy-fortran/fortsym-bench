@@ -7,8 +7,9 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 3 non-assignment statement(s) remain.
+# NOT TRANSLATED: 4 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
+    ('m', 'radObjRecMag[{0, 0, 0}, {1, 1, 1}, {-0.5, 1, 0.7}]', ()),
 ]
 
 def results():
