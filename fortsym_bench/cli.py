@@ -239,6 +239,8 @@ def _score(
         }
     scored = {}
     for key, text in results.items():
+        if key == "__compare__":
+            continue
         if key not in oracle_results:
             # The candidate can emit more bindings than a partial oracle. The
             # result is useful coverage, but it is not a scored comparison;
@@ -267,6 +269,8 @@ def _cross_check(raw: dict, strictness: dict) -> dict:
         return {}
     disagreements = {}
     for key in set(sympy_results) & set(mathics_results):
+        if key == "__compare__":
+            continue
         try:
             left = parse(sympy_results[key], "srepr")
             right = parse(mathics_results[key], "inputform")
