@@ -222,6 +222,44 @@ def compare_text(
     return compare(candidate, reference, strictness)
 
 
+def compare_cross_text(
+    candidate_text: str,
+    candidate_syntax: str,
+    reference_text: str,
+    reference_syntax: str,
+    strictness: str,
+    parsed_cache: dict | None = None,
+) -> Comparison:
+    """Compare results emitted in two different backend syntaxes.
+
+    The native Wolfram path and the SymPy path describe the same symbols but
+    serialize them differently. Parse each side with its own grammar, then
+    remove SymPy-only assumption metadata before applying the declared bar.
+    """
+    largest = max(len(candidate_text), len(reference_text))
+    if largest > MAX_COMPARISON_TEXT:
+        return Comparison(
+            ERROR,
+            "comparison operand is too large to parse: "
+            f"{largest} characters exceeds {MAX_COMPARISON_TEXT}",
+        )
+
+    def parse_once(text: str, syntax: str):
+        if parsed_cache is None:
+            return parse(text, syntax)
+        key = (syntax, text)
+        if key not in parsed_cache:
+            parsed_cache[key] = parse(text, syntax)
+        return parsed_cache[key]
+
+    try:
+        candidate = parse_once(candidate_text, candidate_syntax)
+        reference = parse_once(reference_text, reference_syntax)
+    except Exception as exc:
+        return Comparison(ERROR, f"unparseable: {exc}")
+    return compare(strip_assumptions(candidate), strip_assumptions(reference), strictness)
+
+
 def _equivalent(a, b) -> bool:
     import sympy
 

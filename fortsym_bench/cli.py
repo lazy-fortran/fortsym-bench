@@ -24,6 +24,7 @@ from .compare import (
     UNTRANSLATED,
     check_oracles,
     compare,
+    compare_cross_text,
     compare_text,
     parse,
 )
@@ -206,9 +207,19 @@ def evaluate(script: Path, args, cache: ReferenceCache | None = None) -> dict:
         oracle = "sympy" if backend.source == ".py" else "mathics"
         if name == oracle:
             continue
-        outcomes[name] = _score(
-            results, raw.get(oracle), backend, oracle, strictness, parsed_cache
-        )
+        if name == "fortsym-wl":
+            outcomes[name] = _score_against_oracles(
+                results,
+                raw.get("sympy"),
+                raw.get("mathics"),
+                backend,
+                strictness,
+                parsed_cache,
+            )
+        else:
+            outcomes[name] = _score(
+                results, raw.get(oracle), backend, oracle, strictness, parsed_cache
+            )
 
     return {
         "outcomes": outcomes,
@@ -262,6 +273,83 @@ def _score(
     return scored
 
 
+def _score_against_oracles(
+    results,
+    sympy_results,
+    mathics_results,
+    backend,
+    strictness,
+    parsed_cache=None,
+):
+    """Score the native Wolfram path against both independent references.
+
+    A binding with two disagreeing references is explicitly unscored. A
+    binding available from only one reference still provides useful coverage
+    and is compared against that reference.
+    """
+    if sympy_results is None and mathics_results is None:
+        return {
+            "__oracle__": {
+                "outcome": UNAVAILABLE,
+                "detail": "SymPy and Mathics produced no results",
+            }
+        }
+
+    scored = {}
+    for key, text in results.items():
+        if key == "__compare__":
+            continue
+        sympy_text = (
+            sympy_results.get(key) if sympy_results is not None else None
+        )
+        mathics_text = (
+            mathics_results.get(key) if mathics_results is not None else None
+        )
+        if sympy_text is None and mathics_text is None:
+            scored[key] = {
+                "outcome": ORACLE_MISSING,
+                "detail": "binding absent from both oracles; not scored",
+            }
+            continue
+
+        policy = strictness.get(key, "structural")
+        if sympy_text is not None and mathics_text is not None:
+            oracle_verdict = compare_cross_text(
+                mathics_text,
+                "inputform",
+                sympy_text,
+                "srepr",
+                policy,
+                parsed_cache,
+            )
+            if oracle_verdict.outcome != AGREE:
+                scored[key] = {
+                    "outcome": ORACLE_DISAGREEMENT,
+                    "detail": oracle_verdict.detail,
+                }
+                continue
+
+        if mathics_text is not None:
+            verdict = compare_text(
+                text,
+                mathics_text,
+                backend.syntax,
+                policy,
+                parsed_cache,
+            )
+        else:
+            verdict = compare_cross_text(
+                text,
+                backend.syntax,
+                sympy_text,
+                "srepr",
+                policy,
+                parsed_cache,
+            )
+        scored[key] = {"outcome": verdict.outcome, "detail": verdict.detail}
+    return scored
+
+
 def _cross_check(raw: dict, strictness: dict) -> dict:
     """Where the two oracles disagree, nothing is scored against either."""
     sympy_results, mathics_results = raw.get("sympy"), raw.get("mathics")
@@ -301,7 +389,9 @@ def summarise(report: dict) -> int:
                 tally[entry["outcome"]] = tally.get(entry["outcome"], 0) + 1
         for entry in script["failures"].values():
             tally[entry["outcome"]] = tally.get(entry["outcome"], 0) + 1
-        tally[ORACLE_DISAGREEMENT] += len(script["oracles"])
+        # Native outcomes carry oracle disagreement per binding. Keep the
+        # separate ``oracles`` mapping as diagnostic detail without counting
+        # those findings a second time.
 
     bindings = sum(
         len(results)
