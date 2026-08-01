@@ -203,6 +203,26 @@ def test_native_result_is_reused_until_the_executable_changes(tmp_path, monkeypa
     assert third == first
 
 
+def test_cached_oracle_result_survives_a_missing_executable(tmp_path, monkeypatch):
+    source = tmp_path / "case.wl"
+    source.write_text("answer = 2\n")
+    executable = tmp_path / "mathics"
+    executable.write_bytes(b"mathics-v1")
+    cache = ReferenceCache(tmp_path / "reference.json")
+
+    monkeypatch.setattr(
+        "fortsym_bench.cache.shutil.which", lambda name: str(executable)
+    )
+    cache.put_result(BACKENDS["mathics"], source, 300.0, {"answer": "2"})
+
+    monkeypatch.setattr("fortsym_bench.cache.shutil.which", lambda name: None)
+    reloaded = ReferenceCache(tmp_path / "reference.json")
+    cached = reloaded.get(BACKENDS["mathics"], source, 60.0)
+
+    assert cached is not None
+    assert cached.results == {"answer": "2"}
+
+
 def test_deferred_cache_updates_are_written_on_flush(tmp_path):
     source = tmp_path / "case.py"
     source.write_text(
