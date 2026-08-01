@@ -30,6 +30,7 @@ from .compare import (
 
 CORPUS = Path("corpus")
 REFERENCE_BACKENDS = frozenset(("sympy", "mathics"))
+CACHEABLE_BACKENDS = frozenset((*REFERENCE_BACKENDS, "fortsym-wl"))
 
 
 def discover(roots: list[Path]) -> list[Path]:
@@ -69,7 +70,7 @@ def run_one(
             False,
         )
 
-    if cache is not None and backend_name in REFERENCE_BACKENDS and not refresh:
+    if cache is not None and backend_name in CACHEABLE_BACKENDS and not refresh:
         cached = cache.get(backend, source, timeout)
         if cached is not None:
             return cached.results, [], cached.failure, True
@@ -80,11 +81,11 @@ def run_one(
         try:
             results, seconds = run(backend, source, timeout)
         except RunFailure as failure:
-            if cache is not None and backend_name in REFERENCE_BACKENDS:
+            if cache is not None and backend_name in CACHEABLE_BACKENDS:
                 cache.put_failure(backend, source, timeout, failure)
             return None, None, failure, False
         times.append(seconds)
-    if cache is not None and backend_name in REFERENCE_BACKENDS:
+    if cache is not None and backend_name in CACHEABLE_BACKENDS:
         cache.put_result(backend, source, timeout, results)
     return results, times, None, False
 
@@ -120,6 +121,11 @@ def main(argv: list[str] | None = None) -> int:
         "--refresh-reference",
         action="store_true",
         help="rerun reference backends and replace their cached entries",
+    )
+    runner.add_argument(
+        "--refresh-cache",
+        action="store_true",
+        help="rerun all cacheable backends and replace their cached entries",
     )
 
     args = parser.parse_args(argv)
@@ -164,7 +170,9 @@ def evaluate(script: Path, args, cache: ReferenceCache | None = None) -> dict:
             args.repeat,
             args.timeout,
             cache,
-            refresh=args.refresh_reference and name in REFERENCE_BACKENDS,
+            refresh=args.refresh_cache or (
+                args.refresh_reference and name in REFERENCE_BACKENDS
+            ),
         )
         if failure is not None:
             failures[name] = {"outcome": failure.kind, "detail": str(failure)}

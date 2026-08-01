@@ -121,3 +121,58 @@ def test_empty_wolfram_result_is_a_valid_protocol_result():
 
     assert results == {}
     assert seconds == 0.125
+
+
+def test_native_result_is_reused_until_the_executable_changes(tmp_path, monkeypatch):
+    source = tmp_path / "case.wl"
+    source.write_text("answer = 2\n")
+    executable = tmp_path / "fortsym_wl_run"
+    executable.write_bytes(b"native-v1")
+    monkeypatch.setattr(
+        "fortsym_bench.cache.shutil.which", lambda name: str(executable)
+    )
+    calls = []
+
+    def fake_run(*args, **kwargs):
+        calls.append(1)
+        return {"answer": "2"}, 0.01
+
+    monkeypatch.setattr("fortsym_bench.cli.run", fake_run)
+    cache_path = tmp_path / "reference.json"
+    cache = ReferenceCache(cache_path)
+    stem = source.with_suffix("")
+
+    first, first_times, first_failure, first_cached = run_one(
+        "fortsym-wl", stem, 1, 5.0, cache
+    )
+
+    assert first_failure is None
+    assert first_cached is False
+    assert first_times
+    assert first == {"answer": "2"}
+    assert len(calls) == 1
+
+    def must_not_run(*args, **kwargs):
+        raise AssertionError("the cached native result was executed again")
+
+    monkeypatch.setattr("fortsym_bench.cli.run", must_not_run)
+    second, second_times, second_failure, second_cached = run_one(
+        "fortsym-wl", stem, 1, 300.0, cache
+    )
+
+    assert second_failure is None
+    assert second_cached is True
+    assert second_times == []
+    assert second == first
+
+    executable.write_bytes(b"native-v2")
+    monkeypatch.setattr("fortsym_bench.cli.run", fake_run)
+    fresh_cache = ReferenceCache(cache_path)
+    third, third_times, third_failure, third_cached = run_one(
+        "fortsym-wl", stem, 1, 5.0, fresh_cache
+    )
+
+    assert third_failure is None
+    assert third_cached is False
+    assert third_times
+    assert third == first
