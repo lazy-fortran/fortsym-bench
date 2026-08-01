@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from .backends import BACKENDS, DEFAULT_BACKENDS, RunFailure, run
+from .cache import ReferenceCache
 from .compare import (
     AGREE,
     DIFFER,
@@ -24,6 +25,7 @@ from .compare import (
 )
 
 CORPUS = Path("corpus")
+REFERENCE_BACKENDS = frozenset(("sympy", "mathics"))
 
 
 def discover(roots: list[Path]) -> list[Path]:
@@ -45,11 +47,28 @@ def discover(roots: list[Path]) -> list[Path]:
     return sorted(stems)
 
 
-def run_one(backend_name: str, script: Path, repeat: int, timeout: float):
+def run_one(
+    backend_name: str,
+    script: Path,
+    repeat: int,
+    timeout: float,
+    cache: ReferenceCache | None = None,
+    refresh: bool = False,
+):
     backend = BACKENDS[backend_name]
     source = script.with_suffix(backend.source)
     if not source.exists():
-        return None, None, RunFailure("untranslated", f"no {backend.source} for {script.name}")
+        return (
+            None,
+            None,
+            RunFailure("untranslated", f"no {backend.source} for {script.name}"),
+            False,
+        )
+
+    if cache is not None and backend_name in REFERENCE_BACKENDS and not refresh:
+        cached = cache.get(backend, source, timeout)
+        if cached is not None:
+            return cached.results, [], cached.failure, True
 
     times = []
     results = None
@@ -57,9 +76,13 @@ def run_one(backend_name: str, script: Path, repeat: int, timeout: float):
         try:
             results, seconds = run(backend, source, timeout)
         except RunFailure as failure:
-            return None, None, failure
+            if cache is not None and backend_name in REFERENCE_BACKENDS:
+                cache.put_failure(backend, source, timeout, failure)
+            return None, None, failure, False
         times.append(seconds)
-    return results, times, None
+    if cache is not None and backend_name in REFERENCE_BACKENDS:
+        cache.put_result(backend, source, timeout, results)
+    return results, times, None, False
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -72,6 +95,22 @@ def main(argv: list[str] | None = None) -> int:
     runner.add_argument("--repeat", type=int, default=1)
     runner.add_argument("--timeout", type=float, default=300.0)
     runner.add_argument("--report", type=Path)
+    runner.add_argument(
+        "--cache",
+        type=Path,
+        default=Path(".cache/reference-results.json"),
+        help="reference-result cache (default: .cache/reference-results.json)",
+    )
+    runner.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="run SymPy and Mathics instead of reading or writing the cache",
+    )
+    runner.add_argument(
+        "--refresh-reference",
+        action="store_true",
+        help="rerun reference backends and replace their cached entries",
+    )
 
     args = parser.parse_args(argv)
     scripts = discover(args.paths or [CORPUS])
@@ -79,19 +118,32 @@ def main(argv: list[str] | None = None) -> int:
         print("no corpus scripts found", file=sys.stderr)
         return 2
 
-    report = {"scripts": {}}
+    cache = None
+    if not args.no_cache:
+        cache = ReferenceCache(args.cache)
+    report = {
+        "cache": None if cache is None else str(args.cache),
+        "scripts": {},
+    }
     for script in scripts:
-        report["scripts"][str(script)] = evaluate(script, args)
+        report["scripts"][str(script)] = evaluate(script, args, cache)
 
     if args.report:
         args.report.write_text(json.dumps(report, indent=1))
     return summarise(report)
 
 
-def evaluate(script: Path, args) -> dict:
+def evaluate(script: Path, args, cache: ReferenceCache | None = None) -> dict:
     raw, timing, failures = {}, {}, {}
     for name in args.backend:
-        results, times, failure = run_one(name, script, args.repeat, args.timeout)
+        results, times, failure, cached = run_one(
+            name,
+            script,
+            args.repeat,
+            args.timeout,
+            cache,
+            refresh=args.refresh_reference and name in REFERENCE_BACKENDS,
+        )
         if failure is not None:
             failures[name] = {"outcome": failure.kind, "detail": str(failure)}
             continue
@@ -99,11 +151,15 @@ def evaluate(script: Path, args) -> dict:
         # Failures never enter the timing sample. A median over only the runs
         # that happened to succeed describes a different workload than the one
         # asked for, and reads as a performance claim it cannot support.
-        timing[name] = {
-            "median": statistics.median(times),
-            "min": min(times),
-            "n": len(times),
-        }
+        timing[name] = {"cached": cached}
+        if times:
+            timing[name].update(
+                {
+                    "median": statistics.median(times),
+                    "min": min(times),
+                    "n": len(times),
+                }
+            )
 
     strictness = _strictness(raw)
     outcomes = {}
