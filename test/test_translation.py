@@ -33,6 +33,20 @@ def test_matrix_operations_and_replacement_have_independent_sympy_answers():
     )
 
 
+def test_cross_product_has_the_independent_three_vector_formula():
+    assignments, skipped = extract_assignments(
+        "value = Cross[{a, b, c}, {d, e, f}]"
+    )
+
+    assert skipped == []
+    a, b, c, d, e, f = sp.symbols("a b c d e f")
+    assert evaluate_assignments(assignments)["value"] == sp.Tuple(
+        b * f - c * e,
+        c * d - a * f,
+        a * e - b * d,
+    )
+
+
 def test_pure_functions_map_apply_and_mapthread():
     assignments, skipped = extract_assignments(
         "squares = Map[#^2 &, {1, 2, 3}]; "
