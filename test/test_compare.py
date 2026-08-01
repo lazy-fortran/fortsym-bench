@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sympy as sp
 
-from fortsym_bench.cli import _score, _strictness
+from fortsym_bench.cli import _score, _score_against_oracles, _strictness
 from fortsym_bench.compare import (
     AGREE,
     DIFFER,
@@ -11,6 +11,7 @@ from fortsym_bench.compare import (
     ORACLE_MISSING,
     check_oracles,
     compare,
+    compare_cross_text,
     compare_text,
 )
 from fortsym_bench.backends import BACKENDS
@@ -45,6 +46,42 @@ def test_compare_metadata_controls_strictness_for_the_pair():
     assert _strictness({"sympy": {"__compare__": {"value": "equivalent"}}}) == {
         "value": "equivalent"
     }
+
+
+def test_cross_language_comparison_ignores_sympy_assumption_metadata():
+    result = compare_cross_text(
+        "x",
+        "inputform",
+        "Symbol('x', real=True)",
+        "srepr",
+        "structural",
+    )
+
+    assert result.outcome == AGREE
+
+
+def test_native_score_requires_agreement_between_both_oracles():
+    scored = _score_against_oracles(
+        {"value": "1"},
+        {"value": "Integer(2)"},
+        {"value": "3"},
+        BACKENDS["fortsym-wl"],
+        {},
+    )
+
+    assert scored["value"]["outcome"] == "oracle-disagreement"
+
+
+def test_native_score_uses_a_single_available_oracle():
+    scored = _score_against_oracles(
+        {"value": "1"},
+        {"value": "Integer(1)"},
+        None,
+        BACKENDS["fortsym-wl"],
+        {},
+    )
+
+    assert scored["value"]["outcome"] == AGREE
 
 
 def test_malformed_sympy_expression_is_an_error_not_a_benchmark_crash():
