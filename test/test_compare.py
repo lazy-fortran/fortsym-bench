@@ -128,6 +128,35 @@ def test_unicode_phi_does_not_make_an_opaque_application_unparseable():
     assert result.outcome == "agree"
 
 
+def test_inputform_bare_symbols_do_not_collide_with_sympy_builtins():
+    result = compare_cross_text(
+        "beta + zeta + RR",
+        "inputform",
+        "Add(Symbol('beta'), Symbol('zeta'), Symbol('RR'))",
+        "srepr",
+        "structural",
+    )
+
+    assert result.outcome == AGREE
+
+
+def test_inputform_greek_symbols_are_safe_inside_function_arguments():
+    result = compare_text(
+        "Cos[θ] + beta",
+        "Cos[θ] + beta",
+        "inputform",
+        "structural",
+    )
+
+    assert result.outcome == AGREE
+
+
+def test_inputform_percent_output_reference_is_parseable():
+    result = compare_text("% + 1", "% + 1", "inputform", "structural")
+
+    assert result.outcome == AGREE
+
+
 def test_strings_and_first_derivatives_have_stable_comparison_atoms():
     string_result = compare_text(
         '"/tmp/native output"',

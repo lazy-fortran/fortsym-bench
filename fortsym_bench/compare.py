@@ -41,11 +41,12 @@ def parse(text: str, syntax: str):
     if syntax == "srepr":
         return sympy.sympify(text)
     if syntax == "inputform":
-        return parse_mathematica(_normalise_inputform(text))
+        normalised, restore = _normalise_inputform(text)
+        return _restore_inputform_symbols(parse_mathematica(normalised), restore)
     raise ValueError(f"unknown syntax: {syntax}")
 
 
-def _normalise_inputform(text: str) -> str:
+def _normalise_inputform(text: str) -> tuple[str, dict[str, str]]:
     """Bridge Mathics' Unicode pretty-printer to SymPy's input parser.
 
     Mathics emits these Unicode spellings for ordinary Wolfram operators in
@@ -63,7 +64,91 @@ def _normalise_inputform(text: str) -> str:
         .replace("ϕ", "phi")
     )
     text = _protect_inputform_strings(text)
-    return _normalise_derivative_calls(text)
+    text = _normalise_derivative_calls(text)
+    text, protected = _protect_inputform_greek_symbols(text)
+    return _protect_inputform_builtin_symbols(text, protected)
+
+
+def _protect_inputform_greek_symbols(text: str) -> tuple[str, dict[str, str]]:
+    protected = {}
+    pieces = []
+    start = 0
+    for match in re.finditer(r"[α-ωΑ-Ωϕ]|%[0-9]*", text):
+        replacement = f"fortsymInputSymbol{len(protected)}"
+        protected[replacement] = match.group(0)
+        pieces.append(text[start:match.start()])
+        pieces.append(replacement)
+        start = match.end()
+    pieces.append(text[start:])
+    return "".join(pieces), protected
+
+
+def _protect_inputform_builtin_symbols(
+    text: str, protected: dict[str, str]
+) -> tuple[str, dict[str, str]]:
+    """Protect bare WL symbols that SymPy's Mathematica parser predefines."""
+    import sympy
+    from sympy.parsing.mathematica import parse_mathematica
+
+    pieces = []
+    start = 0
+    identifier = re.compile(r"[A-Za-z$][A-Za-z0-9$]*")
+    for match in identifier.finditer(text):
+        name = match.group(0)
+        # A head followed by '[' is an application, not a bare symbol. String
+        # literals were replaced before this pass, so identifier matches here
+        # cannot occur inside a quoted path or message.
+        following = match.end()
+        while following < len(text) and text[following].isspace():
+            following += 1
+        if following < len(text) and text[following] == "[":
+            continue
+        try:
+            parsed = parse_mathematica(name)
+        except Exception:
+            continue
+        if isinstance(parsed, sympy.Symbol):
+            continue
+        # These are genuine Wolfram constants and should retain their parser
+        # meaning. Other names are ordinary corpus symbols that happen to
+        # collide with a SymPy helper such as beta, zeta, len, or plot.
+        if name in {
+            "True", "False", "Null", "Infinity", "ComplexInfinity",
+            "Indeterminate", "I", "E", "Pi", "Degree", "Catalan",
+            "EulerGamma", "GoldenRatio",
+        }:
+            continue
+        replacement = f"fortsymInputSymbol{len(protected)}"
+        protected[replacement] = name
+        pieces.append(text[start:match.start()])
+        pieces.append(replacement)
+        start = match.end()
+    pieces.append(text[start:])
+    return "".join(pieces), protected
+
+
+def _restore_inputform_symbols(expression, protected: dict[str, str]):
+    import sympy
+
+    if not protected or not isinstance(expression, sympy.Basic):
+        return expression
+    if isinstance(expression, sympy.Symbol):
+        name = protected.get(str(expression))
+        return sympy.Symbol(name) if name is not None else expression
+    try:
+        arguments = tuple(expression.args)
+    except TypeError:
+        return expression
+    restored = tuple(_restore_inputform_symbols(argument, protected) for argument in arguments)
+    if restored == arguments:
+        return expression
+    try:
+        return expression.func(*restored)
+    except Exception:
+        try:
+            return expression.func(*restored, evaluate=False)
+        except Exception:
+            return expression
 
 
 def _protect_inputform_strings(text: str) -> str:
