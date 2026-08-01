@@ -51,7 +51,11 @@ BACKENDS = {
     )
 }
 
-DEFAULT_BACKENDS = ("sympy", "fortsym-sympy", "mathics", "fortsym-wl")
+# The checked-in implementation is the Fortran backend plus the two
+# independent Python/Wolfram oracles. Keep the optional drop-in hook available
+# without making the default run report 384 artificial "unavailable" results
+# when no separate ``fortsym.sympy`` package is installed.
+DEFAULT_BACKENDS = ("sympy", "mathics", "fortsym-wl")
 
 
 class RunFailure(Exception):
