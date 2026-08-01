@@ -21,6 +21,7 @@ from threading import RLock
 from .backends import Backend, RunFailure
 
 CACHE_VERSION = 1
+COMPARISON_CACHE_VERSION = 1
 
 
 @dataclass(frozen=True)
@@ -288,3 +289,118 @@ class ReferenceCache:
 
 def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+class ComparisonCache:
+    """Persist parsed comparison verdicts independently of raw backend rows."""
+
+    def __init__(self, path: Path, *, autosave: bool = True):
+        self.path = Path(path)
+        self.autosave = autosave
+        self._lock = RLock()
+        self._entries: dict[str, dict[str, str]] = {}
+        self._load()
+
+    def get(
+        self,
+        candidate_text: str,
+        candidate_syntax: str,
+        reference_text: str,
+        reference_syntax: str,
+        strictness: str,
+    ) -> tuple[str, str] | None:
+        with self._lock:
+            entry = self._entries.get(
+                self._key(
+                    candidate_text,
+                    candidate_syntax,
+                    reference_text,
+                    reference_syntax,
+                    strictness,
+                )
+            )
+            if entry is None:
+                return None
+            outcome, detail = entry.get("outcome"), entry.get("detail")
+            if not isinstance(outcome, str) or not isinstance(detail, str):
+                return None
+            return outcome, detail
+
+    def put(
+        self,
+        candidate_text: str,
+        candidate_syntax: str,
+        reference_text: str,
+        reference_syntax: str,
+        strictness: str,
+        outcome: str,
+        detail: str,
+    ) -> None:
+        with self._lock:
+            self._entries[
+                self._key(
+                    candidate_text,
+                    candidate_syntax,
+                    reference_text,
+                    reference_syntax,
+                    strictness,
+                )
+            ] = {"outcome": outcome, "detail": detail}
+            if self.autosave:
+                self._save()
+
+    def flush(self) -> None:
+        with self._lock:
+            self._save()
+
+    def _load(self) -> None:
+        if not self.path.exists():
+            return
+        try:
+            payload = json.loads(self.path.read_text())
+            if payload.get("version") != COMPARISON_CACHE_VERSION:
+                return
+            entries = payload.get("entries")
+            if isinstance(entries, dict):
+                self._entries = entries
+        except (OSError, json.JSONDecodeError, AttributeError):
+            self._entries = {}
+
+    def _save(self) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        fd, temporary = tempfile.mkstemp(
+            prefix=f".{self.path.name}.",
+            suffix=".tmp",
+            dir=self.path.parent,
+        )
+        try:
+            with os.fdopen(fd, "w") as stream:
+                json.dump(
+                    {"version": COMPARISON_CACHE_VERSION, "entries": self._entries},
+                    stream,
+                    indent=1,
+                    sort_keys=True,
+                )
+                stream.write("\n")
+            os.replace(temporary, self.path)
+        finally:
+            if os.path.exists(temporary):
+                os.unlink(temporary)
+
+    @staticmethod
+    def _key(
+        candidate_text: str,
+        candidate_syntax: str,
+        reference_text: str,
+        reference_syntax: str,
+        strictness: str,
+    ) -> str:
+        identity = {
+            "version": COMPARISON_CACHE_VERSION,
+            "candidate_sha256": _sha256(candidate_text.encode()),
+            "candidate_syntax": candidate_syntax,
+            "reference_sha256": _sha256(reference_text.encode()),
+            "reference_syntax": reference_syntax,
+            "strictness": strictness,
+        }
+        return hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
