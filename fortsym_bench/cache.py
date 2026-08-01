@@ -39,7 +39,13 @@ class ReferenceCache:
     def get(
         self, backend: Backend, source: Path, timeout: float
     ) -> CachedReference | None:
-        entry = self._entries.get(self._key(backend, source, timeout))
+        entry = self._entries.get(self._key(backend, source))
+        if entry is None:
+            # Cache files written by version 1 included the timeout in their
+            # key. Read those entries during the transition so a long seed
+            # run is not discarded merely because the next pass uses its
+            # normal timeout.
+            entry = self._entries.get(self._legacy_key(backend, source, timeout))
         if entry is None:
             return None
         if entry.get("outcome") == "ok":
@@ -53,6 +59,8 @@ class ReferenceCache:
                 kind = failure.get("kind")
                 detail = failure.get("detail")
                 if isinstance(kind, str) and isinstance(detail, str):
+                    if kind == "timeout" and entry.get("timeout") != timeout:
+                        return None
                     return CachedReference(failure=RunFailure(kind, detail))
         return None
 
@@ -63,7 +71,7 @@ class ReferenceCache:
         timeout: float,
         results: dict,
     ) -> None:
-        self._entries[self._key(backend, source, timeout)] = {
+        self._entries[self._key(backend, source)] = {
             "backend": backend.name,
             "source": self._display_source(source),
             "source_sha256": _sha256(source.read_bytes()),
@@ -80,7 +88,7 @@ class ReferenceCache:
         timeout: float,
         failure: RunFailure,
     ) -> None:
-        self._entries[self._key(backend, source, timeout)] = {
+        self._entries[self._key(backend, source)] = {
             "backend": backend.name,
             "source": self._display_source(source),
             "source_sha256": _sha256(source.read_bytes()),
@@ -126,7 +134,21 @@ class ReferenceCache:
             if os.path.exists(temporary):
                 os.unlink(temporary)
 
-    def _key(self, backend: Backend, source: Path, timeout: float) -> str:
+    def _key(self, backend: Backend, source: Path) -> str:
+        identity = {
+            "backend": backend.name,
+            "source_kind": backend.source,
+            "syntax": backend.syntax,
+            "command": backend.command,
+            "source": self._display_source(source),
+            "source_sha256": _sha256(source.read_bytes()),
+        }
+        encoded = json.dumps(identity, sort_keys=True).encode()
+        return hashlib.sha256(encoded).hexdigest()
+
+    def _legacy_key(
+        self, backend: Backend, source: Path, timeout: float
+    ) -> str:
         identity = {
             "backend": backend.name,
             "source_kind": backend.source,
