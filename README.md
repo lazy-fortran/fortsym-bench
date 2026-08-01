@@ -7,8 +7,8 @@ Open-source oracles, one corpus, no duplication.
 |---|---|---|
 | `mathics` | `.wl` | oracle for the Wolfram-language path (GPL-3.0, subprocess) |
 | `sympy` | `.py` | oracle for the Python path (BSD-3-Clause) |
-| `fortsym-wl` | `.wl` | fortsym's `wolfram_input` dialect under test |
-| `fortsym-sympy` | `.py` | fortsym's SymPy drop-in layer under test |
+| `fortsym-wl` | `.wl` | fortsym's Wolfram-language subset under test |
+| `fortsym-sympy` | `.py` | fortsym's SymPy subset under test |
 
 Both correctness **and** wall time are reported, on identical inputs.
 
@@ -118,7 +118,9 @@ Every (script, result, backend) lands in exactly one class:
 - `differ` — produced an answer, and it is wrong. The interesting one.
 - `unsupported` — the backend declined, naming the construct. Expected for most
   of the corpus today; the count going down is the measurement.
-- `error` — crashed or timed out.
+- `unavailable` — the backend is not installed. Never folded into a scored
+  class: an absent oracle that shrinks the denominator overstates every rate.
+- `error` / `timeout` — crashed, or exceeded the limit.
 - `oracle-disagreement` — Mathics and SymPy do not agree with each other. Under
   investigation; fortsym is not scored on these.
 

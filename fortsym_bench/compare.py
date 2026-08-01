@@ -74,6 +74,25 @@ def _equivalent(a, b) -> bool:
         return False
 
 
+def strip_assumptions(expr):
+    """Drop SymPy assumption metadata from every symbol in ``expr``.
+
+    Only ever used when comparing *across* languages. A Wolfram symbol carries
+    no assumptions, so ``Symbol('x')`` and ``Symbol('x', real=True)`` are the
+    same symbol as far as the two oracles can possibly agree — comparing the
+    metadata would report a difference in SymPy's representation as if it were a
+    difference in the mathematics.
+
+    Within one language the metadata is meaningful and is left alone.
+    """
+    import sympy
+
+    replacements = {
+        s: sympy.Symbol(s.name) for s in expr.free_symbols if s.assumptions0
+    }
+    return expr.subs(replacements, simultaneous=True) if replacements else expr
+
+
 def check_oracles(sympy_value, mathics_value, strictness: str) -> Comparison | None:
     """Cross-check the two oracles against each other.
 
@@ -83,7 +102,9 @@ def check_oracles(sympy_value, mathics_value, strictness: str) -> Comparison | N
     """
     if sympy_value is None or mathics_value is None:
         return None
-    result = compare(mathics_value, sympy_value, strictness)
+    result = compare(
+        strip_assumptions(mathics_value), strip_assumptions(sympy_value), strictness
+    )
     if result.outcome is AGREE or result.outcome == AGREE:
         return None
     return Comparison(ORACLE_DISAGREEMENT, result.detail)

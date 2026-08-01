@@ -42,9 +42,9 @@ BACKENDS = {
         Backend("sympy", ".py", "srepr", is_oracle=True),
         Backend("fortsym-sympy", ".py", "srepr"),
         Backend("mathics", ".wl", "inputform", is_oracle=True,
-                command=("mathics", "-e")),
+                command=("mathics", "-q", "--no-readline", "-c")),
         Backend("fortsym-wl", ".wl", "inputform",
-                command=("fortsym-wl",)),
+                command=("fortsym-wl", "-c")),
     )
 }
 
@@ -74,7 +74,8 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
     env = dict(os.environ, PYTHONHASHSEED="0")
     try:
         proc = subprocess.run(
-            argv, capture_output=True, text=True, timeout=timeout, env=env
+            argv, capture_output=True, text=True, timeout=timeout, env=env,
+            stdin=subprocess.DEVNULL,
         )
     except subprocess.TimeoutExpired:
         raise RunFailure("timeout", f"exceeded {timeout}s") from None
@@ -96,6 +97,9 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
             kind = "unavailable"
         raise RunFailure(kind, stderr.splitlines()[-1] if stderr else "no output")
 
+    if backend.syntax == "inputform":
+        return _parse_wolfram_output(proc.stdout)
+
     try:
         payload = json.loads(proc.stdout)
     except json.JSONDecodeError:
@@ -105,9 +109,29 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
 
 
 def _wolfram_argv(backend: Backend, script: Path) -> list[str]:
-    """Wrap a .wl corpus file so it prints its result association as text."""
+    """Wrap a .wl corpus file so it prints one result per line.
+
+    Deliberately not printing the association itself: Mathics renders ``->``
+    inside an association as U+21FE, which is not the textual syntax any parser
+    expects. One flat ``R<TAB>name<TAB>value`` line per result sidesteps the
+    pretty-printer entirely, and keeps the corpus file free of harness noise.
+    """
     wrapper = (
-        f'Get["{script}"]; '
-        'Print[ToString[InputForm[fortsymBenchResults]]]'
+        f'{{fsTime, fsRes}} = AbsoluteTiming[Get["{script}"]; fortsymBenchResults]; '
+        'Scan[Print["R\t", #, "\t", ToString[InputForm[fsRes[#]]]] &, Keys[fsRes]]; '
+        'Print["T\t", fsTime]'
     )
     return [*backend.command, wrapper]
+
+
+def _parse_wolfram_output(stdout: str) -> tuple[dict, float]:
+    results, seconds = {}, 0.0
+    for line in stdout.splitlines():
+        parts = line.split("\t")
+        if parts[0] == "R" and len(parts) >= 3:
+            results[parts[1].strip()] = "\t".join(parts[2:]).strip()
+        elif parts[0] == "T" and len(parts) >= 2:
+            seconds = float(parts[1].strip())
+    if not results:
+        raise RunFailure("error", f"no results parsed from: {stdout[:200]}")
+    return results, seconds

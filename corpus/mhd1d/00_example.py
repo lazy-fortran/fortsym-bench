@@ -13,5 +13,7 @@ def results():
         "pythagorean": sp.simplify(sp.sin(x) ** 2 + sp.cos(x) ** 2),
         "derivative": sp.diff(sp.exp(x * y), x),
         "exact_rational": sp.Rational(1, 3) + sp.Rational(1, 6),
-        "series": sp.series(sp.exp(x), x, 0, 4).removeO(),
+        # Wolfram's Series[..., {x, 0, 4}] includes the x^4 term; SymPy's
+        # series(..., 4) stops before it. See TRANSLATION.md.
+        "series": sp.series(sp.exp(x), x, 0, 5).removeO(),
     }
