@@ -157,6 +157,28 @@ def test_inputform_percent_output_reference_is_parseable():
     assert result.outcome == AGREE
 
 
+def test_inputform_wolfram_numeric_and_named_character_spellings_parse():
+    result = compare_text(
+        "List[3.0*^-2, \\[Omega]]",
+        "List[0.03, Omega]",
+        "inputform",
+        "structural",
+    )
+
+    assert result.outcome == AGREE
+
+
+def test_inputform_empty_applications_are_bounded_opaque_values():
+    result = compare_text(
+        "Directory[]",
+        "Directory[] + 1",
+        "inputform",
+        "structural",
+    )
+
+    assert result.outcome == "differ"
+
+
 def test_strings_and_first_derivatives_have_stable_comparison_atoms():
     string_result = compare_text(
         '"/tmp/native output"',

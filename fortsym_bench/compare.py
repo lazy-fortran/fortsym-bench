@@ -65,6 +65,18 @@ def _normalise_inputform(text: str) -> tuple[str, dict[str, str]]:
     )
     text = _protect_inputform_strings(text)
     text = _normalise_derivative_calls(text)
+    text = re.sub(
+        r"(\d+(?:\.\d*)?|\.\d+)\*\^([+-]?\d+)",
+        r"\1*10^(\2)",
+        text,
+    )
+    text = re.sub(r"([eE][+-]?)0+(\d+)", r"\1\2", text)
+    text = re.sub(r"\\\[([A-Za-z][A-Za-z0-9]*)\]", r"\1", text)
+    text = re.sub(
+        r"\b([A-Za-z$][A-Za-z0-9$]*)\s*\[\s*\]",
+        lambda match: "fortsymInputEmpty" + match.group(1),
+        text,
+    )
     text, protected = _protect_inputform_greek_symbols(text)
     return _protect_inputform_builtin_symbols(text, protected)
 
@@ -106,7 +118,7 @@ def _protect_inputform_builtin_symbols(
         try:
             parsed = parse_mathematica(name)
         except Exception:
-            continue
+            parsed = None
         if isinstance(parsed, sympy.Symbol):
             continue
         # These are genuine Wolfram constants and should retain their parser
