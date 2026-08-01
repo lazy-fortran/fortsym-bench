@@ -118,6 +118,9 @@ Every (script, result, backend) lands in exactly one class:
 - `differ` — produced an answer, and it is wrong. The interesting one.
 - `unsupported` — the backend declined, naming the construct. Expected for most
   of the corpus today; the count going down is the measurement.
+- `untranslated` — the corpus entry has no source file for that backend. Most
+  of the corpus is `.wl`-only today; tracked separately so an untranslated
+  corpus cannot move a pass rate in either direction.
 - `unavailable` — the backend is not installed. Never folded into a scored
   class: an absent oracle that shrinks the denominator overstates every rate.
 - `error` / `timeout` — crashed, or exceeded the limit.
@@ -144,7 +147,38 @@ Read `doc/benchmarks.md` in the fortsym repository before quoting any number
 from here: a run without pinned CPU affinity and a fixed frequency governor is
 diagnostic, not evidence.
 
+## Corpus inventory
+
+**359 `.wl` scripts across 50 projects**, ingested 2026-08-01. One has a SymPy
+translation; the rest are Wolfram-only and run the Mathics path today.
+
+Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
+repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
+Of these, 235 were converted from `.nb` notebooks (7278 input cells, 77 —
+about 1.1% — failed to convert and are marked `(* UNCONVERTED CELL *)` in
+place). 77 byte-identical duplicates and 14 empty results were dropped during
+ingest.
+
+Largest projects: `gvec-stability` 47, `flux_pumping` 44, `neort-proofs` 32,
+`cpp-derivation` 18, `plasma/DOCUMENTS` 20, `paper_magnetic` 12, `KiLCA` 9.
+
+### Converting notebooks
+
+`tools/nb2wl.wls` extracts Input cells as InputForm text and discards output
+cells, formatting and stored results — the corpus wants the derivation, not one
+machine's record of having run it. Cells are held during conversion so nothing
+recomputes and a cell that errors still converts.
+
+```sh
+NB_MANIFEST=manifest.tsv wolfram -script tools/nb2wl.wls
+```
+
+This is a format conversion, not a computation: it produces no mathematical
+result that fortsym relies on. Nothing in fortsym's build, tests or CI runs it,
+and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
+§5 in the fortsym repository.
+
 ## Status
 
-Early. The harness runs; the corpus is being translated. Tracker:
+Harness runs. Corpus ingested; translation to SymPy is the open work. Tracker:
 `lazy-fortran/fortsym#27`.

@@ -16,6 +16,7 @@ ERROR = "error"
 ORACLE_DISAGREEMENT = "oracle-disagreement"
 UNAVAILABLE = "unavailable"
 TIMEOUT = "timeout"
+UNTRANSLATED = "untranslated"
 
 
 @dataclass

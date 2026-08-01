@@ -1,0 +1,1 @@
+gauge = FullSimplify[{D[uz[x, y], x], D[uz[x, y], y], I*k*uz[x, y]}], Null, FullSimplify[Grad[((vx[x, y] + gauge[[1]])^2 + (vy[x, y] + gauge[[2]])^2 + uz[x, y]^2)*Exp[2*I*(k*z - om*t)], {x, y, z}]]/(2*E^(2*I*((-om)*t + k*z)))

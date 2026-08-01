@@ -17,6 +17,7 @@ from .compare import (
     TIMEOUT,
     UNAVAILABLE,
     UNSUPPORTED,
+    UNTRANSLATED,
     check_oracles,
     compare,
     parse,
@@ -26,23 +27,29 @@ CORPUS = Path("corpus")
 
 
 def discover(roots: list[Path]) -> list[Path]:
-    """Corpus pairs, keyed by the .py translation.
+    """Corpus entries, keyed by extension-less stem path.
 
-    A pair needs both files. A lone .wl has not been translated yet and a lone
-    .py has lost its original; either way the four-way comparison cannot run,
-    and reporting it as a pass would be a lie about coverage.
+    An entry may have a .wl, a .py, or both. Most of the corpus is .wl only
+    today — ingested from the original derivations and not yet translated — and
+    those still run the Wolfram path against Mathics. A backend whose source
+    file is absent reports `untranslated`, which is tracked separately from
+    every scored class so an untranslated corpus cannot inflate or deflate a
+    pass rate.
     """
-    scripts = []
+    stems = set()
     for root in roots:
-        scripts.extend(sorted(root.rglob("*.py")) if root.is_dir() else [root])
-    return [s for s in scripts if not s.name.startswith("_")]
+        found = sorted(root.rglob("*")) if root.is_dir() else [root]
+        for f in found:
+            if f.suffix in (".py", ".wl") and not f.name.startswith("_"):
+                stems.add(f.with_suffix(""))
+    return sorted(stems)
 
 
 def run_one(backend_name: str, script: Path, repeat: int, timeout: float):
     backend = BACKENDS[backend_name]
     source = script.with_suffix(backend.source)
     if not source.exists():
-        return None, None, RunFailure("error", f"missing {source.name}")
+        return None, None, RunFailure("untranslated", f"no {backend.source} for {script.name}")
 
     times = []
     results = None
@@ -161,8 +168,8 @@ def _cross_check(raw: dict, strictness: dict) -> dict:
 
 
 def summarise(report: dict) -> int:
-    tally = {AGREE: 0, DIFFER: 0, UNSUPPORTED: 0, UNAVAILABLE: 0,
-             TIMEOUT: 0, ERROR: 0, ORACLE_DISAGREEMENT: 0}
+    tally = {AGREE: 0, DIFFER: 0, UNSUPPORTED: 0, UNTRANSLATED: 0,
+             UNAVAILABLE: 0, TIMEOUT: 0, ERROR: 0, ORACLE_DISAGREEMENT: 0}
     for script in report["scripts"].values():
         for results in script["outcomes"].values():
             for entry in results.values():
