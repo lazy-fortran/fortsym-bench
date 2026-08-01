@@ -283,7 +283,7 @@ def strip_assumptions(expr):
     """
     import sympy
 
-    if not hasattr(expr, "args"):
+    if not isinstance(expr, sympy.Basic):
         return expr
     if isinstance(expr, sympy.Symbol):
         return sympy.Symbol(expr.name) if expr.assumptions0 else expr
@@ -291,8 +291,12 @@ def strip_assumptions(expr):
     # ``Tuple.subs`` can fail when one of its members is an opaque applied
     # function containing an assumed symbol. Rebuild the small expression tree
     # instead of asking SymPy to substitute through that mixed container.
-    arguments = tuple(strip_assumptions(argument) for argument in expr.args)
-    if arguments == expr.args:
+    try:
+        raw_arguments = tuple(expr.args)
+    except TypeError:
+        return expr
+    arguments = tuple(strip_assumptions(argument) for argument in raw_arguments)
+    if arguments == raw_arguments:
         return expr
     try:
         return expr.func(*arguments)
