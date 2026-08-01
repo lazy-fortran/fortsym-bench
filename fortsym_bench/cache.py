@@ -38,8 +38,9 @@ class CachedReference:
 class ReferenceCache:
     """Read and atomically update cached reference-backend outcomes."""
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, *, autosave: bool = True):
         self.path = Path(path)
+        self.autosave = autosave
         self._lock = RLock()
         self._entries: dict[str, dict] = {}
         self._backend_fingerprints: dict[str, str] = {}
@@ -121,7 +122,8 @@ class ReferenceCache:
                 "outcome": "ok",
                 "results": results,
             }
-            self._save()
+            if self.autosave:
+                self._save()
 
     def put_failure(
         self,
@@ -141,6 +143,12 @@ class ReferenceCache:
                 "outcome": "failure",
                 "failure": {"kind": failure.kind, "detail": str(failure)},
             }
+            if self.autosave:
+                self._save()
+
+    def flush(self) -> None:
+        """Persist deferred updates as one atomic cache replacement."""
+        with self._lock:
             self._save()
 
     def _load(self) -> None:

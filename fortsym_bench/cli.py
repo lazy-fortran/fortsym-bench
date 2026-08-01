@@ -138,7 +138,12 @@ def main(argv: list[str] | None = None) -> int:
 
     cache = None
     if not args.no_cache:
-        cache = ReferenceCache(args.cache)
+        # Corpus workers update the cache in memory. Writing the complete JSON
+        # document for every native result is needlessly expensive when a
+        # result contains a large expanded expression; one atomic flush after
+        # the pass keeps the cache durable without serialising that document
+        # hundreds of times.
+        cache = ReferenceCache(args.cache, autosave=False)
     report = {
         "cache": None if cache is None else str(args.cache),
         "scripts": {},
@@ -154,6 +159,9 @@ def main(argv: list[str] | None = None) -> int:
             ]
             for script, future in pending:
                 report["scripts"][str(script)] = future.result()
+
+    if cache is not None:
+        cache.flush()
 
     if args.report:
         args.report.write_text(json.dumps(report, indent=1))

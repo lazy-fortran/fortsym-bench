@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fortsym_bench.backends import Backend, RunFailure, _parse_wolfram_output
+from fortsym_bench.backends import (
+    BACKENDS,
+    Backend,
+    RunFailure,
+    _parse_wolfram_output,
+)
 from fortsym_bench.cache import ReferenceCache
 from fortsym_bench.cli import run_one
 
@@ -176,3 +181,26 @@ def test_native_result_is_reused_until_the_executable_changes(tmp_path, monkeypa
     assert third_cached is False
     assert third_times
     assert third == first
+
+
+def test_deferred_cache_updates_are_written_on_flush(tmp_path):
+    source = tmp_path / "case.py"
+    source.write_text(
+        "import sympy as sp\n"
+        "def results():\n"
+        "    return {'answer': sp.Integer(4)}\n"
+    )
+    path = tmp_path / "reference.json"
+    cache = ReferenceCache(path, autosave=False)
+    stem = source.with_suffix("")
+
+    first, _, failure, _ = run_one("sympy", stem, 1, 5.0, cache)
+    assert failure is None
+    assert first["answer"] == "Integer(4)"
+    assert not path.exists()
+
+    cache.flush()
+    loaded = ReferenceCache(path)
+    cached = loaded.get(BACKENDS["sympy"], source, 300.0)
+    assert cached is not None
+    assert cached.results == first
