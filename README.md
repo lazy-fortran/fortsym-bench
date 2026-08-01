@@ -222,9 +222,9 @@ non-empty results and 38 valid empty result sets), timed out on 1, and
 explicitly refused 2 unsupported constructs; it had no native crashes. The
 same compact cache contains 359 completed SymPy rows (332 non-empty, 27 empty,
 7 timeouts, 18 refusals) and 235 completed Mathics rows (208 non-empty, 27
-empty, 117 errors, 32 timeouts). The final binding-level audit has 3,057
-agreements, 849 declared differences, 20 unsupported outcomes, 40 timeouts,
-135 errors, 197 oracle disagreements, and 798 oracle-missing bindings. Its
+empty, 117 errors, 32 timeouts). The final binding-level audit has 3,102
+agreements, 806 declared differences, 20 unsupported outcomes, 40 timeouts,
+135 errors, 197 oracle disagreements, and 802 oracle-missing bindings. Its
 warm run takes about 1.8 seconds.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
@@ -271,8 +271,8 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The latest full run produced 3,057 agreements, 849 declared
+place. The latest full run produced 3,102 agreements, 806 declared
 differences, 20 unsupported outcomes, 40 timeouts, 135 errors, 197 oracle
-disagreements, and 798 oracle-missing bindings. Translation quality and the
+disagreements, and 802 oracle-missing bindings. Translation quality and the
 remaining backend parity work stay measured by the independent oracle report;
 the report is the source of truth for current counts.
