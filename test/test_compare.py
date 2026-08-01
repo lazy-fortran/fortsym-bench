@@ -84,6 +84,49 @@ def test_unevaluated_sympy_first_derivative_matches_wolfram_derivative_node():
     assert result.outcome == AGREE
 
 
+def test_unevaluated_higher_and_mixed_derivatives_use_the_same_indices():
+    second = compare_cross_text(
+        "Derivative[2][f][x]",
+        "inputform",
+        "Derivative(Function('f')(Symbol('x')), Tuple(Symbol('x'), Integer(2)))",
+        "srepr",
+        "structural",
+    )
+    mixed = compare_cross_text(
+        "Derivative[1, 1][f][x, y]",
+        "inputform",
+        "Derivative(Function('f')(Symbol('x'), Symbol('y')), Symbol('x'), Symbol('y'))",
+        "srepr",
+        "structural",
+    )
+
+    assert second.outcome == AGREE
+    assert mixed.outcome == AGREE
+
+
+def test_unevaluated_repeated_partial_derivative_keeps_the_coordinate_index():
+    result = compare_cross_text(
+        "Derivative[0, 2][f][x, y]",
+        "inputform",
+        "Derivative(Function('f')(Symbol('x'), Symbol('y')), Tuple(Symbol('y'), Integer(2)))",
+        "srepr",
+        "structural",
+    )
+
+    assert result.outcome == AGREE
+
+
+def test_native_repeated_single_argument_derivative_matches_wolfram_prime():
+    result = compare_text(
+        "Derivative2[x, 1, 1, t]",
+        "Derivative[2][x][t]",
+        "inputform",
+        "structural",
+    )
+
+    assert result.outcome == AGREE
+
+
 def test_native_score_requires_agreement_between_both_oracles():
     scored = _score_against_oracles(
         {"value": "1"},
