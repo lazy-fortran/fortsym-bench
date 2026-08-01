@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fortsym-bench"
+version = "0.1.0"
+description = "Correctness and performance corpus for fortsym against SymPy and Mathics"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+dependencies = ["sympy>=1.12"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+mathics = ["Mathics3>=6"]
+
+[project.scripts]
+fortsym-bench = "fortsym_bench.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["fortsym_bench*"]

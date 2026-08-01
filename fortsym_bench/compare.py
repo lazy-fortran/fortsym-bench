@@ -1,0 +1,89 @@
+"""Normalise results from every backend into SymPy objects and compare them.
+
+One parser per syntax, in one place. The Python backends emit SymPy's ``srepr``;
+the Wolfram backends emit ``InputForm``, read by ``sympy.parsing.mathematica``.
+Both parsers are BSD SymPy, so the comparison path carries no licence question.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+AGREE = "agree"
+DIFFER = "differ"
+UNSUPPORTED = "unsupported"
+ERROR = "error"
+ORACLE_DISAGREEMENT = "oracle-disagreement"
+UNAVAILABLE = "unavailable"
+TIMEOUT = "timeout"
+
+
+@dataclass
+class Comparison:
+    outcome: str
+    detail: str = ""
+
+
+def parse(text: str, syntax: str):
+    import sympy
+    from sympy.parsing.mathematica import parse_mathematica
+
+    if syntax == "srepr":
+        return sympy.sympify(text)
+    if syntax == "inputform":
+        return parse_mathematica(text)
+    raise ValueError(f"unknown syntax: {syntax}")
+
+
+def compare(candidate, reference, strictness: str) -> Comparison:
+    """Compare one result against the oracle at the declared strictness.
+
+    ``structural`` and ``equivalent`` are both legitimate bars. Which one a
+    result is held to is declared in the corpus file, not chosen here — a
+    comparator that quietly falls back from structural to equivalent would hide
+    precisely the canonical-form differences worth knowing about.
+    """
+    import sympy
+
+    if strictness == "structural":
+        if candidate == reference:
+            return Comparison(AGREE)
+        if _equivalent(candidate, reference):
+            return Comparison(
+                DIFFER,
+                "mathematically equivalent but structurally different; "
+                "declared strictness is 'structural'",
+            )
+        return Comparison(DIFFER, f"{sympy.srepr(candidate)} != {sympy.srepr(reference)}")
+
+    if strictness == "equivalent":
+        if _equivalent(candidate, reference):
+            return Comparison(AGREE)
+        return Comparison(DIFFER, f"{candidate} is not equivalent to {reference}")
+
+    raise ValueError(f"unknown strictness: {strictness}")
+
+
+def _equivalent(a, b) -> bool:
+    import sympy
+
+    try:
+        return sympy.simplify(a - b) == 0
+    except Exception:
+        # The comparison oracle failing to decide is not evidence of agreement.
+        return False
+
+
+def check_oracles(sympy_value, mathics_value, strictness: str) -> Comparison | None:
+    """Cross-check the two oracles against each other.
+
+    Where they disagree, neither is ground truth for that result and fortsym is
+    not scored on it. Averaging them, or silently preferring one, would bury a
+    real finding.
+    """
+    if sympy_value is None or mathics_value is None:
+        return None
+    result = compare(mathics_value, sympy_value, strictness)
+    if result.outcome is AGREE or result.outcome == AGREE:
+        return None
+    return Comparison(ORACLE_DISAGREEMENT, result.detail)

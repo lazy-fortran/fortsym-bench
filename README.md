@@ -1,0 +1,148 @@
+# fortsym-bench
+
+A corpus of real symbolic derivations, run across four backends and compared.
+Open-source oracles, one corpus, no duplication.
+
+| Backend | Reads | Role |
+|---|---|---|
+| `mathics` | `.wl` | oracle for the Wolfram-language path (GPL-3.0, subprocess) |
+| `sympy` | `.py` | oracle for the Python path (BSD-3-Clause) |
+| `fortsym-wl` | `.wl` | fortsym's `wolfram_input` dialect under test |
+| `fortsym-sympy` | `.py` | fortsym's SymPy drop-in layer under test |
+
+Both correctness **and** wall time are reported, on identical inputs.
+
+## The idea
+
+The `itpplasma` codes hold roughly 219 Wolfram-language derivation scripts. Each
+one lands here twice: the original `.wl`, and a hand translation to SymPy. Those
+two files are the corpus. The four backends above read one or the other, and
+nothing in either file knows which backend is running it.
+
+For the Python path the entire difference is one line in the harness:
+
+```python
+sys.modules["sympy"] = fortsym.sympy
+```
+
+For the Wolfram path it is which interpreter is handed the same `.wl` file.
+
+That constraint is deliberate. A compatibility layer needing per-script edits
+reintroduces exactly the drift fortsym exists to eliminate — two copies of a
+derivation that agree today and diverge silently next year.
+
+## No Wolfram product is used
+
+Mathics is an independent open reimplementation of the Wolfram Language. It is
+the oracle precisely so that no Mathematica installation, Wolfram Cloud query or
+Wolfram|Alpha call is involved anywhere in fortsym's development. See
+`LEGAL.md` §5.1 in the fortsym repository.
+
+Mathics is not Mathematica: its coverage is partial and it has its own defects.
+It is a second opinion, not ground truth. **Where Mathics and SymPy disagree,
+that is a finding to investigate, not a number to average.** The harness reports
+oracle disagreement as its own outcome class.
+
+## Layout
+
+```
+corpus/<project>/<nn>_<name>.wl    original derivation
+corpus/<project>/<nn>_<name>.py    hand translation to SymPy
+fortsym_bench/                     harness, runners, comparator
+TRANSLATION.md                     rules for translating .wl to SymPy
+```
+
+The two files of a pair must expose the **same result names**. That is what
+makes a four-way comparison possible.
+
+## Writing a corpus pair
+
+The Python side is a plain module that imports `sympy` and exposes `results()`:
+
+```python
+import sympy as sp
+
+def results():
+    x = sp.Symbol("x", real=True)
+    return {
+        "pythagorean": sp.simplify(sp.sin(x)**2 + sp.cos(x)**2),
+        "derivative":  sp.diff(sp.exp(x**2), x),
+    }
+```
+
+The Wolfram side assigns an association of the same names:
+
+```wolfram
+x = Symbol["x"];
+fortsymBenchResults = <|
+  "pythagorean" -> Simplify[Sin[x]^2 + Cos[x]^2],
+  "derivative"  -> D[Exp[x^2], x]
+|>;
+```
+
+Declare per-result strictness when structural equality is not the right bar:
+
+```python
+COMPARE = {"derivative": "equivalent"}   # default: "structural"
+```
+
+- `structural` — the backends must produce the same expression tree.
+- `equivalent` — `simplify(a - b) == 0` under the comparison oracle.
+
+Both are legitimate. Conflating them silently is not: a result declared
+`structural` that only achieves `equivalent` has found a real difference, and
+that is worth knowing.
+
+## Running
+
+```sh
+pip install -e '.[dev]'
+
+fortsym-bench run                          # everything, all backends
+fortsym-bench run corpus/mhd1d             # one project
+fortsym-bench run --backend sympy fortsym-sympy
+fortsym-bench run --repeat 5 --report results.json
+```
+
+Each (script, backend) pair runs in its own subprocess, so a crash or a
+module-state leak cannot reach another. Results cross the process boundary as
+text — `srepr` from the Python side, `InputForm` from the Wolfram side — and are
+parsed back in the comparison process with SymPy, using
+`sympy.parsing.mathematica` for the Wolfram syntax.
+
+## Outcomes
+
+Every (script, result, backend) lands in exactly one class:
+
+- `agree` — matches the oracle at the declared strictness.
+- `differ` — produced an answer, and it is wrong. The interesting one.
+- `unsupported` — the backend declined, naming the construct. Expected for most
+  of the corpus today; the count going down is the measurement.
+- `error` — crashed or timed out.
+- `oracle-disagreement` — Mathics and SymPy do not agree with each other. Under
+  investigation; fortsym is not scored on these.
+
+`unsupported` is never silently folded into `differ`. A backend that refuses is
+behaving correctly; a backend that guesses is the failure this whole apparatus
+exists to catch.
+
+## Timing
+
+Wall time is recorded per script per backend: configurable warmups, repeats, and
+the median with a dispersion measure. A backend that returns `unsupported` or
+`error` contributes to coverage, never to the timing sample — dropping failures
+from a timing average is how misleading benchmark tables get made.
+
+Startup is measured separately from evaluation. Mathics and any subprocess
+backend pay a process launch that has nothing to do with algebra, and folding it
+into a per-operation number would say more about Python import time than about
+either CAS.
+
+Read `doc/benchmarks.md` in the fortsym repository before quoting any number
+from here: a run without pinned CPU affinity and a fixed frequency governor is
+diagnostic, not evidence.
+
+## Status
+
+Early. The harness runs; the corpus is being translated. Tracker:
+`lazy-fortran/fortsym#26`.
