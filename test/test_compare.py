@@ -39,6 +39,26 @@ def test_cross_oracle_booleans_are_not_treated_as_sympy_expressions():
     assert check_oracles(True, True, "structural") is None
 
 
+def test_mathics_unicode_inputform_is_normalised_before_comparison():
+    result = compare_text(
+        "{x == 0, x -> -a}",
+        "{x ⩵ 0, x ⇾ -a}",
+        "inputform",
+        "structural",
+    )
+    assert result.outcome == "agree"
+
+
+def test_unicode_phi_does_not_make_an_opaque_application_unparseable():
+    result = compare_text(
+        "{A[r, phi, z]}",
+        "{A[r, ϕ, z]}",
+        "inputform",
+        "structural",
+    )
+    assert result.outcome == "agree"
+
+
 def test_identical_serialized_results_are_agree_without_parsing():
     result = compare_text("x + 1", "x + 1", "inputform", "structural")
 
