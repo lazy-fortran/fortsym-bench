@@ -115,8 +115,10 @@ and runs only the candidate backends; the report marks cached reference rows
 and omits stale timing samples. Cache entries include the backend configuration
 and source digest, so edited scripts do not reuse old answers. Successful
 answers remain reusable when the timeout changes; timeout failures remain tied
-to the timeout that produced them. Use `--refresh-reference` after upgrading
-an oracle, or `--no-cache` for a completely fresh run.
+to the timeout that produced them. The runner version is part of the cache
+identity, so changing the Mathics wrapper cannot reuse stale results. Use
+`--refresh-reference` after upgrading an oracle, or `--no-cache` for a
+completely fresh run.
 
 Regenerate missing Python companions with:
 
