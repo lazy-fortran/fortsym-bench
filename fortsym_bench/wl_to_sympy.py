@@ -730,16 +730,25 @@ def _dot(arguments: tuple[object, ...]):
 
 def _cross(arguments: tuple[object, ...]):
     if len(arguments) != 2:
-        raise NotImplementedError("Cross needs two vectors")
+        return _opaque_cross(arguments)
     left = _sequence_items(arguments[0])
     right = _sequence_items(arguments[1])
     if left is None or right is None or len(left) != 3 or len(right) != 3:
-        raise NotImplementedError("Cross needs two three-dimensional vectors")
-    return sp.Tuple(
-        left[1] * right[2] - left[2] * right[1],
-        left[2] * right[0] - left[0] * right[2],
-        left[0] * right[1] - left[1] * right[0],
-    )
+        return _opaque_cross(arguments)
+    try:
+        return sp.Tuple(
+            left[1] * right[2] - left[2] * right[1],
+            left[2] * right[0] - left[0] * right[2],
+            left[0] * right[1] - left[1] * right[0],
+        )
+    except Exception:
+        return _opaque_cross(arguments)
+
+
+def _opaque_cross(arguments: tuple[object, ...]):
+    """Keep an unsupported Cross expression visible to the comparator."""
+
+    return sp.Function("Cross")(*arguments)
 
 
 def _dot_two(left, right):
