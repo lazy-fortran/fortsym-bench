@@ -374,7 +374,19 @@ class ReferenceCache:
     def _execution_compatible(self, backend: Backend, entry: dict) -> bool:
         """Check a new executable fingerprint, preserving old cache files."""
         stored = entry.get("execution_fingerprint")
-        return stored is None or stored == self._execution_fingerprint(backend)
+        if stored is None:
+            return True
+        current = self._execution_fingerprint(backend)
+        if stored == current:
+            return True
+        # An optional oracle disappearing from PATH is an environment change,
+        # not a semantic change. Keep its last successful/failure result rather
+        # than replacing a valid cached row with "not on PATH" on every audit.
+        # An explicit refresh can still force a new attempt when the backend is
+        # available again.
+        if backend.command and current == f"missing:{backend.command[0]}":
+            return True
+        return False
 
     @staticmethod
     def _display_source(source: Path) -> str:

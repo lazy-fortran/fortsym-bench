@@ -131,13 +131,17 @@ the report marks them cached and omits stale timing samples. Cache entries
 include the backend configuration, source digest, and subprocess executable
 fingerprint, so edited scripts and rebuilt native binaries invalidate only the
 affected rows. Successful answers remain reusable when the timeout changes;
-timeout failures remain tied to the timeout that produced them. Parsed
+timeout failures remain tied to the timeout that produced them. If an optional
+oracle executable disappears from `PATH`, an existing compatible cached row is
+kept instead of being replaced by a new unavailable result. Parsed
 comparison verdicts are cached separately in
 `.cache/reference-results.comparisons.json`, keyed by both serialized operands,
 their syntaxes, the strictness policy, and the comparator version. On the
-2026-08-01 corpus, a cold refresh after the latest translator and native
-changes took 4:54 with four workers. The compact 155 MB cache then served an
-identical warm audit in about 2 seconds, with no backend subprocesses started.
+2026-08-01 corpus, the earlier full refresh after the translator change took
+4:54 with four workers. The latest native-only refresh took about 74 seconds
+with SymPy and Mathics cached. The compact 155 MB cache then served an
+identical warm audit in about 1.8 seconds, with no backend subprocesses
+started.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
@@ -218,10 +222,10 @@ non-empty results and 38 valid empty result sets), timed out on 1, and
 explicitly refused 2 unsupported constructs; it had no native crashes. The
 same compact cache contains 359 completed SymPy rows (332 non-empty, 27 empty,
 7 timeouts, 18 refusals) and 235 completed Mathics rows (208 non-empty, 27
-empty, 117 errors, 32 timeouts). The final binding-level audit has 2,992
-agreements, 908 declared differences, 20 unsupported outcomes, 40 timeouts,
-135 errors, 201 oracle disagreements, and 799 oracle-missing bindings. Its
-warm run takes about 2 seconds.
+empty, 117 errors, 32 timeouts). The final binding-level audit has 3,057
+agreements, 849 declared differences, 20 unsupported outcomes, 40 timeouts,
+135 errors, 197 oracle disagreements, and 798 oracle-missing bindings. Its
+warm run takes about 1.8 seconds.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
@@ -267,8 +271,8 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The latest full run produced 2,992 agreements, 908 declared
-differences, 20 unsupported outcomes, 40 timeouts, 135 errors, 201 oracle
-disagreements, and 799 oracle-missing bindings. Translation quality and the
+place. The latest full run produced 3,057 agreements, 849 declared
+differences, 20 unsupported outcomes, 40 timeouts, 135 errors, 197 oracle
+disagreements, and 798 oracle-missing bindings. Translation quality and the
 remaining backend parity work stay measured by the independent oracle report;
 the report is the source of truth for current counts.
