@@ -130,9 +130,14 @@ the report marks them cached and omits stale timing samples. Cache entries
 include the backend configuration, source digest, and subprocess executable
 fingerprint, so edited scripts and rebuilt native binaries invalidate only the
 affected rows. Successful answers remain reusable when the timeout changes;
-timeout failures remain tied to the timeout that produced them. Use
-`--refresh-reference` after upgrading an oracle, `--refresh-cache` for a full
-fresh backend pass, or `--no-cache` to disable the cache entirely.
+timeout failures remain tied to the timeout that produced them. Parsed
+comparison verdicts are cached separately in
+`.cache/reference-results.comparisons.json`, keyed by both serialized operands,
+their syntaxes, the strictness policy, and the comparator version. On the
+2026-08-01 corpus, the first cached-output parity pass took about 19 seconds;
+an identical warm pass took about 1.2 seconds. Use `--refresh-reference` after
+upgrading an oracle, `--refresh-cache` for a full fresh backend pass, or
+`--no-cache` to disable both caches.
 
 Corpus scripts run concurrently (four workers by default); use `--jobs 1` for
 a serial, easier-to-reproduce timing pass. The comparison path first accepts
@@ -173,7 +178,7 @@ Every (script, result, backend) lands in exactly one class:
   class: an absent oracle that shrinks the denominator overstates every rate.
 - `error` / `timeout` — crashed, or exceeded the limit.
 - `oracle-disagreement` — Mathics and SymPy do not agree with each other. Under
-  investigation; fortsym is not scored on these.
+  investigation; the native result is not scored on that binding.
 - `oracle-missing` — the candidate emitted a binding that this partial oracle
   did not. It is reported as coverage, not scored as a wrong answer; only the
   intersection of candidate and oracle bindings is a correctness comparison.
@@ -203,11 +208,13 @@ diagnostic, not evidence.
 **384 `.wl` scripts across 50 projects**, ingested 2026-08-01. Every script has
 a Python companion; the manifest distinguishes generated, hand, and preserved
 translations and counts statements that still need manual work. The latest
-60-second native sweep, using four workers, produced result sets for 382
-scripts, timed out on 1, and explicitly refused 1 unsupported construct; it
-had no native crashes. The corresponding full cached audit served all 384
-SymPy and all 384 Mathics reference outcomes from cache and completed in about
-64 seconds wall time.
+60-second native sweep, using four workers, completed 381 scripts (343 with
+non-empty results and 38 valid empty result sets), timed out on 1, and
+explicitly refused 2 unsupported constructs; it had no native crashes. The
+same cache contains 359 completed SymPy rows (7 timeouts, 18 refusals) and 238
+completed Mathics rows (114 errors, 32 timeouts). The full two-oracle audit
+serves all 384 rows from cache; its warm comparison pass takes about 1.2
+seconds.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
@@ -251,10 +258,11 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 ## Status
 
-Harness runs. Corpus ingestion, persistent reference caching, complete Python
-companion inventory, and the native Fortran backend are in place. In the latest
-run all 384 SymPy and all 384 Mathics reference outcomes were served from the
-cache; native result comparison produced 324 agrees and 177 declared
-differences among parsed, overlapping bindings. Translation quality and the
-remaining backend parity work stay measured by the independent oracle report;
-the report is the source of truth for current counts.
+Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
+complete Python companion inventory, and the native Fortran backend are in
+place. In the latest full run, native scoring produced 2,443 agrees, 1,257
+declared differences, 170 comparison errors, 226 oracle disagreements, and
+815 oracle-missing bindings; the native cache held 381 completed script rows.
+Translation quality and the remaining backend parity work stay measured by the
+independent oracle report; the report is the source of truth for current
+counts.
