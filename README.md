@@ -133,6 +133,9 @@ Every (script, result, backend) lands in exactly one class:
 - `error` / `timeout` — crashed, or exceeded the limit.
 - `oracle-disagreement` — Mathics and SymPy do not agree with each other. Under
   investigation; fortsym is not scored on these.
+- `oracle-missing` — the candidate emitted a binding that this partial oracle
+  did not. It is reported as coverage, not scored as a wrong answer; only the
+  intersection of candidate and oracle bindings is a correctness comparison.
 
 `unsupported` is never silently folded into `differ`. A backend that refuses is
 behaving correctly; a backend that guesses is the failure this whole apparatus
