@@ -49,6 +49,25 @@ class WolframFunction:
         return evaluate_expression(self.rhs, local)
 
 
+class WolframPureFunction:
+    """A parsed ``Function``/``#`` closure used by Map and Apply."""
+
+    def __init__(self, parameters: tuple[object, ...], body, closure: dict):
+        self.parameters = parameters
+        self.body = body
+        self.closure = closure
+
+    def call(self, arguments: tuple[object, ...]):
+        if len(arguments) != len(self.parameters):
+            raise NotImplementedError("pure-function arity is not supported")
+        local = dict(self.closure)
+        local.update(
+            (str(parameter), argument)
+            for parameter, argument in zip(self.parameters, arguments)
+        )
+        return _lower(self.body, local)
+
+
 def split_wolfram_statements(source: str) -> list[str]:
     """Split top-level Wolfram statements without splitting nested code."""
 
@@ -192,6 +211,17 @@ def _lower(expression, environment: dict[str, object]):
         return expression
 
     name = _head_name(expression)
+    if name == "Lambda":
+        parameters = _sequence_items(expression.args[0])
+        if parameters is None:
+            parameters = (expression.args[0],)
+        return WolframPureFunction(tuple(parameters), expression.args[1], environment)
+    if name == "Map":
+        return _map(expression.args, environment)
+    if name == "MapThread":
+        return _map_thread(expression.args, environment)
+    if name == "Apply":
+        return _apply(expression.args, environment)
     if name == "Array":
         return _array(expression.args, environment)
     if name == "ConstantArray":
@@ -383,6 +413,77 @@ def _table(arguments: tuple[object, ...]):
         return sp.Tuple(*children)
 
     return build(0, arguments[0])
+
+
+def _resolve_mapper(raw_mapper, environment):
+    if isinstance(raw_mapper, sp.Symbol):
+        bound = environment.get(str(raw_mapper))
+        if isinstance(bound, (WolframFunction, WolframPureFunction)):
+            return bound
+    return _lower(raw_mapper, environment)
+
+
+def _call_mapper(mapper, arguments, environment):
+    if isinstance(mapper, (WolframFunction, WolframPureFunction)):
+        return mapper.call(tuple(arguments))
+    if isinstance(mapper, sp.Symbol):
+        return _lower(sp.Function(str(mapper))(*arguments), environment)
+    raise NotImplementedError("Map needs a named or pure function")
+
+
+def _map(expression_arguments, environment):
+    if len(expression_arguments) != 2:
+        raise NotImplementedError("Map needs a function and a list")
+    mapper = _resolve_mapper(expression_arguments[0], environment)
+    values = _sequence_items(_lower(expression_arguments[1], environment))
+    if values is None:
+        raise NotImplementedError("Map needs a list")
+    return sp.Tuple(*(_call_mapper(mapper, (value,), environment) for value in values))
+
+
+def _map_thread(expression_arguments, environment):
+    if len(expression_arguments) != 2:
+        raise NotImplementedError("MapThread needs a function and lists")
+    mapper = _resolve_mapper(expression_arguments[0], environment)
+    rows = _sequence_items(_lower(expression_arguments[1], environment))
+    if rows is None:
+        raise NotImplementedError("MapThread needs a list of lists")
+    columns = [_sequence_items(row) for row in rows]
+    if any(column is None for column in columns):
+        raise NotImplementedError("MapThread needs a list of lists")
+    if not columns:
+        return sp.Tuple()
+    if len({len(column) for column in columns}) != 1:
+        raise NotImplementedError("MapThread list lengths do not match")
+    return sp.Tuple(
+        *(
+            _call_mapper(mapper, tuple(column[index] for column in columns), environment)
+            for index in range(len(columns[0]))
+        )
+    )
+
+
+def _apply(expression_arguments, environment):
+    if len(expression_arguments) != 2:
+        raise NotImplementedError("Apply needs a function and an expression")
+    raw_mapper, raw_value = expression_arguments
+    value = _lower(raw_value, environment)
+    items = _sequence_items(value)
+    if items is None:
+        raise NotImplementedError("Apply needs an explicit expression head")
+    mapper = _resolve_mapper(raw_mapper, environment)
+    if isinstance(mapper, (WolframFunction, WolframPureFunction)):
+        return mapper.call(tuple(items))
+    if not isinstance(raw_mapper, sp.Symbol):
+        raise NotImplementedError("Apply needs a named head")
+    name = str(raw_mapper)
+    if name == "Plus":
+        return sp.Add(*items)
+    if name == "Times":
+        return sp.Mul(*items)
+    if name == "List":
+        return sp.Tuple(*items)
+    return _lower(sp.Function(name)(*items), environment)
 
 
 def _table_range(specification):
