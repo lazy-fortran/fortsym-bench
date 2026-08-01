@@ -54,3 +54,27 @@ def test_a_script_without_assignments_returns_an_empty_result_set():
     assert assignments == []
     assert skipped == ["Print[1]", "Null"]
     assert evaluate_assignments(assignments) == {}
+
+
+def test_leading_continuation_operators_stay_in_the_same_assignment():
+    assignments, skipped = extract_assignments(
+        "value = a\n"
+        "  + b\n"
+        "  - c;\n"
+        "other = d\n"
+        "  * e"
+    )
+
+    assert skipped == []
+    assert [(item.name, item.rhs) for item in assignments] == [
+        ("value", "a\n  + b\n  - c"),
+        ("other", "d\n  * e"),
+    ]
+
+
+def test_multiline_rhs_is_arithmetic_not_a_compound_expression():
+    assignments, skipped = extract_assignments("value = a\n  + b")
+
+    assert skipped == []
+    a, b = sp.symbols("a b")
+    assert evaluate_assignments(assignments)["value"] == a + b

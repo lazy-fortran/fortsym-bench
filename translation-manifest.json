@@ -266,7 +266,7 @@
  },
  "corpus/code-SIMPLE/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-closure1d/43_helical_saturation.wl": {
@@ -330,22 +330,22 @@
  },
  "corpus/code-genex/equi_ref_domm.wl": {
   "assignments": 13,
-  "skipped_statements": 23,
+  "skipped_statements": 21,
   "status": "generated"
  },
  "corpus/code-genex/fso_analytical.wl": {
   "assignments": 19,
-  "skipped_statements": 25,
+  "skipped_statements": 18,
   "status": "generated"
  },
  "corpus/code-genex/mms_analytical.wl": {
   "assignments": 57,
-  "skipped_statements": 78,
+  "skipped_statements": 67,
   "status": "generated"
  },
  "corpus/code-genex/mms_analytical_vspec.wl": {
   "assignments": 80,
-  "skipped_statements": 89,
+  "skipped_statements": 68,
   "status": "generated"
  },
  "corpus/code-integrator-benchmark/tdrk_guiding_center_G.wl": {
@@ -355,112 +355,112 @@
  },
  "corpus/code-libneo-acc-wt/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-flux-boozer/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-flux-stack/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-jorek-axis/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-jorek-basis-sign/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-jorek-basis/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-jorek-index/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-jorek-light/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-jorek-locator/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-jorek-model303/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-jorek-neighbour-contract/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-jorek-potential/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-jorek-reader/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-jorek-spatial-index/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-jorek-values/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-pt01-fix/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-signgs-fix/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-worktrees/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-wt-coords/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-wt-field/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo-wt-perf/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-libneo/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/code-mhd1d/41_screwpinch_equilibrium.wl": {
@@ -1149,7 +1149,7 @@
  },
  "corpus/proj-ecnl-gorilla-recovery/equations.wl": {
   "assignments": 3,
-  "skipped_statements": 69,
+  "skipped_statements": 68,
   "status": "generated"
  },
  "corpus/proj-flux_pumping/01_current_redistribution.wl": {
@@ -1349,7 +1349,7 @@
  },
  "corpus/proj-flux_pumping/40_dynamo_diagnostics_bridge.wl": {
   "assignments": 65,
-  "skipped_statements": 43,
+  "skipped_statements": 42,
   "status": "generated"
  },
  "corpus/proj-flux_pumping/44_kinetic_mhd_bridge_aug.wl": {
@@ -1629,7 +1629,7 @@
  },
  "corpus/proj-libneo-ode-event/near_axis_chartmap_limit.wl": {
   "assignments": 21,
-  "skipped_statements": 26,
+  "skipped_statements": 22,
   "status": "generated"
  },
  "corpus/proj-maxent19-gp/airy.wl": {
