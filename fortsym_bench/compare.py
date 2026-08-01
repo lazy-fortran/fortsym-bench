@@ -117,6 +117,14 @@ def _normalise_derivative_calls(text: str) -> str:
         arguments = match.group(3).strip()
         if len(orders) == 1:
             return f"Derivative1[{head}, {orders[0]}, {arguments}]"
+        # Mathics writes a first partial derivative as a multi-index, while
+        # fortsym records the same operation by one-based coordinate number.
+        # Preserve genuinely higher-order or mixed derivatives as opaque
+        # nodes: collapsing those would erase a real semantic difference.
+        if all(order in {"0", "1"} for order in orders):
+            nonzero = [index for index, order in enumerate(orders, start=1) if order == "1"]
+            if len(nonzero) == 1:
+                return f"Derivative1[{head}, {nonzero[0]}, {arguments}]"
         return "DerivativeIndex[{head}, {orders}, {arguments}]".format(
             head=head,
             orders=", ".join(orders),

@@ -5,6 +5,7 @@ import sympy as sp
 from fortsym_bench.cli import _score
 from fortsym_bench.compare import (
     AGREE,
+    DIFFER,
     ERROR,
     MAX_COMPARISON_TEXT,
     ORACLE_MISSING,
@@ -74,6 +75,26 @@ def test_strings_and_first_derivatives_have_stable_comparison_atoms():
     )
     assert string_result.outcome == "agree"
     assert derivative_result.outcome == "agree"
+
+
+def test_first_partial_derivatives_use_the_native_coordinate_spelling():
+    result = compare_text(
+        "Derivative1[f, 3, x, y, z]",
+        "Derivative[0, 0, 1][f][x, y, z]",
+        "inputform",
+        "structural",
+    )
+    assert result.outcome == AGREE
+
+
+def test_mixed_derivatives_are_not_collapsed_to_first_derivatives():
+    result = compare_text(
+        "Derivative1[f, 1, x, y]",
+        "Derivative[1, 1][f][x, y]",
+        "inputform",
+        "structural",
+    )
+    assert result.outcome == DIFFER
 
 
 def test_distinct_strings_are_different_not_parser_errors():
