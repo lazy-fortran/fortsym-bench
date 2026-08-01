@@ -31,3 +31,18 @@ def test_matrix_operations_and_replacement_have_independent_sympy_answers():
     assert values["inverse"] == sp.Tuple(
         sp.Tuple(-2, 1), sp.Tuple(sp.Rational(3, 2), -sp.Rational(1, 2))
     )
+
+
+def test_pure_functions_map_apply_and_mapthread():
+    assignments, skipped = extract_assignments(
+        "squares = Map[#^2 &, {1, 2, 3}]; "
+        "total = Apply[Plus, {1, 2, 3}]; "
+        "paired = MapThread[#1 + #2 &, {{1, 2}, {3, 4}}]"
+    )
+
+    assert skipped == []
+    values = evaluate_assignments(assignments)
+
+    assert values["squares"] == sp.Tuple(1, 4, 9)
+    assert values["total"] == 6
+    assert values["paired"] == sp.Tuple(4, 6)
