@@ -175,6 +175,14 @@ def _cross_check(raw: dict, strictness: dict) -> dict:
 
 
 def summarise(report: dict) -> int:
+    """Tally outcomes, and report bindings as well as scripts.
+
+    Script-level counts alone hide progress: a script that emits twenty
+    bindings and refuses one is indistinguishable from one that emits one and
+    refuses twenty. Implementing matrices moved 270 refusals and did not move
+    the script count at all, because those refusals were inside scripts that
+    already produced something.
+    """
     tally = {AGREE: 0, DIFFER: 0, UNSUPPORTED: 0, UNTRANSLATED: 0,
              UNAVAILABLE: 0, TIMEOUT: 0, ERROR: 0, ORACLE_DISAGREEMENT: 0}
     for script in report["scripts"].values():
@@ -185,8 +193,21 @@ def summarise(report: dict) -> int:
             tally[entry["outcome"]] = tally.get(entry["outcome"], 0) + 1
         tally[ORACLE_DISAGREEMENT] += len(script["oracles"])
 
+    bindings = sum(
+        len(results)
+        for script in report["scripts"].values()
+        for results in script["outcomes"].values()
+    )
+    scripts = len(report["scripts"])
+    produced = sum(
+        1 for s in report["scripts"].values()
+        if not s["failures"] or any(s["outcomes"].values())
+    )
+
     for name, count in tally.items():
         print(f"{name:22s} {count}")
+    print(f"{'scripts':22s} {produced}/{scripts}")
+    print(f"{'bindings':22s} {bindings}")
 
     # Only a wrong answer is a failure. An honest refusal is the expected state
     # for most of this corpus today, and counting it as failure would create
