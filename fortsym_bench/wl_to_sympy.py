@@ -355,6 +355,8 @@ def _lower(expression, environment: dict[str, object]):
         return _matrix_to_tuple(_matrix(arguments[0]).T)
     if name == "Dot":
         return _dot(arguments)
+    if name == "Cross":
+        return _cross(arguments)
     if name == "Det":
         return _matrix(arguments[0]).det()
     if name == "Inverse":
@@ -724,6 +726,20 @@ def _dot(arguments: tuple[object, ...]):
     for argument in arguments[1:]:
         result = _dot_two(result, argument)
     return result
+
+
+def _cross(arguments: tuple[object, ...]):
+    if len(arguments) != 2:
+        raise NotImplementedError("Cross needs two vectors")
+    left = _sequence_items(arguments[0])
+    right = _sequence_items(arguments[1])
+    if left is None or right is None or len(left) != 3 or len(right) != 3:
+        raise NotImplementedError("Cross needs two three-dimensional vectors")
+    return sp.Tuple(
+        left[1] * right[2] - left[2] * right[1],
+        left[2] * right[0] - left[0] * right[2],
+        left[0] * right[1] - left[1] * right[0],
+    )
 
 
 def _dot_two(left, right):
