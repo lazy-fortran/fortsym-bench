@@ -147,4 +147,4 @@ diagnostic, not evidence.
 ## Status
 
 Early. The harness runs; the corpus is being translated. Tracker:
-`lazy-fortran/fortsym#26`.
+`lazy-fortran/fortsym#27`.
