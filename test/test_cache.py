@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fortsym_bench.backends import Backend
+from fortsym_bench.backends import Backend, _parse_wolfram_output
 from fortsym_bench.cache import ReferenceCache
 from fortsym_bench.cli import run_one
 
@@ -68,9 +68,16 @@ def test_reference_runner_version_invalidates_old_results(tmp_path):
     source.write_text("answer = 2\n")
     cache = ReferenceCache(tmp_path / "reference.json")
     old = Backend("mathics", ".wl", "inputform", cache_version=1)
-    current = Backend("mathics", ".wl", "inputform", cache_version=2)
+    current = Backend("mathics", ".wl", "inputform", cache_version=3)
 
     cache.put_result(old, source, 5.0, {"answer": "2"})
 
     assert cache.get(old, source, 5.0) is not None
     assert cache.get(current, source, 5.0) is None
+
+
+def test_empty_wolfram_result_is_a_valid_protocol_result():
+    results, seconds = _parse_wolfram_output("T\t0.125\n")
+
+    assert results == {}
+    assert seconds == 0.125
