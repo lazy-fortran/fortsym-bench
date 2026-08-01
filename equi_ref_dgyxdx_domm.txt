@@ -1,0 +1,1 @@
+{dgyxdx_domm =  <> F90Format[Derivative[1, 0, 0][BDommaschk][x, phi, z]]}

@@ -1,0 +1,1 @@
+{dgyzdx_domm =  <> F90Format[(Derivative[1, 0, 0][BDommaschk][x, phi, z] / absBDommaschk[x, phi, z] - BDommaschk[x, phi, z] Derivative[1, 0, 0][absBDommaschk][x, phi, z] / absBDommaschk[x, phi, z] ^ 2) Derivative[1, 0][Part][BDommaschk[x, phi, z] / absBDommaschk[x, phi, z], 3]]}
