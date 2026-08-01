@@ -208,26 +208,26 @@ _DERIVATIVE_CALL = re.compile(
 
 
 def _normalise_derivative_calls(text: str) -> str:
-    """Use fortsym's opaque derivative spelling for simple WL derivatives."""
+    """Use fortsym's opaque derivative spelling for WL derivatives."""
     def replace(match: re.Match[str]) -> str:
         orders = [part.strip() for part in match.group(1).split(",")]
         head = match.group(2)
         arguments = match.group(3).strip()
+        # Derivative[n][f][x] is Wolfram's one-argument prime notation,
+        # including n > 1.  The native parser preserves that spelling as
+        # Derivative1[f, n, x]; only a multi-index function uses the
+        # DerivativeN coordinate-index encoding below.
         if len(orders) == 1:
             return f"Derivative1[{head}, {orders[0]}, {arguments}]"
-        # Mathics writes a first partial derivative as a multi-index, while
-        # fortsym records the same operation by one-based coordinate number.
-        # Preserve genuinely higher-order or mixed derivatives as opaque
-        # nodes: collapsing those would erase a real semantic difference.
-        if all(order in {"0", "1"} for order in orders):
-            nonzero = [index for index, order in enumerate(orders, start=1) if order == "1"]
-            if len(nonzero) == 1:
-                return f"Derivative1[{head}, {nonzero[0]}, {arguments}]"
-        return "DerivativeIndex[{head}, {orders}, {arguments}]".format(
-            head=head,
-            orders=", ".join(orders),
-            arguments=arguments,
-        )
+        indices = []
+        for position, order in enumerate(orders, start=1):
+            if not order.isdigit() or int(order) < 0:
+                return match.group(0)
+            indices.extend([str(position)] * int(order))
+        if not indices:
+            return match.group(0)
+        name = f"Derivative{len(indices)}"
+        return f"{name}[{head}, {', '.join(indices)}, {arguments}]"
 
     previous = None
     while previous != text:
@@ -237,31 +237,65 @@ def _normalise_derivative_calls(text: str) -> str:
 
 
 def _normalise_sympy_derivatives(expression):
-    """Match SymPy's first derivatives of opaque functions to WL output.
+    """Match SymPy's opaque-function derivatives to WL output.
 
-    SymPy serializes ``diff(f(x), x)`` as ``Derivative(f(x), (x, 1))`` when
-    the derivative remains unevaluated. The native Wolfram protocol and the
-    input-form normaliser use the explicit ``Derivative1[f, 1, x]`` node for
-    the same opaque partial, so canonicalise that one representation at the
-    comparison boundary. Built-in functions that SymPy has already
-    differentiated never enter this branch.
+    SymPy serializes an unevaluated derivative as ``Derivative(f(x), (x, n))``.
+    The native Wolfram protocol uses ``Derivative1[f, n, x]`` for a
+    one-argument derivative and ``DerivativeN[f, i1, ..., x1, ...]`` for a
+    partial derivative of a multi-argument function. Built-in functions that
+    SymPy has already differentiated never enter this branch.
     """
     import sympy
 
     if not isinstance(expression, sympy.Basic):
         return expression
+    function_name = getattr(getattr(expression, "func", None), "__name__", "")
+    if function_name.startswith("Derivative"):
+        try:
+            order = int(function_name.removeprefix("Derivative"))
+        except ValueError:
+            order = 0
+        # Native differentiation of a one-argument function accumulates
+        # indices in DerivativeN[f, 1, ..., 1, x], whereas the Wolfram
+        # prime spelling is Derivative1[f, N, x].  The argument count is
+        # recoverable here because the opaque node stores all indices before
+        # the original function arguments.
+        if order > 1 and len(expression.args) == order + 2:
+            indices = expression.args[1:order + 1]
+            if all(index == sympy.Integer(1) for index in indices):
+                return sympy.Function("Derivative1")(
+                    expression.args[0], sympy.Integer(order), expression.args[-1]
+                )
     if isinstance(expression, sympy.Derivative):
-        counts = expression.variable_count
-        if len(counts) == 1 and counts[0][1] == 1:
-            value = _normalise_sympy_derivatives(expression.expr)
-            if getattr(value, "is_Function", False):
+        value = _normalise_sympy_derivatives(expression.expr)
+        if getattr(value, "is_Function", False):
+            indices = []
+            for variable, count in expression.variable_count:
+                positions = [
+                    index
+                    for index, argument in enumerate(value.args, start=1)
+                    if argument == variable
+                ]
+                if len(positions) != 1:
+                    indices = []
+                    break
+                indices.extend([positions[0]] * count)
+            if indices:
                 head = sympy.Symbol(value.func.__name__)
                 arguments = tuple(
                     _normalise_sympy_derivatives(argument)
                     for argument in value.args
                 )
-                return sympy.Function("Derivative1")(
-                    head, sympy.Integer(1), *arguments
+                if len(value.args) == 1:
+                    return sympy.Function("Derivative1")(
+                        head, sympy.Integer(len(indices)), *arguments
+                    )
+                indices.sort()
+                derivative = sympy.Function(f"Derivative{len(indices)}")
+                return derivative(
+                    head,
+                    *(sympy.Integer(index) for index in indices),
+                    *arguments,
                 )
 
     raw_arguments = tuple(expression.args)
