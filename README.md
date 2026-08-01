@@ -17,9 +17,10 @@ Both correctness **and** wall time are reported, on identical inputs.
 The corpus holds 384 Wolfram-language derivation scripts. Every one now has a
 Python companion: 382 are generated from the assignment stream by the bounded
 translator in `fortsym_bench/wl_to_sympy.py`, one Association fixture is hand
-expanded, and one original hand translation is preserved. Unsupported control
-flow and side effects remain explicit in `translation-manifest.json`; they are
-not silently replaced with invented mathematics.
+expanded, and one original hand translation is preserved. The companions cover
+9,051 assignments. 11,538 non-assignment statements still need manual
+translation, and `translation-manifest.json` records them explicitly. Control
+flow and side effects are not silently replaced with invented mathematics.
 
 The checked-in Python oracle runs the generated companions with ordinary
 SymPy. An optional `fortsym-sympy` backend can replace that module with a
@@ -134,10 +135,13 @@ timeout failures remain tied to the timeout that produced them. Parsed
 comparison verdicts are cached separately in
 `.cache/reference-results.comparisons.json`, keyed by both serialized operands,
 their syntaxes, the strictness policy, and the comparator version. On the
-2026-08-01 corpus, the first cached-output parity pass took about 19 seconds;
-an identical warm pass took about 1.2 seconds. Use `--refresh-reference` after
-upgrading an oracle, `--refresh-cache` for a full fresh backend pass, or
-`--no-cache` to disable both caches.
+2026-08-01 corpus, a cold refresh after the latest translator and native
+changes took 4:54 with four workers. The compact 155 MB cache then served an
+identical warm audit in 2.1 seconds, with no backend subprocesses started.
+Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
+full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
+native executable invalidates only its own rows, and a translator change
+invalidates SymPy rows through the backend cache version.
 
 Corpus scripts run concurrently (four workers by default); use `--jobs 1` for
 a serial, easier-to-reproduce timing pass. The comparison path first accepts
@@ -171,9 +175,10 @@ Every (script, result, backend) lands in exactly one class:
 - `differ` — produced an answer, and it is wrong. The interesting one.
 - `unsupported` — the backend declined, naming the construct. Expected for most
   of the corpus today; the count going down is the measurement.
-- `untranslated` — the corpus entry has no source file for that backend. Most
-  of the corpus is `.wl`-only today; tracked separately so an untranslated
-  corpus cannot move a pass rate in either direction.
+- `untranslated` — the corpus entry has no source file for that backend. The
+  current inventory has a Python companion for every `.wl` source, so this
+  class is zero. It remains separate from the 11,538 statements recorded as
+  skipped inside those companions.
 - `unavailable` — the backend is not installed. Never folded into a scored
   class: an absent oracle that shrinks the denominator overstates every rate.
 - `error` / `timeout` — crashed, or exceeded the limit.
@@ -211,10 +216,12 @@ translations and counts statements that still need manual work. The latest
 60-second native sweep, using four workers, completed 381 scripts (343 with
 non-empty results and 38 valid empty result sets), timed out on 1, and
 explicitly refused 2 unsupported constructs; it had no native crashes. The
-same cache contains 359 completed SymPy rows (7 timeouts, 18 refusals) and 238
-completed Mathics rows (114 errors, 32 timeouts). The full two-oracle audit
-serves all 384 rows from cache; its warm comparison pass takes about 1.2
-seconds.
+same compact cache contains 359 completed SymPy rows (332 non-empty, 27 empty,
+7 timeouts, 18 refusals) and 235 completed Mathics rows (208 non-empty, 27
+empty, 117 errors, 32 timeouts). The final binding-level audit has 2,960
+agreements, 934 declared differences, 20 unsupported outcomes, 40 timeouts,
+135 errors, 207 oracle disagreements, and 799 oracle-missing bindings. Its
+warm run takes 2.1 seconds.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
@@ -259,10 +266,9 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 ## Status
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
-complete Python companion inventory, and the native Fortran backend are in
-place. In the latest full run, native scoring produced 2,443 agrees, 1,257
-declared differences, 170 comparison errors, 226 oracle disagreements, and
-815 oracle-missing bindings; the native cache held 381 completed script rows.
-Translation quality and the remaining backend parity work stay measured by the
-independent oracle report; the report is the source of truth for current
-counts.
+the complete Python companion inventory, and the native Fortran backend are in
+place. The latest full run produced 2,960 agreements, 934 declared
+differences, 20 unsupported outcomes, 40 timeouts, 135 errors, 207 oracle
+disagreements, and 799 oracle-missing bindings. Translation quality and the
+remaining backend parity work stay measured by the independent oracle report;
+the report is the source of truth for current counts.
