@@ -59,6 +59,28 @@ def test_unicode_phi_does_not_make_an_opaque_application_unparseable():
     assert result.outcome == "agree"
 
 
+def test_strings_and_first_derivatives_have_stable_comparison_atoms():
+    string_result = compare_text(
+        '"/tmp/native output"',
+        '"/tmp/native output"',
+        "inputform",
+        "structural",
+    )
+    derivative_result = compare_text(
+        "Derivative1[f, 1, x]",
+        "Derivative[1][f][x]",
+        "inputform",
+        "structural",
+    )
+    assert string_result.outcome == "agree"
+    assert derivative_result.outcome == "agree"
+
+
+def test_distinct_strings_are_different_not_parser_errors():
+    result = compare_text('"/tmp/a"', '"/tmp/b"', "inputform", "structural")
+    assert result.outcome == "differ"
+
+
 def test_identical_serialized_results_are_agree_without_parsing():
     result = compare_text("x + 1", "x + 1", "inputform", "structural")
 
