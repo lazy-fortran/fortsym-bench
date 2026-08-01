@@ -8,6 +8,8 @@ Both parsers are BSD SymPy, so the comparison path carries no licence question.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+import re
 
 AGREE = "agree"
 DIFFER = "differ"
@@ -53,13 +55,79 @@ def _normalise_inputform(text: str) -> str:
     fails before comparison; ``phi`` is the parser's callable spelling.
     These are syntax normalisations, not mathematical rewrites.
     """
-    return (
+    text = (
         text.replace("⇾", "->")
         .replace("⩵", "==")
         .replace("≥", ">=")
         .replace("∧", "&&")
         .replace("ϕ", "phi")
     )
+    text = _protect_inputform_strings(text)
+    return _normalise_derivative_calls(text)
+
+
+def _protect_inputform_strings(text: str) -> str:
+    """Represent string literals as collision-resistant symbolic atoms.
+
+    ``parse_mathematica`` currently strips the quotes and sends a Wolfram
+    string into Python's expression parser, where paths and ordinary text are
+    syntax errors. Hashing the complete literal preserves equality and
+    inequality for comparison while keeping the parser's job purely symbolic.
+    """
+    pieces: list[str] = []
+    start = 0
+    index = 0
+    while index < len(text):
+        if text[index] != '"':
+            index += 1
+            continue
+        pieces.append(text[start:index])
+        end = index + 1
+        escaped = False
+        while end < len(text):
+            char = text[end]
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                end += 1
+                break
+            end += 1
+        literal = text[index:end]
+        digest = hashlib.sha256(literal.encode("utf-8")).hexdigest()
+        pieces.append("fortsymString" + digest)
+        index = end
+        start = end
+    pieces.append(text[start:])
+    return "".join(pieces)
+
+
+_DERIVATIVE_CALL = re.compile(
+    r"Derivative\[([0-9]+(?:\s*,\s*[0-9]+)*)\]"
+    r"\[([A-Za-z$][A-Za-z0-9$]*)\]\[([^\[\]]*)\]"
+)
+
+
+def _normalise_derivative_calls(text: str) -> str:
+    """Use fortsym's opaque derivative spelling for simple WL derivatives."""
+    def replace(match: re.Match[str]) -> str:
+        orders = [part.strip() for part in match.group(1).split(",")]
+        head = match.group(2)
+        arguments = match.group(3).strip()
+        if len(orders) == 1:
+            return f"Derivative1[{head}, {orders[0]}, {arguments}]"
+        return "DerivativeIndex[{head}, {orders}, {arguments}]".format(
+            head=head,
+            orders=", ".join(orders),
+            arguments=arguments,
+        )
+
+    previous = None
+    while previous != text:
+        previous = text
+        text = _DERIVATIVE_CALL.sub(replace, text)
+    return text
 
 
 def compare(candidate, reference, strictness: str) -> Comparison:
