@@ -46,3 +46,11 @@ def test_pure_functions_map_apply_and_mapthread():
     assert values["squares"] == sp.Tuple(1, 4, 9)
     assert values["total"] == 6
     assert values["paired"] == sp.Tuple(4, 6)
+
+
+def test_a_script_without_assignments_returns_an_empty_result_set():
+    assignments, skipped = extract_assignments("Print[1]; Null")
+
+    assert assignments == []
+    assert skipped == ["Print[1]", "Null"]
+    assert evaluate_assignments(assignments) == {}
