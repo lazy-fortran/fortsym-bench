@@ -80,6 +80,11 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
         proc = subprocess.run(
             argv, capture_output=True, text=True, timeout=timeout, env=env,
             stdin=subprocess.DEVNULL,
+            # The corpus contains Greek identifiers, and a backend that slices
+            # a multi-byte character emits an invalid sequence. Replacing is
+            # right here: one mangled identifier costs one result, while a
+            # strict decode raises and destroys the entire run's measurement.
+            errors="replace",
         )
     except subprocess.TimeoutExpired:
         raise RunFailure("timeout", f"exceeded {timeout}s") from None
