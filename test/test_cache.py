@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from fortsym_bench.backends import (
@@ -119,6 +120,25 @@ def test_reference_runner_version_invalidates_old_results(tmp_path):
         old, source, 5.0, RunFailure("error", "no results parsed from: T\\t0.1")
     )
     assert cache.get(current, source, 5.0) is None
+
+
+def test_refresh_prunes_superseded_rows_for_the_same_source(tmp_path):
+    source = tmp_path / "case.py"
+    source.write_text("answer = 2\n")
+    path = tmp_path / "reference.json"
+    cache = ReferenceCache(path, autosave=False)
+    old = Backend("sympy", ".py", "srepr", cache_version=1)
+    current = Backend("sympy", ".py", "srepr", cache_version=2)
+
+    cache.put_result(old, source, 5.0, {"answer": "Integer(1)"})
+    cache.put_result(current, source, 5.0, {"answer": "Integer(2)"})
+    cache.flush()
+
+    payload = json.loads(path.read_text())
+    assert len(payload["entries"]) == 1
+    assert ReferenceCache(path).get(current, source, 300.0).results == {
+        "answer": "Integer(2)"
+    }
 
 
 def test_empty_wolfram_result_is_a_valid_protocol_result():

@@ -45,6 +45,9 @@ class ReferenceCache:
         self._lock = RLock()
         self._entries: dict[str, dict] = {}
         self._backend_fingerprints: dict[str, str] = {}
+        # Keep write order so a refresh can discard superseded source rows
+        # without guessing which hash-keyed entry is newest.
+        self._touched_keys: list[str] = []
         self._load()
 
     def get(
@@ -113,7 +116,8 @@ class ReferenceCache:
         results: dict,
     ) -> None:
         with self._lock:
-            self._entries[self._key(backend, source)] = {
+            key = self._key(backend, source)
+            self._entries[key] = {
                 "backend": backend.name,
                 "cache_version": backend.cache_version,
                 "source": self._display_source(source),
@@ -123,6 +127,7 @@ class ReferenceCache:
                 "outcome": "ok",
                 "results": results,
             }
+            self._remember_touched(key)
             if self.autosave:
                 self._save()
 
@@ -134,7 +139,8 @@ class ReferenceCache:
         failure: RunFailure,
     ) -> None:
         with self._lock:
-            self._entries[self._key(backend, source)] = {
+            key = self._key(backend, source)
+            self._entries[key] = {
                 "backend": backend.name,
                 "cache_version": backend.cache_version,
                 "source": self._display_source(source),
@@ -144,6 +150,7 @@ class ReferenceCache:
                 "outcome": "failure",
                 "failure": {"kind": failure.kind, "detail": str(failure)},
             }
+            self._remember_touched(key)
             if self.autosave:
                 self._save()
 
@@ -168,6 +175,14 @@ class ReferenceCache:
             self._entries = {}
 
     def _save(self) -> None:
+        if self.autosave:
+            self._prune_superseded_rows()
+        else:
+            # The CLI batches writes specifically so a full audit does not
+            # rewrite a multi-hundred-megabyte JSON file once per row. Its
+            # single flush is also the safe point to compact untouched
+            # historical rows left by earlier cache versions.
+            self._compact_compatible_rows()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         fd, temporary = tempfile.mkstemp(
             prefix=f".{self.path.name}.",
@@ -187,6 +202,88 @@ class ReferenceCache:
         finally:
             if os.path.exists(temporary):
                 os.unlink(temporary)
+
+    def _remember_touched(self, key: str) -> None:
+        if key not in self._touched_keys:
+            self._touched_keys.append(key)
+
+    def _prune_superseded_rows(self) -> None:
+        """Drop old versions after a source/backend has been refreshed.
+
+        The cache key deliberately includes source and executable identity, so
+        a rebuilt native binary or translated Python companion creates a new
+        row. Keeping every historical row made the JSON cache grow without
+        bound and slowed every warm audit. Only identities touched in this
+        cache instance are pruned; untouched compatible rows remain available
+        for a later run with a different timeout.
+        """
+        if not self._touched_keys:
+            return
+
+        keep: dict[tuple[object, object], str] = {}
+        for key in self._touched_keys:
+            entry = self._entries.get(key)
+            if entry is None:
+                continue
+            identity = (entry.get("backend"), entry.get("source"))
+            keep[identity] = key
+
+        for key, entry in tuple(self._entries.items()):
+            identity = (entry.get("backend"), entry.get("source"))
+            if identity in keep and key != keep[identity]:
+                del self._entries[key]
+        self._touched_keys.clear()
+
+    def _compact_compatible_rows(self) -> None:
+        """Keep one reusable row per backend/source pair.
+
+        The current cache key is preferred when the source is still present.
+        Otherwise retain the highest compatible version, which preserves old
+        successful Mathics rows across the protocol-only compatibility bump.
+        Unknown backends are compacted by newest cache order as a fallback.
+        """
+        from .backends import BACKENDS
+
+        groups: dict[tuple[object, object], list[tuple[str, dict]]] = {}
+        for key, entry in self._entries.items():
+            identity = (entry.get("backend"), entry.get("source"))
+            groups.setdefault(identity, []).append((key, entry))
+
+        compacted: dict[str, dict] = {}
+        for (backend_name, displayed_source), candidates in groups.items():
+            chosen: tuple[str, dict] | None = None
+            backend = BACKENDS.get(backend_name)
+            source = Path(displayed_source) if isinstance(displayed_source, str) else None
+            if backend is not None and source is not None and source.exists():
+                current_key = self._key(backend, source)
+                chosen = next(
+                    (candidate for candidate in candidates if candidate[0] == current_key),
+                    None,
+                )
+
+            if chosen is None and backend is not None:
+                compatible = [
+                    candidate
+                    for candidate in candidates
+                    if self._cache_version_compatible(backend, candidate[1])
+                    and self._execution_compatible(backend, candidate[1])
+                ]
+                if compatible:
+                    chosen = max(
+                        enumerate(compatible),
+                        key=lambda item: (
+                            item[1][1].get("cache_version", 1),
+                            item[1][1].get("outcome") == "ok",
+                            item[0],
+                        ),
+                    )[1]
+
+            if chosen is None:
+                chosen = candidates[-1]
+            compacted[chosen[0]] = chosen[1]
+
+        self._entries = compacted
+        self._touched_keys.clear()
 
     def _key(self, backend: Backend, source: Path) -> str:
         identity = {
