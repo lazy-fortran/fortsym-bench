@@ -124,16 +124,15 @@ fortsym-bench run --repeat 5 --report results.json
 fortsym-bench run --jobs 4 --report results.json
 ```
 
-SymPy and Mathics reference outcomes are cached incrementally in
-`.cache/reference-results.json` by default. A later run reuses those answers
-and runs only the candidate backends; the report marks cached reference rows
-and omits stale timing samples. Cache entries include the backend configuration
-and source digest, so edited scripts do not reuse old answers. Successful
-answers remain reusable when the timeout changes; timeout failures remain tied
-to the timeout that produced them. The runner version is part of the cache
-identity, so changing the Mathics wrapper cannot reuse stale results. Use
-`--refresh-reference` after upgrading an oracle, or `--no-cache` for a
-completely fresh run.
+SymPy, Mathics, and native `fortsym-wl` outcomes are cached incrementally in
+`.cache/reference-results.json` by default. A later run reuses unchanged rows;
+the report marks them cached and omits stale timing samples. Cache entries
+include the backend configuration, source digest, and subprocess executable
+fingerprint, so edited scripts and rebuilt native binaries invalidate only the
+affected rows. Successful answers remain reusable when the timeout changes;
+timeout failures remain tied to the timeout that produced them. Use
+`--refresh-reference` after upgrading an oracle, `--refresh-cache` for a full
+fresh backend pass, or `--no-cache` to disable the cache entirely.
 
 Corpus scripts run concurrently (four workers by default); use `--jobs 1` for
 a serial, easier-to-reproduce timing pass. The comparison path first accepts

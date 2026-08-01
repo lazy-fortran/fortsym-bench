@@ -1,9 +1,10 @@
-"""Persistent cache for the independent reference backends.
+"""Persistent cache for deterministic backend results.
 
-The reference answers are deterministic for a fixed source file and backend
-configuration, but Mathics is deliberately run in a subprocess and is much
-more expensive than the local candidate. Keep successful answers and named
-failures on disk so a later scoring pass does not rerun either oracle.
+The reference answers and native candidate results are deterministic for a
+fixed source file and backend configuration. Keep successful answers and named
+failures on disk so a later scoring pass reruns only entries whose source or
+executable changed. Timing is deliberately not cached: a cached row is not a
+fresh performance measurement.
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shutil
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,7 +25,11 @@ CACHE_VERSION = 1
 
 @dataclass(frozen=True)
 class CachedReference:
-    """One cached oracle result or failure."""
+    """One cached backend result or failure.
+
+    The name is retained for compatibility with callers that used the cache
+    while it held reference results only.
+    """
 
     results: dict | None = None
     failure: RunFailure | None = None
@@ -36,6 +42,7 @@ class ReferenceCache:
         self.path = Path(path)
         self._lock = RLock()
         self._entries: dict[str, dict] = {}
+        self._backend_fingerprints: dict[str, str] = {}
         self._load()
 
     def get(
@@ -67,6 +74,8 @@ class ReferenceCache:
                     and candidate.get("source") == display
                     and candidate.get("source_sha256") == digest
                 ):
+                    if not self._execution_compatible(backend, candidate):
+                        continue
                     if (
                         candidate.get("outcome") == "ok"
                         or candidate.get("timeout") == timeout
@@ -107,6 +116,7 @@ class ReferenceCache:
                 "cache_version": backend.cache_version,
                 "source": self._display_source(source),
                 "source_sha256": _sha256(source.read_bytes()),
+                "execution_fingerprint": self._execution_fingerprint(backend),
                 "timeout": timeout,
                 "outcome": "ok",
                 "results": results,
@@ -126,6 +136,7 @@ class ReferenceCache:
                 "cache_version": backend.cache_version,
                 "source": self._display_source(source),
                 "source_sha256": _sha256(source.read_bytes()),
+                "execution_fingerprint": self._execution_fingerprint(backend),
                 "timeout": timeout,
                 "outcome": "failure",
                 "failure": {"kind": failure.kind, "detail": str(failure)},
@@ -175,6 +186,7 @@ class ReferenceCache:
             "syntax": backend.syntax,
             "command": backend.command,
             "cache_version": backend.cache_version,
+            "execution_fingerprint": self._execution_fingerprint(backend),
             "source": self._display_source(source),
             "source_sha256": _sha256(source.read_bytes()),
         }
@@ -215,6 +227,48 @@ class ReferenceCache:
             return True
         detail = entry.get("failure", {}).get("detail", "")
         return not detail.startswith("no results parsed")
+
+    def _execution_fingerprint(self, backend: Backend) -> str:
+        """Identify the executable that can change a subprocess result.
+
+        Reference entries written before executable fingerprints are accepted
+        by the compatibility path above. New native entries include the
+        binary digest, so rebuilding fortsym invalidates its result cache
+        without forcing a fresh Mathics/SymPy run.
+        """
+        cached = self._backend_fingerprints.get(backend.name)
+        if cached is not None:
+            return cached
+
+        if backend.command:
+            executable = shutil.which(backend.command[0])
+            if executable is None:
+                fingerprint = f"missing:{backend.command[0]}"
+            else:
+                path = Path(executable).resolve()
+                try:
+                    fingerprint = f"{path}:{_sha256(path.read_bytes())}"
+                except OSError:
+                    fingerprint = f"{path}:unreadable"
+        else:
+            # The Python runner is part of this repository and the oracle
+            # cache version covers changes to its protocol. Include the
+            # interpreter so switching virtual environments cannot silently
+            # reuse a result produced by a different runtime.
+            interpreter = Path(os.path.realpath(os.sys.executable))
+            try:
+                digest = _sha256(interpreter.read_bytes())
+            except OSError:
+                digest = "unreadable"
+            fingerprint = f"{interpreter}:{digest}"
+
+        self._backend_fingerprints[backend.name] = fingerprint
+        return fingerprint
+
+    def _execution_compatible(self, backend: Backend, entry: dict) -> bool:
+        """Check a new executable fingerprint, preserving old cache files."""
+        stored = entry.get("execution_fingerprint")
+        return stored is None or stored == self._execution_fingerprint(backend)
 
     @staticmethod
     def _display_source(source: Path) -> str:
