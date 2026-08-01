@@ -46,7 +46,7 @@ BACKENDS = {
         Backend("fortsym-sympy", ".py", "srepr"),
         Backend("mathics", ".wl", "inputform", is_oracle=True,
                 command=("mathics", "-q", "--no-readline", "-c"),
-                cache_version=2),
+                cache_version=3),
         Backend("fortsym-wl", ".wl", "inputform", command=("fortsym_wl_run",)),
     )
 }
@@ -202,12 +202,14 @@ def _wolfram_argv(backend: Backend, script: Path) -> list[str]:
 
 def _parse_wolfram_output(stdout: str) -> tuple[dict, float]:
     results, seconds = {}, 0.0
+    saw_time = False
     for line in stdout.splitlines():
         parts = line.split("\t")
         if parts[0] == "R" and len(parts) >= 3:
             results[parts[1].strip()] = "\t".join(parts[2:]).strip()
         elif parts[0] == "T" and len(parts) >= 2:
             seconds = float(parts[1].strip())
-    if not results:
+            saw_time = True
+    if not saw_time:
         raise RunFailure("error", f"no results parsed from: {stdout[:200]}")
     return results, seconds
