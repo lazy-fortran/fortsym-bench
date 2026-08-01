@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 69 non-assignment statement(s) remain.
+# NOT TRANSLATED: 68 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('root', 'DirectoryName[DirectoryName[$InputFileName]]', ()),
     ('out', 'FileNameJoin[{root, "report", "generated"}]', ()),

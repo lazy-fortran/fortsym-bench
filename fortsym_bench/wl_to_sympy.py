@@ -192,7 +192,7 @@ def evaluate_expression(text: str, environment: dict[str, object] | None = None)
     """Parse and lower one Wolfram expression using the SymPy API."""
 
     environment = {} if environment is None else environment
-    normalised = _normalise_named_characters(text)
+    normalised = _normalise_expression_layout(_normalise_named_characters(text))
     protected, parse_environment, restore = _protect_bound_names(
         normalised, environment
     )
@@ -1159,7 +1159,17 @@ def _awaits_operand(source: str, start: int, end: int) -> bool:
     index = end - 1
     while index >= start and source[index] in " \t\r":
         index -= 1
-    return index >= start and source[index] in "+-*/,^=<>|@:,~"
+    if index >= start and source[index] in "+-*/,^=<>|@:,~":
+        return True
+
+    # Wolfram input is commonly formatted with a continuation operator at the
+    # beginning of the next physical line.  Treating that newline as a
+    # statement boundary silently dropped the remainder of assignments such
+    # as ``a = first_term\n  + second_term`` from generated SymPy companions.
+    index = end + 1
+    while index < len(source) and source[index] in " \t\r":
+        index += 1
+    return index < len(source) and source[index] in "+-*/,^=<>|@:,~"
 
 
 def _normalise_named_characters(text: str) -> str:
@@ -1168,3 +1178,53 @@ def _normalise_named_characters(text: str) -> str:
         lambda match: match.group(1),
         text,
     )
+
+
+def _normalise_expression_layout(text: str) -> str:
+    """Make physical line breaks whitespace inside one assignment RHS.
+
+    ``extract_assignments`` has already established the statement boundary.
+    Passing its original newlines to SymPy's Mathematica parser would turn a
+    continued expression into ``CompoundExpression`` instead of arithmetic.
+    Wolfram's backslash-newline continuation is equivalent to the same space.
+    String contents remain byte-for-byte unchanged.
+    """
+    pieces: list[str] = []
+    start = 0
+    index = 0
+    in_string = False
+    escaped = False
+    while index < len(text):
+        char = text[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            index += 1
+            continue
+        if char == '"':
+            in_string = True
+            index += 1
+            continue
+        if char == "\\" and index + 1 < len(text) and text[index + 1] in "\r\n":
+            pieces.append(text[start:index])
+            pieces.append(" ")
+            index += 2
+            if index < len(text) and text[index - 1] == "\r" and text[index] == "\n":
+                index += 1
+            start = index
+            continue
+        if char in "\r\n":
+            pieces.append(text[start:index])
+            pieces.append(" ")
+            index += 1
+            if index < len(text) and char == "\r" and text[index] == "\n":
+                index += 1
+            start = index
+            continue
+        index += 1
+    pieces.append(text[start:])
+    return "".join(pieces)

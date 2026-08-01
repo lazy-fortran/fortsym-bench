@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 43 non-assignment statement(s) remain.
+# NOT TRANSLATED: 42 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('$Assumptions', 'r > 0 && Element[{chi, eps, m, k}, Reals] && B0 > 0', ()),
     ('vv', '{v1, v2, v3}', ()),

@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 23 non-assignment statement(s) remain.
+# NOT TRANSLATED: 21 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('CWD', 'Directory[]', ()),
     ('absB', 'absBDommaschk[x, phi, z]', ()),
@@ -20,7 +20,7 @@ _ASSIGNMENTS = [
     ('dgyxdz', 'D[b[[1]], z]', ()),
     ('dgyzdz', 'D[b[[3]], z]', ()),
     ('dgyxdx', 'D[b[[1]], x]', ()),
-    ('dgyxdy', 'b[[1]] * dgyxdx \\', ()),
+    ('dgyxdy', 'b[[1]] * dgyxdx \\\n       + b[[2]] / x * (D[b[[1]], phi] - b[[2]]) \\\n       + b[[3]] * dgyxdz', ()),
     ('dgyzdy', 'b . Grad[b[[3]], {x, phi, z}, "Cylindrical"]', ()),
 ]
 
