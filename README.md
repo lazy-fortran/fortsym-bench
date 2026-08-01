@@ -162,6 +162,20 @@ ingest.
 Largest projects: `gvec-stability` 47, `flux_pumping` 44, `neort-proofs` 32,
 `cpp-derivation` 18, `plasma/DOCUMENTS` 20, `paper_magnetic` 12, `KiLCA` 9.
 
+**Teaching material is corpus, not padding.** `archive-tu` and `archive-old`
+(43 files) are TU coursework, and they cover a *wider* operation mix than the
+research scripts do: `Solve` 104, `Integrate` 109, `DSolve` 43, `Factor` 40,
+`Eigenvalues` 23, `Limit` 36. The physics corpus is deep in a narrow fragment;
+the coursework is shallow across many operations, which is exactly the shape a
+compatibility subset has to survive. Anything claiming to be a drop-in
+replacement should run a first-year exercise sheet.
+
+One caveat on them: they contain 952 `Plot` calls. Plotting is a deferred area
+in fortsym's roadmap, so those cells will report `unsupported` indefinitely.
+That is an honest refusal rather than a defect, but it means coverage
+percentages for these projects should be read against the non-plotting cell
+count.
+
 ### Converting notebooks
 
 `tools/nb2wl.wls` extracts Input cells as InputForm text and discards output
