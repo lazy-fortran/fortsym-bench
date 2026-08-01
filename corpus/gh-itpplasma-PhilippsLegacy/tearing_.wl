@@ -1,0 +1,1 @@
+α = 1; , Null, F = Tanh[µ]; , Null, Fd2 = D[F, {µ, 2}]; , Null, ψ = E^((-α)*Abs[µ]); , Null, ψd1 = (-α)*Sign[µ]*ψ; , Null, ψd2 = α^2*ψ; , Null, Plot[{F, Fd2, ψ, (ψ*Fd2)/F}, {µ, -5, 5}, PlotLegends -> "Expressions", PlotRange -> {-1, 1}]
