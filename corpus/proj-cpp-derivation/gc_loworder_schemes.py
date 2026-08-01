@@ -1,0 +1,83 @@
+"""Generated SymPy translation of ``corpus/proj-cpp-derivation/gc_loworder_schemes.wl``.
+
+The assignment text is lowered by the shared deterministic translator.
+Unsupported control-flow or side-effect statements are not guessed;
+their count is recorded in translation-manifest.json.
+"""
+
+from fortsym_bench.wl_to_sympy import evaluate_assignments
+
+# NOT TRANSLATED: 59 non-assignment statement(s) remain.
+_ASSIGNMENTS = [
+    ('pass', '0', ()),
+    ('fail', '0', ()),
+    ('check', 'Module[{c = TrueQ[cond]},\n  If[c, pass++; Print["PASS  ", name], fail++; Print["FAIL  ", name]]; c]', ('name', 'cond')),
+    ('J2', '{{0, 1}, {-1, 0}}', ()),
+    ('w0', '1', ()),
+    ('Meuler', '{{1 - dt^2 w^2, dt w}, {-dt w, 1}}', ('w', 'dt')),
+    ('Mmid', 'Module[{L = (dt/2) J2 . (w IdentityMatrix[2])},\n  Inverse[IdentityMatrix[2] - L] . (IdentityMatrix[2] + L)]', ('w', 'dt')),
+    ('flowT', '{{1, w t}, {0, 1}}', ('w', 't')),
+    ('flowV', '{{1, 0}, {-w t, 1}}', ('w', 't')),
+    ('Mleap', 'flowT[w, dt/2] . flowV[w, dt] . flowT[w, dt/2]', ('w', 'dt')),
+    ('traceSE', 'Simplify[Tr[Meuler[w, dt]]]', ()),
+    ('traceLF', 'Simplify[Tr[Mleap[w, dt]]]', ()),
+    ('traceMP', 'Simplify[Tr[Mmid[w, dt]]]', ()),
+    ('wnumOf', 'ArcCos[tr/2]/dt', ('tr', 'dt')),
+    ('freqErr', 'Module[{wl = 1.},\n  Abs[Switch[scheme,\n     "SE", wnumOf[2 - dt^2 wl^2, dt],\n     "LF", wnumOf[2 - dt^2 wl^2, dt],\n     "MP", wnumOf[(8 - 2 dt^2 wl^2)/(4 + dt^2 wl^2), dt]] - wl]]', ('scheme', 'dt')),
+    ('freqSlope', 'Module[{dts = Table[d, {d, 1/200, 1/40, 1/400}], es, ld, le},\n  es = freqErr[scheme, #] & /@ dts;\n  ld = Log[dts]; le = Log[es];\n  (Length[ld] (ld . le) - Total[ld] Total[le])/(Length[ld] (ld . ld) - Total[ld]^2)]', ('scheme',)),
+    ('pb', 'D[f, q] D[g, p] - D[f, p] D[g, q]', ('f', 'g')),
+    ('Tk', 'p^2/2', ()),
+    ('Vk', '-w0^2 Cos[q]', ()),
+    ('Hpend', 'Tk + Vk', ()),
+    ('brkVT', 'Simplify[pb[Vk, Tk]]', ()),
+    ('dVdt', 'D[Vk, q] p', ()),
+    ('selfAdjLF', 'Simplify[Mleap[w, -dt] . Mleap[w, dt] - IdentityMatrix[2]]', ()),
+    ('selfAdjMP', 'Simplify[Mmid[w, -dt] . Mmid[w, dt] - IdentityMatrix[2]]', ()),
+    ('Vp', 'w0^2 Sin[qq]', ('qq',)),
+    ('stepLF', 'stepSEa[stepSE[z, dt/2], dt/2]', ('z', 'dt')),
+    ('orb', 'Module[{z = z0}, Do[z = stepF[z, dt], {Ceiling[T/dt]}]; z]', ('stepF', 'dt', 'T', 'z0')),
+    ('z0', '{1/2, 0.}', ()),
+    ('Tend', '20.', ()),
+    ('zref', 'orb[stepMP, 0.0005, Tend, z0]', ()),
+    ('phaseSlope', 'Module[{dts, es, ld, le},\n  dts = Table[d, {d, 1/100, 1/20, 1/200}];                               \n  es = (Abs[(orb[stepF, #, Tend, z0] - zref)[[1]]]) & /@ dts;\n  ld = Log[dts]; le = Log[es];\n  (Length[ld] (ld . le) - Total[ld] Total[le])/(Length[ld] (ld . ld) - Total[ld]^2)]', ('stepF',)),
+    ('slopeSE', 'phaseSlope[stepSE]', ()),
+    ('slopeLF', 'phaseSlope[stepLF]', ()),
+    ('slopeMP', 'phaseSlope[stepMP]', ()),
+    ('dtCrude', '1/4', ()),
+    ('pe', 'Abs[(orb[stepF, dt, Tend, z0] - zref)[[1]]]', ('stepF', 'dt')),
+    ('w0v', '1', ()),
+    ('kappa', '1/2', ()),
+    ('omegaD', '1/4', ()),
+    ('nres', '3', ()),
+    ('omegaB', 'w0v/(1 + kappa Jb)', ('Jb',)),
+    ('Jres', 'jb /. First[Solve[omegaB[jb] == nres omegaD, jb]]', ()),
+    ('wlRes', 'N[nres omegaD]', ()),
+    ('JerrAt', 'Module[{wl = wlRes},\n  Abs[Switch[scheme,\n     "SE", wnumOf[2 - dt^2 wl^2, dt],\n     "LF", wnumOf[2 - dt^2 wl^2, dt],\n     "MP", wnumOf[(8 - 2 dt^2 wl^2)/(4 + dt^2 wl^2), dt]] - wl]/(nres Abs[omegaB\'[Jres]])]', ('scheme', 'dt')),
+    ('JresShiftOrder', 'Module[{dts = Table[d, {d, 1/200, 1/40, 1/400}], es, ld, le},\n  es = JerrAt[scheme, #] & /@ dts;\n  ld = Log[dts]; le = Log[es];\n  (Length[ld] (ld . le) - Total[ld] Total[le])/(Length[ld] (ld . ld) - Total[ld]^2)]', ('scheme',)),
+    ('edgeLF', 'dt /. First[Solve[(traceLF /. w -> 1) == -2 && dt > 0, dt]]', ()),
+    ('edgeSE', 'dt /. First[Solve[(traceSE /. w -> 1) == -2 && dt > 0, dt]]', ()),
+    ('mpTrace', '(8 - 2 wdt^2)/(4 + wdt^2)', ('wdt',)),
+    ('mpAstable', 'Reduce[-2 < mpTrace[x] < 2 && x > 0, x, Reals]', ()),
+    ('tol', '1/10', ()),
+    ('C1', 'pe[stepSE, dtCrude]/dtCrude', ()),
+    ('C2', 'pe[stepLF, dtCrude]/dtCrude^2', ()),
+    ('ceil1st', 'tol/C1', ()),
+    ('ceil2nd', 'Sqrt[tol/C2]', ()),
+    ('wB', 'nres omegaD', ()),
+    ('solvesLF', '0', ()),
+    ('solvesSEsep', '0', ()),
+    ('solvesSEgen', '1', ()),
+    ('solvesMP', '1', ()),
+    ('orbE', 'Module[{z = {1/2, 0.}, es = {}},\n  Do[z = stepF[z, dt]; AppendTo[es, energy[z]], {nSteps}]; N[es]]', ('stepF', 'dt', 'nSteps')),
+    ('dtLong', '1/4', ()),
+    ('nLong', '8000', ()),
+    ('e0base', 'energy[{1/2, 0.}]', ()),
+    ('eSE', 'orbE[stepSE, dtLong, nLong]', ()),
+    ('eLF', 'orbE[stepLF, dtLong, nLong]', ()),
+    ('eMP', 'orbE[stepMP, dtLong, nLong]', ()),
+    ('span', 'Max[e] - Min[e]', ('e',)),
+    ('drift', 'Abs[Mean[Take[e, -Floor[Length[e]/2]]] - Mean[Take[e, Floor[Length[e]/2]]]]', ('e',)),
+]
+
+def results():
+    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-cpp-derivation/gc_loworder_schemes.wl')

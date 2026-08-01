@@ -15,6 +15,13 @@ import sys
 import time
 from pathlib import Path
 
+# A generated companion imports the shared Wolfram-to-SymPy runtime.  Make the
+# checkout containing this runner importable even when the benchmark package
+# has not been installed into the child interpreter yet.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 
 def install_backend(name: str) -> None:
     if name == "sympy":

@@ -14,10 +14,12 @@ Both correctness **and** wall time are reported, on identical inputs.
 
 ## The idea
 
-The `itpplasma` codes hold roughly 219 Wolfram-language derivation scripts. Each
-one lands here twice: the original `.wl`, and a hand translation to SymPy. Those
-two files are the corpus. The four backends above read one or the other, and
-nothing in either file knows which backend is running it.
+The corpus holds 384 Wolfram-language derivation scripts. Every one now has a
+Python companion: 382 are generated from the assignment stream by the bounded
+translator in `fortsym_bench/wl_to_sympy.py`, one Association fixture is hand
+expanded, and one original hand translation is preserved. Unsupported control
+flow and side effects remain explicit in `translation-manifest.json`; they are
+not silently replaced with invented mathematics.
 
 For the Python path the entire difference is one line in the harness:
 
@@ -47,13 +49,16 @@ oracle disagreement as its own outcome class.
 
 ```
 corpus/<project>/<nn>_<name>.wl    original derivation
-corpus/<project>/<nn>_<name>.py    hand translation to SymPy
+corpus/<project>/<nn>_<name>.py    generated or hand translation to SymPy
 fortsym_bench/                     harness, runners, comparator
+translation-manifest.json          generated/hand coverage and skipped statements
 TRANSLATION.md                     rules for translating .wl to SymPy
 ```
 
-The two files of a pair must expose the **same result names**. That is what
-makes a four-way comparison possible.
+The two files of a pair should expose the same result names. Generated
+companions expose every binding the shared runtime can lower and record the
+rest as explicit translation coverage, so a partial SymPy oracle cannot be
+mistaken for a complete one.
 
 ## Writing a corpus pair
 
@@ -107,9 +112,20 @@ fortsym-bench run --repeat 5 --report results.json
 SymPy and Mathics reference outcomes are cached incrementally in
 `.cache/reference-results.json` by default. A later run reuses those answers
 and runs only the candidate backends; the report marks cached reference rows
-and omits stale timing samples. Cache entries include the source digest and
-timeout, so edited scripts do not reuse old answers. Use `--refresh-reference`
-after upgrading an oracle, or `--no-cache` for a completely fresh run.
+and omits stale timing samples. Cache entries include the backend configuration
+and source digest, so edited scripts do not reuse old answers. Successful
+answers remain reusable when the timeout changes; timeout failures remain tied
+to the timeout that produced them. Use `--refresh-reference` after upgrading
+an oracle, or `--no-cache` for a completely fresh run.
+
+Regenerate missing Python companions with:
+
+```sh
+python tools/translate_wl_corpus.py
+```
+
+Existing hand translations are preserved. Use `--force` only when deliberately
+replacing them.
 
 Each (script, backend) pair runs in its own subprocess, so a crash or a
 module-state leak cannot reach another. Results cross the process boundary as
@@ -159,8 +175,9 @@ diagnostic, not evidence.
 
 ## Corpus inventory
 
-**359 `.wl` scripts across 50 projects**, ingested 2026-08-01. One has a SymPy
-translation; the rest are Wolfram-only and run the Mathics path today.
+**384 `.wl` scripts across 50 projects**, ingested 2026-08-01. Every script has
+a Python companion; the manifest distinguishes generated, hand, and preserved
+translations and counts statements that still need manual work.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
@@ -204,5 +221,6 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 ## Status
 
-Harness runs. Corpus ingested; translation to SymPy is the open work. Tracker:
-`lazy-fortran/fortsym#27`.
+Harness runs. Corpus ingestion, persistent reference caching, and complete
+companion coverage are in place. Translation quality remains measured by the
+independent SymPy and Mathics runs; tracker: `lazy-fortran/fortsym#27`.

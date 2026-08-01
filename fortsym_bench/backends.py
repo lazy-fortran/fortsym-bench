@@ -151,9 +151,10 @@ def _wolfram_argv(backend: Backend, script: Path) -> list[str]:
     designated results variable would mean editing all 359, which is exactly
     the 1:1 property this repository exists to preserve.
 
-    Deliberately not printing an association: Mathics renders ``->`` inside one
-    as U+21FE, which is not textual syntax any parser expects. Flat
-    ``R<TAB>name<TAB>value`` lines sidestep the pretty-printer entirely.
+    Associations are flattened into their named values before printing:
+    Mathics renders ``->`` inside one as U+21FE, which is not textual syntax
+    any parser expects. Flat ``R<TAB>name<TAB>value`` lines sidestep the
+    pretty-printer entirely.
     """
     wrapper = (
         # SetDirectory so a script that Gets a sibling by relative name finds
@@ -181,11 +182,15 @@ def _wolfram_argv(backend: Backend, script: Path) -> list[str]:
         'Unprotect[CreateDirectory, Export, Put, PutAppend]; '
         'CreateDirectory[d___] := Null; '
         'Export[f_, ___] := f; Put[___] := Null; PutAppend[___] := Null; '
-        f'fsHarness = {{"fsHarness", "fsTime", "fsName"}}; '
+        f'fsHarness = {{"fsHarness", "fsTime", "fsName", "fsEmit"}}; '
         f'fsTime = AbsoluteTiming[Get["{script.resolve()}"]][[1]]; '
-        'Scan[Function[fsName, If[ValueQ[Symbol[fsName]] && '
+        'fsEmit[fsName_] := If[ValueQ[Symbol[fsName]] && '
         '!MemberQ[fsHarness, fsName], '
-        'Print["R\t", fsName, "\t", ToString[InputForm[Symbol[fsName]]]]]], '
+        'If[Head[Symbol[fsName]] === Association, '
+        'Scan[Function[fsRule, Print["R\t", ToString[First[fsRule]], "\t", '
+        'ToString[InputForm[Last[fsRule]]]]], Normal[Symbol[fsName]]], '
+        'Print["R\t", fsName, "\t", ToString[InputForm[Symbol[fsName]]]]]]; '
+        'Scan[fsEmit, '
         'Names["Global`*"]]; '
         'Print["T\t", fsTime]'
     )

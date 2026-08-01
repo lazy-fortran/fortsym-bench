@@ -1,0 +1,82 @@
+"""Generated SymPy translation of ``corpus/proj-gvec-stability/mishka_gliss_weak_layout.wl``.
+
+The assignment text is lowered by the shared deterministic translator.
+Unsupported control-flow or side-effect statements are not guessed;
+their count is recorded in translation-manifest.json.
+"""
+
+from fortsym_bench.wl_to_sympy import evaluate_assignments
+
+# NOT TRANSLATED: 73 non-assignment statement(s) remain.
+_ASSIGNMENTS = [
+    ('pass', '0', ()),
+    ('fail', '0', ()),
+    ('check', 'If[TrueQ[FullSimplify[condition]],\n  pass++; Print["PASS  ", name], fail++; Print["FAIL  ", name]]', ('name', 'condition')),
+    ('bContravariant', '{fp/jac, ft/jac}', ()),
+    ('tangentialMetric', '{{gtt, gtz}, {gtz, gzz}}', ()),
+    ('bSquared', 'bContravariant . tangentialMetric . bContravariant', ()),
+    ('jTheta', '(betaZeta - iPrime)/jac', ()),
+    ('jZeta', '(jPrime - betaTheta)/jac', ()),
+    ('fixtureMetric', '{{2 + Cos[angle]/5, Sin[angle]/10},\n  {Sin[angle]/10, 3}}', ('angle',)),
+    ('fixtureB', '{2/5, -7/10}', ()),
+    ('fixtureJac', '9/5', ()),
+    ('fixtureFlux', 'fixtureJac fixtureB', ()),
+    ('fixtureCovariant', 'fixtureMetric[angle] . fixtureB', ('angle',)),
+    ('fixtureBSquared', 'fixtureB . fixtureMetric[angle] . fixtureB', ('angle',)),
+    ('fixtureAverage', 'Integrate[fixtureCovariant[angle], {angle, 0, 2 Pi}]/(2 Pi)', ()),
+    ('fixtureCurrent', '{1/5, 3/10}/fixtureJac', ()),
+    ('axisJacobian', 'p[r] q[r] radiusSquared[r, theta]/t[r]', ()),
+    ('axisBTheta', 'q[r] gradPsiSquared[r, theta]/t[r]', ()),
+    ('axisBZeta', 't[r]', ()),
+    ('axisBRadial', '-p[r] q[r] gradPsiTheta[r, theta]/t[r]', ()),
+    ('axisBSquared', '(t[r]^2 + gradPsiSquared[r, theta])/\n  radiusSquared[r, theta]', ()),
+    ('axisJTheta', '-D[axisBZeta, r]/axisJacobian', ()),
+    ('axisJZeta', '(D[axisBTheta, r] - D[axisBRadial, theta])/axisJacobian', ()),
+    ('axisJDotB', 'axisJTheta axisBTheta + axisJZeta axisBZeta', ()),
+    ('axisJDotBExpected', "t[r]/(p[r] q[r] radiusSquared[r, theta]) *\n  (q'[r] gradPsiSquared[r, theta] +\n    q[r] D[gradPsiSquared[r, theta], r] -\n    2 q[r] gradPsiSquared[r, theta] t'[r]/t[r] +\n    p[r] q[r] D[gradPsiTheta[r, theta], theta])", ()),
+    ('mishkaA21GPGT', '-I (mTrial + n q0) *\n  (mTrial - mTest + n q0)/(q0 t0)', ()),
+    ('layoutTransform', 'DiagonalMatrix[\n  {1/edgeFlux, 1/(dsdr edgeFlux), I majorRadius^2 edgeFlux/(p0 q0)}]', ()),
+    ('mishkaTest', 'Array[test, 3]', ()),
+    ('mishkaTrial', 'Array[trial, 3]', ()),
+    ('glissTest', 'layoutTransform . mishkaTest', ()),
+    ('glissTrial', 'layoutTransform . mishkaTrial', ()),
+    ('glissKernel', 'Array[kernel, {3, 3}]', ()),
+    ('translatedKernel', 'dsdr ConjugateTranspose[layoutTransform] .', ()),
+    ('layoutAssumptions', 'Element[{edgeFlux, dsdr, majorRadius, p0, q0}, Reals] &&', ()),
+    ('realFourierAssumptions', 'Element[{aNormal, aTangential, bNormal, bTangential, phase}, Reals]', ()),
+    ('realHarmonicProduct', 'Integrate[\n   (aNormal Cos[phase] + aTangential Sin[phase]) *\n    (bNormal Cos[phase] + bTangential Sin[phase]),\n   {phase, 0, 2 Pi}]/(2 Pi)', ()),
+    ('complexHarmonicProduct', '1/2 Re[\n   Conjugate[aNormal - I aTangential] *\n    (bNormal - I bTangential)]', ()),
+    ('incompressibleTermNames', '{"field_line_bending", "magnetic_shear",\n  "magnetic_compression", "pressure_drive"}', ()),
+    ('termKernels', 'Table[Array[term[index], {3, 3}], {index, 4}]', ()),
+    ('translatedTerms', 'dsdr ConjugateTranspose[layoutTransform] . # . layoutTransform & /@\n   termKernels', ()),
+    ('normalBasis', "{h[r], h'[r], 0}", ()),
+    ('tangentialBasis', '{0, 0, l[r]}', ()),
+    ('stiffnessScale', '2 Pi^2 majorRadius^3/mu0', ()),
+    ('massScale', '2 Pi^2 majorRadius^5 density', ()),
+    ('normalizationAssumptions', 'Element[{majorRadius, mu0, density, lambdaMishka, lambdaGliss}, Reals] &&', ()),
+    ('lambdaGlissFromMishka', '-stiffnessScale lambdaMishka/massScale', ()),
+    ('lambdaMishkaFromGliss', '-massScale lambdaGliss/stiffnessScale', ()),
+    ('variableQFlux', 'FullSimplify[\n  normalizedToroidalFlux[r] /. {\n    qProfile[u_] :> 1 + a u^2, phiEdge -> psiEdge (1 + a/2)}]', ()),
+    ('axisFlux', 'Integrate[\n   2 u psiEdge (qAxis + qSlope u + qCurve u^2), {u, 0, r}]/phiEdge', ()),
+    ('axisMapAssumptions', 'Element[{r, qAxis, psiEdge}, Reals] &&', ()),
+    ('mishkaP', '2 r psiEdge', ()),
+    ('roundoffAssumptions', 'Element[{unitRoundoff, absoluteContribution, compensatedValue,\n    ordinaryValue, exactValue, potentialError, matrixError,\n    termSumError, termError1, termError2, termError3, termError4,\n    potentialBound, matrixBound, termSumBound, termBound1, termBound2,\n    termBound3, termBound4, ordinaryErrorBound, energyScale,\n    closureTolerance, totalBound}, Reals] &&', ()),
+    ('ordinaryBound', 'gamma[2 dimension + 2] absoluteContribution', ()),
+    ('closureError', 'potentialError + matrixError - termSumError -\n  termError1 - termError2 - termError3 - termError4', ()),
+    ('closureBound', 'potentialBound + matrixBound + termSumBound +\n  termBound1 + termBound2 + termBound3 + termBound4', ()),
+    ('blockEnergy', 'kxx normal^2 + 2 kxe normal eta + kee eta^2', ()),
+    ('ritzEta', '-kxe normal/kee', ()),
+    ('ritzAssumptions', 'Element[{kxx, kxe, kee, normal, eta}, Reals] && kee > 0', ()),
+    ('matrixKxx', '{{5, 1}, {1, 4}}', ()),
+    ('matrixKxe', '{{1, 2}, {-1, 1}}', ()),
+    ('matrixKee', '{{6, 1}, {1, 5}}', ()),
+    ('matrixNormal', '{2, -1}', ()),
+    ('matrixEtaRitz', '-Inverse[matrixKee] . Transpose[matrixKxe] . matrixNormal', ()),
+    ('matrixEta', '{eta1, eta2}', ()),
+    ('matrixEnergy', 'matrixNormal . matrixKxx . matrixNormal +\n   2 matrixNormal . matrixKxe . etaVector +\n   etaVector . matrixKee . etaVector', ('etaVector',)),
+    ('counterK', '{{4, 1}, {1, 3}}', ()),
+    ('counterVector', '{1, -1/3}', ()),
+]
+
+def results():
+    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/mishka_gliss_weak_layout.wl')

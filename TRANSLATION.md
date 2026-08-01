@@ -1,8 +1,10 @@
 # Translating a .wl derivation to SymPy
 
-Each corpus entry is a pair: the original `.wl` and a hand translation to
-SymPy. Both must expose the **same result names**, because that is what makes
-the four-way comparison possible.
+Each corpus entry is a pair: the original `.wl` and a Python companion for the
+SymPy path. Most companions are generated from the ordered assignment stream;
+hand translations are retained where they express a result container or
+control flow more clearly. `translation-manifest.json` records which case is
+which and how many source statements were not assignment expressions.
 
 ## Rules
 
@@ -17,9 +19,11 @@ the four-way comparison possible.
    `equivalent` rather than pretending.
 4. **Preserve exactness.** `1/3` in Wolfram is exact; `1/3` in Python is not.
    Use `sp.Rational(1, 3)`.
-5. **Do not import anything but `sympy`.** The harness substitutes that module
-   and nothing else. A corpus file that imports `numpy` or `fortsym` directly
-   cannot run 1:1 under all backends.
+5. **Hand translations import only `sympy`.** Generated companions may import
+   `fortsym_bench.wl_to_sympy`, the deterministic runtime that preserves their
+   source assignment text. A generated file is still ordinary Python and can
+   be inspected or replaced by a hand translation when the bounded runtime is
+   not expressive enough.
 6. **Numeric checks stay numeric.** `N[expr, 30]` becomes `expr.evalf(30)`;
    keep the tolerance the original used.
 
@@ -65,3 +69,16 @@ out, and note it at the top of the `.py` file:
 ```
 
 A missing result is visible. A silently different one is not.
+
+## Generated companions
+
+Run `python tools/translate_wl_corpus.py` from the repository root. It extracts
+plain `Set`/`SetDelayed` assignments, evaluates them in order with SymPy, and
+writes one companion beside every `.wl` file that does not already have one.
+The runtime covers common calculus, algebra, replacement, table, list, and
+matrix operations. It intentionally refuses or skips side effects, plotting,
+opaque control flow, and Wolfram constructs whose semantics cannot be inferred
+from an isolated assignment. Those source statements remain counted in the
+manifest. When a fixture is important enough to deserve a complete oracle,
+hand-expand it—as with the Association example—and record that choice in the
+generator's manual-translation list.

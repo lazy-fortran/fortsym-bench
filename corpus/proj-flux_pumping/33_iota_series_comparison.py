@@ -1,0 +1,81 @@
+"""Generated SymPy translation of ``corpus/proj-flux_pumping/33_iota_series_comparison.wl``.
+
+The assignment text is lowered by the shared deterministic translator.
+Unsupported control-flow or side-effect statements are not guessed;
+their count is recorded in translation-manifest.json.
+"""
+
+from fortsym_bench.wl_to_sympy import evaluate_assignments
+
+# NOT TRANSLATED: 29 non-assignment statement(s) remain.
+_ASSIGNMENTS = [
+    ('figdir', 'FileNameJoin[{DirectoryName[$InputFileName], "figures"}]', ()),
+    ('psiPrime', '-rho det[rho]', ()),
+    ('psiSecond', "-det[rho] - rho det'[rho]", ()),
+    ('gamma', "displacement[rho] displacement'[rho] +\n  displacement[rho]^2 (1 + rho det'[rho]/det[rho])/(2 rho)", ('rho',)),
+    ('surfaceResidual', 'FullSimplify[\n  psiPrime gamma[rho] + psiSecond displacement[rho]^2/2 +\n    displacement[rho] (det[rho] displacement[rho] +\n      rho D[det[rho] displacement[rho], rho])]', ()),
+    ('shiftedRadius', 'rho - t displacement[rho] + t^2 gamma[rho]', ()),
+    ('seriesIntegrand', 'Normal@Series[\n    a0[shiftedRadius] + t a1[shiftedRadius] +\n      t^2 a2[shiftedRadius], {t, 0, 2}]', ()),
+    ('secondIntegrand', "gamma[rho] a0'[rho] +\n  displacement[rho]^2 a0''[rho]/2 -\n  displacement[rho] a1'[rho] + a2[rho]", ()),
+    ('hCoefficient', 'secondIntegrand', ()),
+    ('iotaSeries', 'Normal@Series[\n    1/(m (a0[rho] + eps^2 hCoefficient/2)) - n/m,\n    {eps, 0, 2}]', ()),
+    ('meanSource', 'D[rho source[rho] delta[rho], rho]/(2 rho)', ('rho',)),
+    ('meanBtheta', 'source[rho] delta[rho]/2', ('rho',)),
+    ('detSymbol', 'm btheta0/rho + n bz0/capR', ()),
+    ('a0Symbol', 'bz0/(capR detSymbol)', ()),
+    ('meanA', 'FullSimplify[\n  meanBz/(capR detSymbol) -\n    bz0 (m meanBtheta[rho]/rho + n meanBz/capR)/\n      (capR detSymbol^2)]', ()),
+    ('iota0', 'capR btheta0/(rho bz0)', ()),
+    ('axisymmetricCorrection', 'FullSimplify[-meanA/(m a0Symbol^2)]', ()),
+    ('expectedAxisymmetric', 'capR meanBtheta[rho]/(rho bz0) -\n  iota0 meanBz/bz0', ()),
+    ('mNum', '1', ()),
+    ('nNum', '1', ()),
+    ('capRNum', '5', ()),
+    ('kNum', 'nNum/capRNum', ()),
+    ('iotaBackgroundExpr', '-3/4 + 3 x^2/100', ()),
+    ('bz0Expr', '1', ()),
+    ('btheta0Expr', 'iotaBackgroundExpr x/capRNum', ()),
+    ('detExpr', 'FullSimplify[mNum btheta0Expr/x + kNum bz0Expr]', ()),
+    ('uExpr', 'x^3/100', ()),
+    ('sourceExpr', '(8 x/3 - kNum^2 x^3/5)/100', ()),
+    ('fExpr', 'FullSimplify[(D[uExpr, x] - x sourceExpr)/mNum]', ()),
+    ('gExpr', 'uExpr/x', ()),
+    ('hExpr', 'kNum uExpr/mNum', ()),
+    ('phaseExpr', 'FullSimplify[mNum gExpr/x + kNum hExpr]', ()),
+    ('deltaExpr', 'FullSimplify[fExpr/detExpr]', ()),
+    ('gammaExpr', 'FullSimplify[deltaExpr D[deltaExpr, x] +\n  deltaExpr^2 (1 + x D[detExpr, x]/detExpr)/(2 x)]', ()),
+    ('a0Expr', 'FullSimplify[bz0Expr/(capRNum detExpr)]', ()),
+    ('a1Expr', 'FullSimplify[(hExpr detExpr - bz0Expr phaseExpr)/\n  (capRNum detExpr^2)]', ()),
+    ('a2Expr', 'FullSimplify[bz0Expr phaseExpr^2/(capRNum detExpr^3) -\n  hExpr phaseExpr/(capRNum detExpr^2)]', ()),
+    ('hSeriesExpr', 'FullSimplify[gammaExpr D[a0Expr, x] +\n  deltaExpr^2 D[a0Expr, {x, 2}]/2 -\n  deltaExpr D[a1Expr, x] + a2Expr]', ()),
+    ('cHelicalExpr', 'FullSimplify[-hSeriesExpr/(2 mNum a0Expr^2)]', ()),
+    ('bthetaMeanExpr', 'FullSimplify[sourceExpr deltaExpr/2]', ()),
+    ('cMeanExpr', 'FullSimplify[capRNum bthetaMeanExpr/(x bz0Expr)]', ()),
+    ('cTotalExpr', 'FullSimplify[cHelicalExpr + cMeanExpr]', ()),
+    ('fValue', 'fExpr /. x -> y', ('y',)),
+    ('gValue', 'gExpr /. x -> y', ('y',)),
+    ('hValue', 'hExpr /. x -> y', ('y',)),
+    ('btheta0Value', 'btheta0Expr /. x -> y', ('y',)),
+    ('bz0Value', 'bz0Expr /. x -> y', ('y',)),
+    ('bthetaMeanValue', 'bthetaMeanExpr /. x -> y', ('y',)),
+    ('psi0Expr', '-(1/4) x^2/(2 capRNum) -\n  (3/100) x^4/(4 capRNum)', ()),
+    ('meanFluxExpr', 'FullSimplify[-mNum Integrate[bthetaMeanExpr, x] +\n  (mNum Integrate[bthetaMeanExpr, x] /. x -> 0)]', ()),
+    ('psi0Value', 'psi0Expr /. x -> y', ('y',)),
+    ('meanFluxValue', 'meanFluxExpr /. x -> y', ('y',)),
+    ('rhoCheck', '1', ()),
+    ('amplitudeCheck', '1/500', ()),
+    ('iotaZero', 'transformFor[rhoCheck, 0, False]', ()),
+    ('iotaPlusHelical', 'transformFor[rhoCheck, amplitudeCheck, False]', ()),
+    ('iotaMinusHelical', 'transformFor[rhoCheck, -amplitudeCheck, False]', ()),
+    ('iotaPlusFull', 'transformFor[rhoCheck, amplitudeCheck, True]', ()),
+    ('iotaMinusFull', 'transformFor[rhoCheck, -amplitudeCheck, True]', ()),
+    ('cHelicalDirect', 'N[(iotaPlusHelical + iotaMinusHelical - 2 iotaZero)/\n  (2 amplitudeCheck^2), 16]', ()),
+    ('cFullDirect', 'N[(iotaPlusFull + iotaMinusFull - 2 iotaZero)/\n  (2 amplitudeCheck^2), 16]', ()),
+    ('cHelicalSeries', 'N[cHelical[rhoCheck], 16]', ()),
+    ('cMeanSeries', 'N[cMean[rhoCheck], 16]', ()),
+    ('cTotalSeries', 'N[cTotal[rhoCheck], 16]', ()),
+    ('styles', '{\n  Directive[Thick, ColorData[97][1]],\n  Directive[Thick, Dashed, ColorData[97][2]],\n  Directive[Thick, DotDashed, ColorData[97][4]]}', ()),
+    ('decompositionFigure', 'Show[\n  Plot[Evaluate[{cHelicalExpr, cMeanExpr, cTotalExpr}], {x, 0.2, 1.8},\n    Frame -> True,\n    FrameLabel -> {"surface label  \\[Rho]/a",\n      "coefficient  \\[Delta]\\[Iota]/\\[Epsilon]^2"},\n    PlotStyle -> styles, PlotRange -> All,\n    PlotLegends -> Placed[{\n      "corrugated-path term", "mean-current pullback term", "sum"},\n      {0.70, 0.75}], ImageSize -> 500],\n  Graphics[{Black, PointSize[0.019], Point[{{rhoCheck, cFullDirect}}]}]]', ()),
+]
+
+def results():
+    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/33_iota_series_comparison.wl')

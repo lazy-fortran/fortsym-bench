@@ -1,0 +1,83 @@
+"""Generated SymPy translation of ``corpus/proj-cpp-derivation/projected_scheme.wl``.
+
+The assignment text is lowered by the shared deterministic translator.
+Unsupported control-flow or side-effect statements are not guessed;
+their count is recorded in translation-manifest.json.
+"""
+
+from fortsym_bench.wl_to_sympy import evaluate_assignments
+
+# NOT TRANSLATED: 70 non-assignment statement(s) remain.
+_ASSIGNMENTS = [
+    ('pass', '0', ()),
+    ('fail', '0', ()),
+    ('check', 'Module[{c = TrueQ[cond]},\n  If[c, pass++; Print["PASS  ", name], fail++; Print["FAIL  ", name]]; c]', ('name', 'cond')),
+    ('J2', '{{0, 1}, {-1, 0}}', ()),
+    ('J4', '{{0, 0, 1, 0}, {0, 0, 0, 1}, {-1, 0, 0, 0}, {0, -1, 0, 0}}', ()),
+    ('Bwell', '1 + xx^2', ('xx',)),
+    ('Bder', '2 xx', ('xx',)),
+    ('muMoment', '1/2', ()),
+    ('Bref', '1', ()),
+    ('muFloor', '0', ()),
+    ('Hfull', 'uu^2/2 + (1/(2 eps^2)) (Bwell[xx] qq^2 + pp^2)/Bref + muFloor', ('xx', 'qq', 'uu', 'pp', 'eps')),
+    ('OmOf', 'Sqrt[Bwell[xx]/Bref]/eps', ('xx', 'eps')),
+    ('muStar', '(Bwell[xx] qq^2 + pp^2)/(2 eps Sqrt[Bwell[xx]/Bref])', ('xx', 'qq', 'pp', 'eps')),
+    ('zsym', '{xx, qq, uu, pp}', ()),
+    ('HessFull', 'Table[D[Hfull[xx, qq, uu, pp, eps], zsym[[i]], zsym[[j]]], {i, 4}, {j, 4}] /.', ('x0', 'q0', 'u0', 'p0', 'eps')),
+    ('Lop', '(dt/2) Inverse[J4] . S', ('S', 'dt')),
+    ('solvMat', 'IdentityMatrix[4] - Lop[S, dt]', ('S', 'dt')),
+    ('solvDet', 'Det[N[solvMat[HessFull[x0, q0, u0, p0, eps], dt]]]', ('x0', 'q0', 'u0', 'p0', 'dt', 'eps')),
+    ('sigMin', 'Min[Abs[SingularValueList[N[solvMat[HessFull[x0, q0, u0, p0, eps], dt]]]]]', ('x0', 'q0', 'u0', 'p0', 'dt', 'eps')),
+    ('epsT', '1/40', ()),
+    ('xt', '7/10', ()),
+    ('qt', '1/2', ()),
+    ('pt', '1/2', ()),
+    ('ut', '0', ()),
+    ('dtScan', 'Table[d, {d, 1/20, 30/20, 1/400}]', ()),
+    ('trapDets', 'solvDet[xt, qt, ut, pt, #, epsT] & /@ dtScan', ()),
+    ('zeroIdx', 'First[Flatten[Position[Most[trapDets] Rest[trapDets], _?(# < 0 &)]]]', ()),
+    ('dtLo', 'dtScan[[zeroIdx]]', ()),
+    ('dtHi', 'dtScan[[zeroIdx + 1]]', ()),
+    ('badDt', 'dt /. Last[Quiet[NMinimize[\n   {sigMin[xt, qt, ut, pt, dt, epsT], dtLo <= dt <= dtHi}, dt][[2]]]]', ()),
+    ('sigPlainBad', 'sigMin[xt, qt, ut, pt, badDt, epsT]', ()),
+    ('detPlainBad', 'Abs[solvDet[xt, qt, ut, pt, badDt, epsT]]', ()),
+    ('fField', 'Inverse[J4] . gradH[z, eps]', ('z', 'eps')),
+    ('muStar0', 'muStarZ[{xt, qt, ut, pt}, epsT]', ()),
+    ('cBounce', 'gradMuStar[{xt, qt, ut, pt}, epsT]', ()),
+    ('KKT', 'ArrayFlatten[{{solvMat[S, dt], Transpose[{-c}]}, {{c}, {{0}}}}]', ('S', 'dt', 'c')),
+    ('Kbounce', 'N[KKT[HessFull[xt, qt, ut, pt, epsT], badDt, cBounce]]', ()),
+    ('sigKKT', 'Min[Abs[SingularValueList[Kbounce]]]', ()),
+    ('detKKT', 'Abs[Det[Kbounce]]', ()),
+    ('HessGC', '{{muMoment D[Bwell[x], x, x], 0}, {0, 1}} /. x -> 0', ()),
+    ('solvMatGC', 'IdentityMatrix[2] - (dt/2) Inverse[J2] . HessGC', ('dt',)),
+    ('opGC', 'Max[SingularValueList[N[HessGC]]]', ()),
+    ('dtGCmax', '2/opGC', ()),
+    ('sigGCbad', 'Min[Abs[SingularValueList[N[solvMatGC[Min[badDt, 0.9 dtGCmax]]]]]]', ()),
+    ('dtProj', 'Min[badDt, 0.9 dtGCmax]', ()),
+    ('projConverges', 'Module[{ok = True},\n  Do[\n   Module[{sol, res},\n    sol = Quiet@FindRoot[gcResidual[{xp, up}, {xt, uu0}, dtProj] == {0, 0},\n       {{xp, xt}, {up, uu0}}, MaxIterations -> 100];\n    res = gcResidual[{xp, up} /. sol, {xt, uu0}, dtProj];\n    If[Max[Abs[res]] > 1.*^-9, ok = False]],\n   {uu0, {0, 1/100, -1/100, 1/10}}];                                             \n  ok]', ()),
+    ('projectedPerp', 'Module[{b = Bwell[xp]/Bref, amp},\n  amp = Sqrt[2 eps muTarget/Sqrt[b]];\n  {amp Cos[phi], amp Sqrt[b] Sin[phi]}]', ('xp', 'phi', 'muTarget', 'eps')),
+    ('muStarReconstr', 'Module[{qp, pp},\n  {qp, pp} = projectedPerp[xp, phi, mt, eps];\n  Simplify[muStar[xp, qp, pp, eps] - mt, Assumptions -> {xp \\[Element] Reals, eps > 0, mt > 0}]]', ()),
+    ('zStart', '{6/10, 1/2, 6/100, 1/2}', ()),
+    ('orbit', 'NestList[projStep[#, dtProj, epsT] &, zStart, 8]', ()),
+    ('muStarOrbit', '(muStar[#[[1]], #[[2]], #[[4]], epsT] &) /@ orbit', ()),
+    ('uOrbit', '(#[[3]] &) /@ orbit', ()),
+    ('crossedBounce', 'Min[uOrbit] < 0 < Max[uOrbit] || AnyTrue[uOrbit, Abs[#] < 2/100 &]', ()),
+    ('dMuOrbit', 'Max[Abs[muStarOrbit - First[muStarOrbit]]]', ()),
+    ('chiProj', '0', ()),
+    ('NorderProj', '4', ()),
+    ('confinementBarrier', 'epsT^((NorderProj - 1)/2)', ()),
+    ('telescopedDriftProj', 'chiProj epsT^(NorderProj + 1)', ()),
+    ('excursionProj', 'Sqrt[telescopedDriftProj]', ()),
+    ('perpRoundTrip', 'Module[{x0 = 7/10, q0 = 3/10, p0 = -2/5, eps = 1/40, mt, phi0, b, qp, pp},\n  b = Bwell[x0]/Bref;\n  mt = muStar[x0, q0, p0, eps];                                          \n  phi0 = ArcTan[q0, p0/Sqrt[b]];                                               \n  {qp, pp} = projectedPerp[x0, phi0, mt, eps];                           \n  Max[Abs[{qp - q0, pp - p0}]]]', ()),
+    ('phiAdvance', 'Module[{z = projStep[zStart, dtProj, epsT], b0, bp},\n  b0 = Bwell[zStart[[1]]]/Bref; bp = Bwell[z[[1]]]/Bref;\n  ArcTan[z[[2]], z[[4]]/Sqrt[bp]] - ArcTan[zStart[[2]], zStart[[4]]/Sqrt[b0]]]', ()),
+    ('dtOmega', 'dtProj OmOf[xt, epsT]', ()),
+    ('KKTrelaxed', 'ArrayFlatten[{{solvMat[S, dt], Transpose[{-s c}]}, {{s c}, {{1 - s}}}}]', ('S', 'dt', 'c', 's')),
+    ('Krel0', 'N[KKTrelaxed[HessFull[xt, qt, ut, pt, epsT], badDt, cBounce, 0]]', ()),
+    ('stateBlock0', 'Krel0[[1 ;; 4, 1 ;; 4]]', ()),
+    ('zPass', '{3/10, 1/5, 1/2, 1/5}', ()),
+    ('dispOf', 'Max[Abs[projStep[zPass, dt, epsT] - zPass]]', ('dt',)),
+    ('muStarExactConserved', 'Module[{z = projStep[zPass, 1/200, epsT]},\n  Abs[muStar[z[[1]], z[[2]], z[[4]], epsT] - muStar[zPass[[1]], zPass[[2]], zPass[[4]], epsT]]]', ()),
+]
+
+def results():
+    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-cpp-derivation/projected_scheme.wl')

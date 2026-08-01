@@ -1,0 +1,73 @@
+"""Generated SymPy translation of ``corpus/proj-gvec-stability/two_component_energy_identity.wl``.
+
+The assignment text is lowered by the shared deterministic translator.
+Unsupported control-flow or side-effect statements are not guessed;
+their count is recorded in translation-manifest.json.
+"""
+
+from fortsym_bench.wl_to_sympy import evaluate_assignments
+
+# NOT TRANSLATED: 10 non-assignment statement(s) remain.
+_ASSIGNMENTS = [
+    ('pass', '0', ()),
+    ('fail', '0', ()),
+    ('assumptions', '{r > 0, len > 0, mu0 > 0, bz[r] > 0,\n  Element[{m, k}, Reals], m^2 + k^2 r^2 > 0,\n  Element[{btheta[r], xr[r], eta[r], Derivative[1][xr][r],\n    Derivative[1][btheta][r], Derivative[1][bz][r]}, Reals],\n  btheta[r]^2 + bz[r]^2 > 0}', ()),
+    ('check', 'If[\n  TrueQ[FullSimplify[condition, assumptions]],\n  pass++; Print["PASS  ", name], fail++; Print["FAIL  ", name]]', ('name', 'condition')),
+    ('conj', 'expr /. Complex[a_, b_] :> Complex[a, -b]', ('expr',)),
+    ('coords', '{r, theta, z}', ()),
+    ('phase', 'Exp[I (m theta + k z)]', ()),
+    ('bField', '{0, btheta[r], bz[r]}', ()),
+    ('bMag', 'Sqrt[btheta[r]^2 + bz[r]^2]', ()),
+    ('current', 'Curl[bField, coords, "Cylindrical"]/mu0', ()),
+    ('forceBalance', 'Derivative[1][p][rr_] :>\n  -(btheta[rr] D[s btheta[s], s] /. s -> rr)/(mu0 rr) -\n    bz[rr] Derivative[1][bz][rr]/mu0', ()),
+    ('xiPerp', '{xr[r], -I eta[r] bz[r]/bMag, I eta[r] btheta[r]/bMag} phase', ()),
+    ('qField', 'Curl[Cross[xiPerp, bField], coords, "Cylindrical"]', ()),
+    ('divPerp', 'Div[xiPerp, coords, "Cylindrical"]', ()),
+    ('gradP', '{Derivative[1][p][r], 0, 0}', ()),
+    ('density', 'qField . conj[qField]/mu0 -\n  conj[xiPerp] . Cross[current, qField] +\n  (xiPerp . gradP) conj[divPerp]', ()),
+    ('physical', 'Simplify[ComplexExpand[(density + conj[density])/2,\n    TargetFunctions -> {Re, Im}] /. {theta -> 0, z -> 0} /.\n    forceBalance, assumptions]', ()),
+    ('physicalWeighted', 'Simplify[2 Pi len r physical, assumptions]', ()),
+    ('sqg', '2 Pi len r', ()),
+    ('fluxT', '2 Pi r bz[r]', ()),
+    ('fluxP', 'len btheta[r]', ()),
+    ('fluxTslope', 'D[2 Pi rr bz[rr], rr] /. rr -> r', ()),
+    ('fluxPslope', 'D[len btheta[rr], rr] /. rr -> r', ()),
+    ('currentI', 'len bz[r]', ()),
+    ('currentJ', '2 Pi r btheta[r]', ()),
+    ('jDotB', 'Simplify[mu0 current . bField, assumptions]', ()),
+    ('pressureSlope', 'mu0 Derivative[1][p][r] /. forceBalance', ()),
+    ('gradS2', '1', ()),
+    ('xiVal', 'xr[r] Cos[phi]', ()),
+    ('xiS', 'Derivative[1][xr][r] Cos[phi]', ()),
+    ('xiTheta01', '-2 Pi m xr[r] Sin[phi]/(2 Pi)', ()),
+    ('xiZeta01', '-k len xr[r] Sin[phi]/(2 Pi)', ()),
+    ('etaTheta01', '2 Pi m et[r] Cos[phi]/(2 Pi)', ()),
+    ('etaZeta01', 'k len et[r] Cos[phi]/(2 Pi)', ()),
+    ('xiTheta', '2 Pi xiTheta01', ()),
+    ('xiZeta', '2 Pi xiZeta01', ()),
+    ('etaTheta', '2 Pi etaTheta01', ()),
+    ('etaZeta', '2 Pi etaZeta01', ()),
+    ('bgradXi', '(fluxP xiTheta + fluxT xiZeta)/sqg', ()),
+    ('bgradEta', '(fluxP etaTheta + fluxT etaZeta)/sqg', ()),
+    ('cOne', 'bgradXi/Sqrt[gradS2]', ()),
+    ('cTwo', '-(Sqrt[gradS2]/(bMag sqg)) (sqg bgradEta -\n  (fluxT fluxPslope - fluxTslope fluxP) xiVal +\n  jDotB sqg xiVal/gradS2)', ()),
+    ('cThree', '(1/(bMag sqg)) (currentJ etaZeta - currentI etaTheta -\n  (fluxT currentI + fluxP currentJ) xiS -\n  (currentJ fluxPslope + currentI fluxTslope) xiVal -\n  pressureSlope sqg xiVal)', ()),
+    ('driveA', '2 btheta[r] (D[s btheta[s], s] /. s -> r)/(mu0 r^2)', ()),
+    ('kernelDensity', 'cOne^2 + cTwo^2 + cThree^2 - mu0 driveA xiVal^2', ()),
+    ('kernelAveraged', 'Simplify[\n  Integrate[kernelDensity, {phi, 0, 2 Pi}]/(2 Pi), assumptions]', ()),
+    ('kernelWeighted', 'Simplify[kernelAveraged Abs[sqg]/mu0 2, assumptions]', ()),
+    ('reduceQuadratic', 'Module[{q},\n  q = CoefficientList[w, amp];\n  Simplify[q[[1]] - q[[2]]^2/(4 q[[3]]), assumptions]]', ('w', 'amp')),
+    ('kernelReduced', 'reduceQuadratic[kernelWeighted, et[r]]', ()),
+    ('physicalReduced', 'reduceQuadratic[physicalWeighted, eta[r]]', ()),
+    ('fKernel', "Simplify[D[kernelReduced, {xr'[r], 2}]/2, assumptions]", ()),
+    ('fPhysical', "Simplify[D[physicalReduced, {xr'[r], 2}]/2, assumptions]", ()),
+    ('crossKernel', "Simplify[D[D[kernelReduced, xr'[r]], xr[r]], assumptions]", ()),
+    ('crossPhysical', "Simplify[D[D[physicalReduced, xr'[r]], xr[r]],\n  assumptions]", ()),
+    ('cKernel', 'Simplify[D[kernelReduced, {xr[r], 2}]/2, assumptions]', ()),
+    ('cPhysical', 'Simplify[D[physicalReduced, {xr[r], 2}]/2, assumptions]', ()),
+    ('difference', 'Simplify[cKernel - cPhysical, assumptions]', ()),
+    ('constantBz', 'Simplify[difference /. {Derivative[1][bz][r] -> 0,\n  Derivative[2][bz][r] -> 0}, assumptions]', ()),
+]
+
+def results():
+    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/two_component_energy_identity.wl')
