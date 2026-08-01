@@ -48,7 +48,11 @@ def compare(candidate, reference, strictness: str) -> Comparison:
     import sympy
 
     if strictness == "structural":
-        if candidate == reference:
+        try:
+            equal = candidate == reference
+        except Exception as exc:
+            return Comparison(ERROR, f"comparison failed: {type(exc).__name__}: {exc}")
+        if equal:
             return Comparison(AGREE)
         if _equivalent(candidate, reference):
             return Comparison(
@@ -56,12 +60,26 @@ def compare(candidate, reference, strictness: str) -> Comparison:
                 "mathematically equivalent but structurally different; "
                 "declared strictness is 'structural'",
             )
-        return Comparison(DIFFER, f"{sympy.srepr(candidate)} != {sympy.srepr(reference)}")
+        try:
+            detail = f"{sympy.srepr(candidate)} != {sympy.srepr(reference)}"
+        except Exception as exc:
+            return Comparison(
+                ERROR,
+                f"cannot serialize comparison operands: {type(exc).__name__}: {exc}",
+            )
+        return Comparison(DIFFER, detail)
 
     if strictness == "equivalent":
         if _equivalent(candidate, reference):
             return Comparison(AGREE)
-        return Comparison(DIFFER, f"{candidate} is not equivalent to {reference}")
+        try:
+            detail = f"{candidate} is not equivalent to {reference}"
+        except Exception as exc:
+            return Comparison(
+                ERROR,
+                f"cannot format comparison operands: {type(exc).__name__}: {exc}",
+            )
+        return Comparison(DIFFER, detail)
 
     raise ValueError(f"unknown strictness: {strictness}")
 

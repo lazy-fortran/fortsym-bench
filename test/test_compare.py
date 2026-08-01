@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import sympy as sp
+
 from fortsym_bench.cli import _score
-from fortsym_bench.compare import ORACLE_MISSING
+from fortsym_bench.compare import ERROR, ORACLE_MISSING, compare
 from fortsym_bench.backends import BACKENDS
 
 
@@ -15,3 +17,11 @@ def test_candidate_only_binding_is_reported_outside_the_scored_overlap():
     )
 
     assert scored["candidate_only"]["outcome"] == ORACLE_MISSING
+
+
+def test_malformed_sympy_expression_is_an_error_not_a_benchmark_crash():
+    candidate = sp.Add(sp.Tuple(1, 2), sp.Integer(1), evaluate=False)
+
+    result = compare(candidate, sp.Integer(0), "structural")
+
+    assert result.outcome == ERROR
