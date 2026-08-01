@@ -47,6 +47,25 @@ class ReferenceCache:
             # normal timeout.
             entry = self._entries.get(self._legacy_key(backend, source, timeout))
         if entry is None:
+            # A successful version-1 entry is valid at every later timeout.
+            # Look it up by its stored identity when the requested timeout is
+            # different; timeout failures remain restricted to their original
+            # limit below.
+            display = self._display_source(source)
+            digest = _sha256(source.read_bytes())
+            for candidate in reversed(tuple(self._entries.values())):
+                if (
+                    candidate.get("backend") == backend.name
+                    and candidate.get("source") == display
+                    and candidate.get("source_sha256") == digest
+                ):
+                    if (
+                        candidate.get("outcome") == "ok"
+                        or candidate.get("timeout") == timeout
+                    ):
+                        entry = candidate
+                        break
+        if entry is None:
             return None
         if entry.get("outcome") == "ok":
             results = entry.get("results")
