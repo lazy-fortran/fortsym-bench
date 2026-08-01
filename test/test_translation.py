@@ -78,3 +78,13 @@ def test_multiline_rhs_is_arithmetic_not_a_compound_expression():
     assert skipped == []
     a, b = sp.symbols("a b")
     assert evaluate_assignments(assignments)["value"] == a + b
+
+
+def test_derivative_of_a_list_is_componentwise():
+    assignments, skipped = extract_assignments(
+        "value = D[{x^2, Sin[x]}, x]"
+    )
+
+    assert skipped == []
+    x = sp.Symbol("x")
+    assert evaluate_assignments(assignments)["value"] == sp.Tuple(2 * x, sp.cos(x))

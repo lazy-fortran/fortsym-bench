@@ -385,10 +385,28 @@ def _differentiate(arguments: tuple[object, ...]):
     result = arguments[0]
     for specification in arguments[1:]:
         if isinstance(specification, sp.Tuple) and len(specification) == 2:
-            result = sp.diff(result, specification[0], int(specification[1]))
+            result = _differentiate_value(
+                result, specification[0], int(specification[1])
+            )
         else:
-            result = sp.diff(result, specification)
+            result = _differentiate_value(result, specification, 1)
     return result
+
+
+def _differentiate_value(value, variable, order: int):
+    """Differentiate Wolfram lists componentwise.
+
+    SymPy represents a derivative of a tuple of non-scalar expressions as an
+    ``ArrayDerivative``. Wolfram's ``D`` maps over ``List`` instead, and the
+    componentwise result is also what the native evaluator and Mathics expose.
+    Keep nested tuples as lists of independently differentiated values.
+    """
+    items = _sequence_items(value)
+    if items is not None:
+        return sp.Tuple(
+            *(_differentiate_value(item, variable, order) for item in items)
+        )
+    return sp.diff(value, variable, order)
 
 
 def _limit(arguments: tuple[object, ...]):
