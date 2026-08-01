@@ -151,11 +151,19 @@ def evaluate_assignments(
 ) -> dict[str, object]:
     """Evaluate extracted assignments in order, returning successful bindings."""
 
+    assignments = tuple(_as_assignment(item) for item in assignments)
+    # A Wolfram script made entirely of definitions, checks, or side effects
+    # can legitimately expose no named value.  The benchmark protocol treats
+    # that as an empty result set; turning it into an unsupported backend hides
+    # a valid translation and prevents the empty result from being cached.
+    if not assignments:
+        return {}
+
     environment: dict[str, object] = {}
     results: dict[str, object] = {}
     failures: list[str] = []
     for item in assignments:
-        assignment = _as_assignment(item)
+        assignment = item
         try:
             if assignment.parameters:
                 environment[assignment.name] = WolframFunction(
