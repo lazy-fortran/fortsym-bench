@@ -39,10 +39,11 @@ def parse(text: str, syntax: str):
     from sympy.parsing.mathematica import parse_mathematica
 
     if syntax == "srepr":
-        return sympy.sympify(text)
+        return _normalise_sympy_derivatives(sympy.sympify(text))
     if syntax == "inputform":
         normalised, restore = _normalise_inputform(text)
-        return _restore_inputform_symbols(parse_mathematica(normalised), restore)
+        parsed = _restore_inputform_symbols(parse_mathematica(normalised), restore)
+        return _normalise_sympy_derivatives(parsed)
     raise ValueError(f"unknown syntax: {syntax}")
 
 
@@ -233,6 +234,49 @@ def _normalise_derivative_calls(text: str) -> str:
         previous = text
         text = _DERIVATIVE_CALL.sub(replace, text)
     return text
+
+
+def _normalise_sympy_derivatives(expression):
+    """Match SymPy's first derivatives of opaque functions to WL output.
+
+    SymPy serializes ``diff(f(x), x)`` as ``Derivative(f(x), (x, 1))`` when
+    the derivative remains unevaluated. The native Wolfram protocol and the
+    input-form normaliser use the explicit ``Derivative1[f, 1, x]`` node for
+    the same opaque partial, so canonicalise that one representation at the
+    comparison boundary. Built-in functions that SymPy has already
+    differentiated never enter this branch.
+    """
+    import sympy
+
+    if not isinstance(expression, sympy.Basic):
+        return expression
+    if isinstance(expression, sympy.Derivative):
+        counts = expression.variable_count
+        if len(counts) == 1 and counts[0][1] == 1:
+            value = _normalise_sympy_derivatives(expression.expr)
+            if getattr(value, "is_Function", False):
+                head = sympy.Symbol(value.func.__name__)
+                arguments = tuple(
+                    _normalise_sympy_derivatives(argument)
+                    for argument in value.args
+                )
+                return sympy.Function("Derivative1")(
+                    head, sympy.Integer(1), *arguments
+                )
+
+    raw_arguments = tuple(expression.args)
+    arguments = tuple(
+        _normalise_sympy_derivatives(argument) for argument in raw_arguments
+    )
+    if arguments == raw_arguments:
+        return expression
+    try:
+        return expression.func(*arguments)
+    except Exception:
+        try:
+            return expression.func(*arguments, evaluate=False)
+        except Exception:
+            return expression
 
 
 def compare(candidate, reference, strictness: str) -> Comparison:

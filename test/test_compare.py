@@ -72,6 +72,18 @@ def test_cross_language_assumption_stripping_handles_nested_tuples():
     assert result.outcome == AGREE
 
 
+def test_unevaluated_sympy_first_derivative_matches_wolfram_derivative_node():
+    result = compare_cross_text(
+        "Derivative[1][p0][ze]",
+        "inputform",
+        "Derivative(Function('p0')(Symbol('ze')), Tuple(Symbol('ze'), Integer(1)))",
+        "srepr",
+        "structural",
+    )
+
+    assert result.outcome == AGREE
+
+
 def test_native_score_requires_agreement_between_both_oracles():
     scored = _score_against_oracles(
         {"value": "1"},
