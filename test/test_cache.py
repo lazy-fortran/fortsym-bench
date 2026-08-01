@@ -8,7 +8,7 @@ from fortsym_bench.backends import (
     RunFailure,
     _parse_wolfram_output,
 )
-from fortsym_bench.cache import ReferenceCache
+from fortsym_bench.cache import ComparisonCache, ReferenceCache
 from fortsym_bench.cli import run_one
 
 
@@ -204,3 +204,18 @@ def test_deferred_cache_updates_are_written_on_flush(tmp_path):
     cached = loaded.get(BACKENDS["sympy"], source, 300.0)
     assert cached is not None
     assert cached.results == first
+
+
+def test_comparison_cache_keys_both_operands_and_policy(tmp_path):
+    path = tmp_path / "comparisons.json"
+    cache = ComparisonCache(path, autosave=False)
+    cache.put("1", "inputform", "Integer(1)", "srepr", "structural", "agree", "")
+    cache.flush()
+
+    loaded = ComparisonCache(path)
+    assert loaded.get("1", "inputform", "Integer(1)", "srepr", "structural") == (
+        "agree",
+        "",
+    )
+    assert loaded.get("1", "inputform", "Integer(1)", "srepr", "equivalent") is None
+    assert loaded.get("2", "inputform", "Integer(1)", "srepr", "structural") is None

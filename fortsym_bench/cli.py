@@ -11,9 +11,10 @@ import sys
 from pathlib import Path
 
 from .backends import BACKENDS, DEFAULT_BACKENDS, RunFailure, run
-from .cache import ReferenceCache
+from .cache import ComparisonCache, ReferenceCache
 from .compare import (
     AGREE,
+    Comparison,
     DIFFER,
     ERROR,
     ORACLE_DISAGREEMENT,
@@ -22,11 +23,8 @@ from .compare import (
     UNAVAILABLE,
     UNSUPPORTED,
     UNTRANSLATED,
-    check_oracles,
-    compare,
     compare_cross_text,
     compare_text,
-    parse,
 )
 
 CORPUS = Path("corpus")
@@ -138,6 +136,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--jobs must be at least 1")
 
     cache = None
+    comparison_cache = None
     if not args.no_cache:
         # Corpus workers update the cache in memory. Writing the complete JSON
         # document for every native result is needlessly expensive when a
@@ -145,17 +144,26 @@ def main(argv: list[str] | None = None) -> int:
         # the pass keeps the cache durable without serialising that document
         # hundreds of times.
         cache = ReferenceCache(args.cache, autosave=False)
+        comparison_cache = ComparisonCache(
+            args.cache.with_name(args.cache.stem + ".comparisons.json"),
+            autosave=False,
+        )
     report = {
         "cache": None if cache is None else str(args.cache),
         "scripts": {},
     }
     if args.jobs == 1:
         for script in scripts:
-            report["scripts"][str(script)] = evaluate(script, args, cache)
+            report["scripts"][str(script)] = evaluate(
+                script, args, cache, comparison_cache
+            )
     else:
         with ThreadPoolExecutor(max_workers=args.jobs) as pool:
             pending = [
-                (script, pool.submit(evaluate, script, args, cache))
+                (
+                    script,
+                    pool.submit(evaluate, script, args, cache, comparison_cache),
+                )
                 for script in scripts
             ]
             for script, future in pending:
@@ -163,13 +171,19 @@ def main(argv: list[str] | None = None) -> int:
 
     if cache is not None:
         cache.flush()
+        comparison_cache.flush()
 
     if args.report:
         args.report.write_text(json.dumps(report, indent=1))
     return summarise(report)
 
 
-def evaluate(script: Path, args, cache: ReferenceCache | None = None) -> dict:
+def evaluate(
+    script: Path,
+    args,
+    cache: ReferenceCache | None = None,
+    comparison_cache: ComparisonCache | None = None,
+) -> dict:
     raw, timing, failures = {}, {}, {}
     parsed_cache = {}
     for name in args.backend:
@@ -215,17 +229,24 @@ def evaluate(script: Path, args, cache: ReferenceCache | None = None) -> dict:
                 backend,
                 strictness,
                 parsed_cache,
+                comparison_cache,
             )
         else:
             outcomes[name] = _score(
-                results, raw.get(oracle), backend, oracle, strictness, parsed_cache
+                results,
+                raw.get(oracle),
+                backend,
+                oracle,
+                strictness,
+                parsed_cache,
+                comparison_cache,
             )
 
     return {
         "outcomes": outcomes,
         "failures": failures,
         "timing": timing,
-        "oracles": _cross_check(raw, strictness),
+        "oracles": _cross_check(raw, strictness, parsed_cache, comparison_cache),
     }
 
 
@@ -236,8 +257,92 @@ def _strictness(raw: dict) -> dict:
     return {}
 
 
+def _compare_text_cached(
+    candidate_text,
+    reference_text,
+    syntax,
+    strictness,
+    parsed_cache,
+    comparison_cache,
+):
+    if comparison_cache is not None:
+        cached = comparison_cache.get(
+            candidate_text,
+            syntax,
+            reference_text,
+            syntax,
+            strictness,
+        )
+        if cached is not None:
+            return Comparison(*cached)
+    verdict = compare_text(
+        candidate_text,
+        reference_text,
+        syntax,
+        strictness,
+        parsed_cache,
+    )
+    if comparison_cache is not None:
+        comparison_cache.put(
+            candidate_text,
+            syntax,
+            reference_text,
+            syntax,
+            strictness,
+            verdict.outcome,
+            verdict.detail,
+        )
+    return verdict
+
+
+def _compare_cross_text_cached(
+    candidate_text,
+    candidate_syntax,
+    reference_text,
+    reference_syntax,
+    strictness,
+    parsed_cache,
+    comparison_cache,
+):
+    if comparison_cache is not None:
+        cached = comparison_cache.get(
+            candidate_text,
+            candidate_syntax,
+            reference_text,
+            reference_syntax,
+            strictness,
+        )
+        if cached is not None:
+            return Comparison(*cached)
+    verdict = compare_cross_text(
+        candidate_text,
+        candidate_syntax,
+        reference_text,
+        reference_syntax,
+        strictness,
+        parsed_cache,
+    )
+    if comparison_cache is not None:
+        comparison_cache.put(
+            candidate_text,
+            candidate_syntax,
+            reference_text,
+            reference_syntax,
+            strictness,
+            verdict.outcome,
+            verdict.detail,
+        )
+    return verdict
+
+
 def _score(
-    results, oracle_results, backend, oracle_name, strictness, parsed_cache=None
+    results,
+    oracle_results,
+    backend,
+    oracle_name,
+    strictness,
+    parsed_cache=None,
+    comparison_cache=None,
 ) -> dict:
     if oracle_results is None:
         # Keyed like every other entry so the tally can walk one shape. A bare
@@ -262,12 +367,13 @@ def _score(
                 "detail": "binding absent from oracle; not scored",
             }
             continue
-        verdict = compare_text(
+        verdict = _compare_text_cached(
             text,
             oracle_results[key],
             backend.syntax,
             strictness.get(key, "structural"),
             parsed_cache,
+            comparison_cache,
         )
         scored[key] = {"outcome": verdict.outcome, "detail": verdict.detail}
     return scored
@@ -280,6 +386,7 @@ def _score_against_oracles(
     backend,
     strictness,
     parsed_cache=None,
+    comparison_cache=None,
 ):
     """Score the native Wolfram path against both independent references.
 
@@ -314,13 +421,14 @@ def _score_against_oracles(
 
         policy = strictness.get(key, "structural")
         if sympy_text is not None and mathics_text is not None:
-            oracle_verdict = compare_cross_text(
+            oracle_verdict = _compare_cross_text_cached(
                 mathics_text,
                 "inputform",
                 sympy_text,
                 "srepr",
                 policy,
                 parsed_cache,
+                comparison_cache,
             )
             if oracle_verdict.outcome != AGREE:
                 scored[key] = {
@@ -330,27 +438,34 @@ def _score_against_oracles(
                 continue
 
         if mathics_text is not None:
-            verdict = compare_text(
+            verdict = _compare_text_cached(
                 text,
                 mathics_text,
                 backend.syntax,
                 policy,
                 parsed_cache,
+                comparison_cache,
             )
         else:
-            verdict = compare_cross_text(
+            verdict = _compare_cross_text_cached(
                 text,
                 backend.syntax,
                 sympy_text,
                 "srepr",
                 policy,
                 parsed_cache,
+                comparison_cache,
             )
         scored[key] = {"outcome": verdict.outcome, "detail": verdict.detail}
     return scored
 
 
-def _cross_check(raw: dict, strictness: dict) -> dict:
+def _cross_check(
+    raw: dict,
+    strictness: dict,
+    parsed_cache=None,
+    comparison_cache=None,
+) -> dict:
     """Where the two oracles disagree, nothing is scored against either."""
     sympy_results, mathics_results = raw.get("sympy"), raw.get("mathics")
     if not sympy_results or not mathics_results:
@@ -359,14 +474,16 @@ def _cross_check(raw: dict, strictness: dict) -> dict:
     for key in set(sympy_results) & set(mathics_results):
         if key == "__compare__":
             continue
-        try:
-            left = parse(sympy_results[key], "srepr")
-            right = parse(mathics_results[key], "inputform")
-        except Exception as exc:
-            disagreements[key] = f"unparseable: {exc}"
-            continue
-        verdict = check_oracles(left, right, strictness.get(key, "structural"))
-        if verdict is not None:
+        verdict = _compare_cross_text_cached(
+            mathics_results[key],
+            "inputform",
+            sympy_results[key],
+            "srepr",
+            strictness.get(key, "structural"),
+            parsed_cache,
+            comparison_cache,
+        )
+        if verdict.outcome != AGREE:
             disagreements[key] = verdict.detail
     return disagreements
 
