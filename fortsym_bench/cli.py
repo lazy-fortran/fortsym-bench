@@ -131,7 +131,14 @@ def _strictness(raw: dict) -> dict:
 
 def _score(results, oracle_results, backend, oracle_name, strictness) -> dict:
     if oracle_results is None:
-        return {"outcome": ERROR, "detail": f"oracle {oracle_name} produced nothing"}
+        # Keyed like every other entry so the tally can walk one shape. A bare
+        # dict here made summarise index a string and crash the whole run.
+        return {
+            "__oracle__": {
+                "outcome": UNAVAILABLE,
+                "detail": f"oracle {oracle_name} produced no results",
+            }
+        }
     scored = {}
     for key, text in results.items():
         if key not in oracle_results:

@@ -43,8 +43,7 @@ BACKENDS = {
         Backend("fortsym-sympy", ".py", "srepr"),
         Backend("mathics", ".wl", "inputform", is_oracle=True,
                 command=("mathics", "-q", "--no-readline", "-c")),
-        Backend("fortsym-wl", ".wl", "inputform",
-                command=("fortsym-wl", "-c")),
+        Backend("fortsym-wl", ".wl", "inputform", command=("fortsym_wl_run",)),
     )
 }
 
@@ -68,6 +67,11 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
     """
     if backend.syntax == "srepr":
         argv = [sys.executable, str(RUNNERS / "py_runner.py"), str(script), backend.name]
+    elif backend.name == "fortsym-wl":
+        # fortsym-wl speaks the R/T protocol itself, so it takes the corpus
+        # file directly. It is not a Wolfram interpreter and cannot be handed a
+        # wrapper expression to evaluate.
+        argv = [*backend.command, str(script)]
     else:
         argv = _wolfram_argv(backend, script)
 
@@ -95,7 +99,16 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
             kind = "unsupported"
         elif "UNAVAILABLE:" in stderr:
             kind = "unavailable"
-        raise RunFailure(kind, stderr.splitlines()[-1] if stderr else "no output")
+        # Prefer the tagged line over the last one. A Fortran backtrace or a
+        # Python traceback puts its least informative frame last, so taking the
+        # tail reports "#3 0x... in main" as the reason a construct was
+        # declined.
+        detail = next(
+            (ln for ln in stderr.splitlines()
+             if ln.startswith(("UNSUPPORTED:", "UNAVAILABLE:"))),
+            stderr.splitlines()[-1] if stderr else "no output",
+        )
+        raise RunFailure(kind, detail)
 
     if backend.syntax == "inputform":
         return _parse_wolfram_output(proc.stdout)
@@ -109,16 +122,50 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
 
 
 def _wolfram_argv(backend: Backend, script: Path) -> list[str]:
-    """Wrap a .wl corpus file so it prints one result per line.
+    """Wrap a .wl corpus file so it prints one top-level binding per line.
 
-    Deliberately not printing the association itself: Mathics renders ``->``
-    inside an association as U+21FE, which is not the textual syntax any parser
-    expects. One flat ``R<TAB>name<TAB>value`` line per result sidesteps the
-    pretty-printer entirely, and keeps the corpus file free of harness noise.
+    The corpus is 359 real derivation scripts that were never written for a
+    harness, so the contract has to be something every one of them already
+    satisfies: **every global symbol the script assigned**. Requiring a
+    designated results variable would mean editing all 359, which is exactly
+    the 1:1 property this repository exists to preserve.
+
+    Deliberately not printing an association: Mathics renders ``->`` inside one
+    as U+21FE, which is not textual syntax any parser expects. Flat
+    ``R<TAB>name<TAB>value`` lines sidestep the pretty-printer entirely.
     """
     wrapper = (
-        f'{{fsTime, fsRes}} = AbsoluteTiming[Get["{script}"]; fortsymBenchResults]; '
-        'Scan[Print["R\t", #, "\t", ToString[InputForm[fsRes[#]]]] &, Keys[fsRes]]; '
+        # SetDirectory so a script that Gets a sibling by relative name finds
+        # it, which most of the corpus does. Harness-owned names are excluded
+        # from the results or the wrapper reports its own variables as though
+        # the derivation had produced them.
+        # Absolute path: Mathics resolves a script's own Get["sibling.wl"]
+        # through $InputFileName, which is only set correctly when the outer
+        # Get was given a full path. Most of the corpus loads a shared
+        # checklib.wl that way.
+        # Corpus scripts end by calling their own reportAndExit[], which calls
+        # Exit[]. That terminates the kernel before any binding can be dumped,
+        # and Mathics then reports the outer Get as unopenable -- which reads
+        # like a missing file and is not. Neutralising Exit is the only way to
+        # observe a script that was written to be run, not imported, without
+        # editing all 384 of them.
+        'Unprotect[Exit]; Exit[___] := Null; '
+        # Side-effect operations are neutralised. The corpus measures symbolic
+        # results, not file I/O, and these actively destroy the measurement:
+        # a failing CreateDirectory aborts the enclosing Get in Mathics and is
+        # then reported as "cannot open" the script -- a wrong diagnostic that
+        # looks like a missing file. Export and Put are silenced for the same
+        # reason and to keep a corpus run from writing 384 scripts' worth of
+        # figures.
+        'Unprotect[CreateDirectory, Export, Put, PutAppend]; '
+        'CreateDirectory[d___] := Null; '
+        'Export[f_, ___] := f; Put[___] := Null; PutAppend[___] := Null; '
+        f'fsHarness = {{"fsHarness", "fsTime", "fsName"}}; '
+        f'fsTime = AbsoluteTiming[Get["{script.resolve()}"]][[1]]; '
+        'Scan[Function[fsName, If[ValueQ[Symbol[fsName]] && '
+        '!MemberQ[fsHarness, fsName], '
+        'Print["R\t", fsName, "\t", ToString[InputForm[Symbol[fsName]]]]]], '
+        'Names["Global`*"]]; '
         'Print["T\t", fsTime]'
     )
     return [*backend.command, wrapper]
