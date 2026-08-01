@@ -104,6 +104,13 @@ fortsym-bench run --backend sympy fortsym-sympy
 fortsym-bench run --repeat 5 --report results.json
 ```
 
+SymPy and Mathics reference outcomes are cached incrementally in
+`.cache/reference-results.json` by default. A later run reuses those answers
+and runs only the candidate backends; the report marks cached reference rows
+and omits stale timing samples. Cache entries include the source digest and
+timeout, so edited scripts do not reuse old answers. Use `--refresh-reference`
+after upgrading an oracle, or `--no-cache` for a completely fresh run.
+
 Each (script, backend) pair runs in its own subprocess, so a crash or a
 module-state leak cannot reach another. Results cross the process boundary as
 text — `srepr` from the Python side, `InputForm` from the Wolfram side — and are
