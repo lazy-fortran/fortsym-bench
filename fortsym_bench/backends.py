@@ -35,6 +35,8 @@ class Backend:
     #: True when this backend's answers define correctness for its source.
     is_oracle: bool = False
     command: tuple[str, ...] = field(default_factory=tuple)
+    #: Bump when the runner or its wrapper changes the meaning of results.
+    cache_version: int = 1
 
 
 BACKENDS = {
@@ -43,7 +45,8 @@ BACKENDS = {
         Backend("sympy", ".py", "srepr", is_oracle=True),
         Backend("fortsym-sympy", ".py", "srepr"),
         Backend("mathics", ".wl", "inputform", is_oracle=True,
-                command=("mathics", "-q", "--no-readline", "-c")),
+                command=("mathics", "-q", "--no-readline", "-c"),
+                cache_version=2),
         Backend("fortsym-wl", ".wl", "inputform", command=("fortsym_wl_run",)),
     )
 }

@@ -63,8 +63,11 @@ class ReferenceCache:
                         candidate.get("outcome") == "ok"
                         or candidate.get("timeout") == timeout
                     ):
-                        entry = candidate
-                        break
+                        if candidate.get("cache_version", 1) == backend.cache_version:
+                            entry = candidate
+                            break
+        if entry is not None and entry.get("cache_version", 1) != backend.cache_version:
+            entry = None
         if entry is None:
             return None
         if entry.get("outcome") == "ok":
@@ -92,6 +95,7 @@ class ReferenceCache:
     ) -> None:
         self._entries[self._key(backend, source)] = {
             "backend": backend.name,
+            "cache_version": backend.cache_version,
             "source": self._display_source(source),
             "source_sha256": _sha256(source.read_bytes()),
             "timeout": timeout,
@@ -109,6 +113,7 @@ class ReferenceCache:
     ) -> None:
         self._entries[self._key(backend, source)] = {
             "backend": backend.name,
+            "cache_version": backend.cache_version,
             "source": self._display_source(source),
             "source_sha256": _sha256(source.read_bytes()),
             "timeout": timeout,
@@ -159,6 +164,7 @@ class ReferenceCache:
             "source_kind": backend.source,
             "syntax": backend.syntax,
             "command": backend.command,
+            "cache_version": backend.cache_version,
             "source": self._display_source(source),
             "source_sha256": _sha256(source.read_bytes()),
         }
