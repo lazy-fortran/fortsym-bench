@@ -158,7 +158,7 @@ a warm audit in 1.24 seconds
 at 456 MiB RSS, with no backend subprocesses started. The
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
-The SymPy cache is now version 23: Unicode `λ` is protected while parsing
+The SymPy cache is now version 24: Unicode `λ` is protected while parsing
 function arguments, quoted string literals use the same collision-resistant
 comparison atom as the native backend, `Coefficient`/`CoefficientList` are
 lowered through SymPy, single-variable `Solve` results are serialized as
@@ -174,7 +174,10 @@ older rows and refreshed only the 16 affected rows; the direct version-chain
 compatibility avoids repeating a broad oracle refresh on the next translator
 change. Version 20 also lowers bounded positive `Map` levels, version 21
 lowers numeric `Boole` conditions, version 22 lowers numeric `Which` branches,
-and version 23 lowers bounded `TrigReduce` forms. A current
+and version 23 lowers bounded `TrigReduce` forms. Version 24 also reverses
+multiple `Integrate` ranges at the SymPy boundary so the first Wolfram range
+remains outermost; its compatibility transition invalidates only generated
+rows containing multiple ranges. A current
 one-worker audit of the 16-script `Thread` slice, using the
 rebuilt native runner, took 17.43 seconds at 508 MiB RSS and reported 249
 agreements, 58 differences, 1 unavailable oracle row, 1 timeout, 5 errors,
@@ -206,7 +209,12 @@ binding, with no timeout or runner error.
 The v26 verified exponential-product `Integrate` transition then served a
 three-script slice in 0.78 second at 404 MiB RSS: 5 agreements, 1 difference,
 1 unsupported backend outcome, 1 unavailable oracle row, and 1 oracle
-disagreement, with no timeout or runner error.
+disagreement, with no timeout or runner error. The v27 native
+definite/multiple-`Integrate` transition then evaluated the measured
+nested-limit script in a warm one-worker audit in 0.77 seconds at 402 MiB RSS.
+Native and SymPy produce the complete outer-to-inner result; Mathics retains a
+partial unevaluated result, so the three bindings are reported as oracle
+disagreements rather than scored as native errors.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change

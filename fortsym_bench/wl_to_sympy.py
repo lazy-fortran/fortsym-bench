@@ -308,9 +308,18 @@ def _lower(expression, environment: dict[str, object]):
     if name == "TrigReduce":
         return _trig_reduce(arguments)
     if name == "Integrate":
+        # Wolfram's first range is the outermost one: later ranges are
+        # evaluated inside it and may refer to its variable. SymPy's
+        # multi-limit API consumes the innermost range first, so reverse the
+        # explicit ranges at this boundary.
+        limits = [
+            argument
+            for argument in arguments[1:]
+            if not isinstance(argument, WolframRule)
+        ]
         return sp.integrate(
             arguments[0],
-            *[argument for argument in arguments[1:] if not isinstance(argument, WolframRule)],
+            *reversed(limits),
         )
     if name == "Limit":
         return _limit(arguments)

@@ -267,6 +267,32 @@ def test_sympy_cache_upgrade_reruns_sources_with_trigreduce(tmp_path):
     assert cache.get(current, source, 300.0) is None
 
 
+def test_sympy_cache_upgrade_reuses_single_integrate_rows(tmp_path):
+    source = tmp_path / "case.py"
+    source.write_text("value = Integrate[x, {x, 0, 1}]\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("sympy", ".py", "srepr", cache_version=23)
+    current = Backend("sympy", ".py", "srepr", cache_version=24)
+
+    cache.put_result(old, source, 5.0, {"value": "Rational(1, 2)"})
+
+    assert cache.get(current, source, 300.0) is not None
+
+
+def test_sympy_cache_upgrade_reruns_multiple_integrate_rows(tmp_path):
+    source = tmp_path / "case.py"
+    source.write_text(
+        "value = Integrate[x + y, {x, 0, 1}, {y, 0, x}]\n"
+    )
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("sympy", ".py", "srepr", cache_version=23)
+    current = Backend("sympy", ".py", "srepr", cache_version=24)
+
+    cache.put_result(old, source, 5.0, {"value": "Rational(1, 2)"})
+
+    assert cache.get(current, source, 300.0) is None
+
+
 def test_sympy_cache_upgrade_reuses_non_string_version_14_rows(tmp_path):
     source = tmp_path / "case.py"
     source.write_text("_ASSIGNMENTS = [('value', 'x + 1', ())]\n")
