@@ -188,6 +188,15 @@ def evaluate_assignments(
             failures.append(f"{assignment.name}: {exc}")
 
     if not results:
+        # A script containing only SetDelayed definitions has changed the
+        # Wolfram environment but exposes no named value to the benchmark
+        # protocol.  It is the same empty result set as a script made only of
+        # checks or side effects; do not turn a valid zero-binding translation
+        # into an artificial unsupported backend.
+        if not failures and all(
+            assignment.parameters for assignment in assignments
+        ):
+            return {}
         reason = failures[0] if failures else "no translatable assignments"
         raise NotImplementedError(f"{source_name}: {reason}")
     return results

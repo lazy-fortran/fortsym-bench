@@ -71,6 +71,15 @@ def test_a_script_without_assignments_returns_an_empty_result_set():
     assert evaluate_assignments(assignments) == {}
 
 
+def test_a_script_with_only_function_definitions_returns_an_empty_result_set():
+    assignments, skipped = extract_assignments(
+        "ftS[e_, c_] := 1 - e/(1 + c); Lk[wi_, wj_] := wi[0] wj[0]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments) == {}
+
+
 def test_leading_continuation_operators_stay_in_the_same_assignment():
     assignments, skipped = extract_assignments(
         "value = a\n"
