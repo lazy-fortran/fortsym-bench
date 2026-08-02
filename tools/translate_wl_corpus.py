@@ -122,9 +122,14 @@ def render_module(source: str, assignments, skipped: int) -> str:
         "_ASSIGNMENTS = [",
     ])
     for assignment in assignments:
+        delayed = (
+            f", {assignment.delayed!r}"
+            if assignment.parameters and not assignment.delayed
+            else ""
+        )
         lines.append(
             f"    ({assignment.name!r}, {assignment.rhs!r}, "
-            f"{assignment.parameters!r}),"
+            f"{assignment.parameters!r}{delayed}),"
         )
     lines.extend(
         [
