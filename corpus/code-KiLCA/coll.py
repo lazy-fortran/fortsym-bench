@@ -8,6 +8,16 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 245 non-assignment statement(s) remain.
+COMPARE = {
+    'b': 'numeric',
+    'er': 'numeric',
+    'fr': 'numeric',
+    'gr': 'numeric',
+    'r1': 'numeric',
+    'r2': 'numeric',
+    're': 'numeric',
+    'z': 'numeric',
+}
 _ASSIGNMENTS = [
     ('W1', 'If[Mod[n, 2] == 0, Sqrt[2*Pi]*(n - 1)!!*Vt^(n + 1), 0]', ('n',)),
     ('LimT', 'Limit[J1k[alpha, beta, tau, nu], nu -> 0]', ()),

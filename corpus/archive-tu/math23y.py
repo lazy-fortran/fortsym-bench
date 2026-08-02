@@ -8,6 +8,10 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 34 non-assignment statement(s) remain.
+COMPARE = {
+    'c2': 'numeric',
+    'points': 'numeric',
+}
 _ASSIGNMENTS = [
     ('points', 'Table[N[x + I*y], {x, -Pi/2, Pi/2, Pi/14}, {y, -1, 1, 2/10}]', ()),
     ('coords', 'Map[{Re[#1], Im[#1]} & , points, {2}]', ()),

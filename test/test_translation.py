@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sympy as sp
 
+from tools.translate_wl_corpus import render_module
 from fortsym_bench.wl_to_sympy import evaluate_assignments, extract_assignments
 
 
@@ -102,3 +103,15 @@ def test_derivative_of_a_list_is_componentwise():
     assert skipped == []
     x = sp.Symbol("x")
     assert evaluate_assignments(assignments)["value"] == sp.Tuple(2 * x, sp.cos(x))
+
+
+def test_generated_numeric_assignments_declare_numeric_comparison_policy():
+    assignments, skipped = extract_assignments(
+        "value = N[Pi, 30]; exact = x^2"
+    )
+
+    module = render_module("case.wl", assignments, len(skipped))
+
+    assert "COMPARE = {" in module
+    assert "'value': 'numeric'" in module
+    assert "'exact'" not in module.split("COMPARE = {", 1)[1].split("}", 1)[0]

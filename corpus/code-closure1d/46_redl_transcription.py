@@ -8,6 +8,9 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 26 non-assignment statement(s) remain.
+COMPARE = {
+    'fmtNum': 'numeric',
+}
 _ASSIGNMENTS = [
     ('datadir', 'FileNameJoin[{DirectoryName[$InputFileName], "..", "kin1d",\n  "test", "data"}]', ()),
     ('$Assumptions', '0 <= ft <= 1 && nue >= 0 && nui >= 0 && Z >= 1', ()),

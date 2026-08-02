@@ -72,6 +72,54 @@ def test_cross_language_assumption_stripping_handles_nested_tuples():
     assert result.outcome == AGREE
 
 
+def test_numeric_policy_accepts_guard_digit_rounding_at_requested_precision():
+    result = compare_cross_text(
+        "3.14159265358979323846264",
+        "inputform",
+        "Float('3.1415926535897932374', precision=60)",
+        "srepr",
+        "numeric",
+    )
+
+    assert result.outcome == AGREE
+
+
+def test_numeric_policy_rejects_a_value_outside_the_declared_precision():
+    result = compare_cross_text(
+        "3.14159265358979323846264",
+        "inputform",
+        "Float('3.141592653589', precision=60)",
+        "srepr",
+        "numeric",
+    )
+
+    assert result.outcome == DIFFER
+
+
+def test_numeric_policy_preserves_symbolic_expression_shape():
+    result = compare_cross_text(
+        "x + 3.14159265358979323846264",
+        "inputform",
+        "Add(Symbol('x'), Float('3.1415926535897932374', precision=60))",
+        "srepr",
+        "numeric",
+    )
+
+    assert result.outcome == AGREE
+
+
+def test_numeric_policy_does_not_hide_symbolic_head_changes():
+    result = compare_cross_text(
+        "x + 3.14159265358979323846264",
+        "inputform",
+        "Add(Symbol('y'), Float('3.1415926535897932374', precision=60))",
+        "srepr",
+        "numeric",
+    )
+
+    assert result.outcome == DIFFER
+
+
 def test_unevaluated_sympy_first_derivative_matches_wolfram_derivative_node():
     result = compare_cross_text(
         "Derivative[1][p0][ze]",

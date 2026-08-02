@@ -8,6 +8,13 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 29 non-assignment statement(s) remain.
+COMPARE = {
+    'cFullDirect': 'numeric',
+    'cHelicalDirect': 'numeric',
+    'cHelicalSeries': 'numeric',
+    'cMeanSeries': 'numeric',
+    'cTotalSeries': 'numeric',
+}
 _ASSIGNMENTS = [
     ('figdir', 'FileNameJoin[{DirectoryName[$InputFileName], "figures"}]', ()),
     ('psiPrime', '-rho det[rho]', ()),

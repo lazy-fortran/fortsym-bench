@@ -8,6 +8,9 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 12 non-assignment statement(s) remain.
+COMPARE = {
+    'ratio': 'numeric',
+}
 _ASSIGNMENTS = [
     ('sol', "DSolve[{I OmE g[x] - nu g''[x] == 1, g[0] == 0, g'[1] == 0}, g[x], x]", ()),
     ('gx', 'Simplify[g[x] /. sol[[1]], Assumptions -> {nu > 0, OmE > 0, 0 < x < 1}]', ()),

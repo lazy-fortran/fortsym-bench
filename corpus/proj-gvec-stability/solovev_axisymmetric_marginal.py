@@ -8,6 +8,12 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 36 non-assignment statement(s) remain.
+COMPARE = {
+    'boundaryRows': 'numeric',
+    'gradOnBoundary': 'numeric',
+    'profileRows': 'numeric',
+    'scalarRows': 'numeric',
+}
 _ASSIGNMENTS = [
     ('pass', '0', ()),
     ('fail', '0', ()),

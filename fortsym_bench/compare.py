@@ -323,10 +323,10 @@ def _normalise_sympy_derivatives(expression):
 def compare(candidate, reference, strictness: str) -> Comparison:
     """Compare one result against the oracle at the declared strictness.
 
-    ``structural`` and ``equivalent`` are both legitimate bars. Which one a
-    result is held to is declared in the corpus file, not chosen here — a
-    comparator that quietly falls back from structural to equivalent would hide
-    precisely the canonical-form differences worth knowing about.
+    ``structural``, ``equivalent``, and ``numeric`` are all legitimate bars.
+    Which one a result is held to is declared in the corpus file, not chosen
+    here — a comparator that quietly falls back from structural to a looser
+    policy would hide precisely the differences worth knowing about.
     """
     import sympy
 
@@ -351,6 +351,18 @@ def compare(candidate, reference, strictness: str) -> Comparison:
             return Comparison(AGREE)
         try:
             detail = f"{candidate} is not equivalent to {reference}"
+        except Exception as exc:
+            return Comparison(
+                ERROR,
+                f"cannot format comparison operands: {type(exc).__name__}: {exc}",
+            )
+        return Comparison(DIFFER, detail)
+
+    if strictness == "numeric":
+        if _numeric_equivalent(candidate, reference):
+            return Comparison(AGREE)
+        try:
+            detail = f"{candidate} is not numerically equal to {reference}"
         except Exception as exc:
             return Comparison(
                 ERROR,
@@ -449,6 +461,90 @@ def _equivalent(a, b) -> bool:
         return sympy.simplify(a - b) == 0
     except Exception:
         # The comparison oracle failing to decide is not evidence of agreement.
+        return False
+
+
+def _numeric_equivalent(a, b) -> bool:
+    """Compare matching expression trees while allowing rounded numeric leaves.
+
+    ``N[expr, p]`` is an approximate operation. SymPy and the native MPFR
+    path can therefore retain different guard digits even when both values
+    agree to the requested precision. This policy is explicit: expression
+    heads and symbolic leaves still have to match, while numeric leaves are
+    compared with a tolerance derived from the lower precision of the two
+    operands.
+    """
+    import sympy
+
+    try:
+        if a == b:
+            return True
+    except Exception:
+        return False
+
+    if _numeric_leaf_equivalent(a, b):
+        return True
+
+    if isinstance(a, sympy.MatrixBase) and isinstance(b, sympy.MatrixBase):
+        if a.shape != b.shape:
+            return False
+        return all(
+            _numeric_equivalent(left, right)
+            for left, right in zip(a, b)
+        )
+
+    if not isinstance(a, sympy.Basic) or not isinstance(b, sympy.Basic):
+        return False
+    if a.func != b.func or len(a.args) != len(b.args):
+        return False
+    if not a.args:
+        # Atomic SymPy nodes such as Symbol('x') have the same head and no
+        # children even when their values differ. The equality check above is
+        # the only valid comparison for those nodes.
+        return False
+    return all(
+        _numeric_equivalent(left, right)
+        for left, right in zip(a.args, b.args)
+    )
+
+
+def _numeric_leaf_equivalent(a, b) -> bool:
+    import sympy
+
+    if not isinstance(a, sympy.Basic) or not isinstance(b, sympy.Basic):
+        return False
+    if not a.is_number or not b.is_number:
+        return False
+    if a.free_symbols or b.free_symbols:
+        return False
+    # Non-finite values are only equal through the exact equality check above;
+    # a tolerance must never turn two different infinities or NaNs into a pass.
+    if a.is_finite is False or b.is_finite is False:
+        return False
+
+    precisions = [
+        precision
+        for value in (a, b)
+        for precision in (getattr(value, "_prec", None),)
+        if isinstance(precision, int) and precision > 0
+    ]
+    if not precisions:
+        return _equivalent(a, b)
+
+    bits = min(precisions)
+    decimal_digits = max(1, int(bits / 3.321928094887362) - 2)
+    work_prec = max(80, bits + 32)
+    tolerance = sympy.Float(10) ** (-decimal_digits)
+    try:
+        difference = sympy.Abs(sympy.N(a - b, work_prec))
+        scale = max(
+            sympy.Integer(1),
+            sympy.Abs(sympy.N(a, work_prec)),
+            sympy.Abs(sympy.N(b, work_prec)),
+        )
+        return bool(difference <= sympy.N(tolerance * scale, work_prec))
+    except Exception:
+        # A failed numeric decision is not evidence of agreement.
         return False
 
 

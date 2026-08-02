@@ -8,6 +8,9 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 81 non-assignment statement(s) remain.
+COMPARE = {
+    'refs': 'numeric',
+}
 _ASSIGNMENTS = [
     ('$failures', '0', ()),
     ('gammaOfSWR', 'Simplify[Solve[s == (1 + g)/(1 - g), g][[1, 1, 2]],\n   Assumptions -> s > 1]', ()),

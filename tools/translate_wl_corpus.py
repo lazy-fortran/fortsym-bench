@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 
 from fortsym_bench.wl_to_sympy import extract_assignments
 
@@ -88,6 +89,14 @@ def main() -> int:
 
 
 def render_module(source: str, assignments, skipped: int) -> str:
+    policies = {
+        assignment.name: "numeric"
+        for assignment in assignments
+        if re.search(
+            r"(?<![A-Za-z0-9$])(?:N|SetPrecision)\s*\[",
+            assignment.rhs,
+        )
+    }
     lines = [
         '"""Generated SymPy translation of ``' + source + '``.',
         "",
@@ -99,8 +108,19 @@ def render_module(source: str, assignments, skipped: int) -> str:
         "from fortsym_bench.wl_to_sympy import evaluate_assignments",
         "",
         f"# NOT TRANSLATED: {skipped} non-assignment statement(s) remain.",
-        "_ASSIGNMENTS = [",
     ]
+    if policies:
+        lines.extend([
+            "COMPARE = {",
+            *[
+                f"    {name!r}: {policy!r},"
+                for name, policy in sorted(policies.items())
+            ],
+            "}",
+        ])
+    lines.extend([
+        "_ASSIGNMENTS = [",
+    ])
     for assignment in assignments:
         lines.append(
             f"    ({assignment.name!r}, {assignment.rhs!r}, "

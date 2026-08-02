@@ -8,6 +8,9 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 16 non-assignment statement(s) remain.
+COMPARE = {
+    'okClose': 'numeric',
+}
 _ASSIGNMENTS = [
     ('okEqual', 'Module[{residual},\n  residual = FullSimplify[value - expected];\n  If[AllTrue[Flatten[{residual}], # === 0 || PossibleZeroQ[#] &],\n    Print["ok ", name, ": ", ToString[expected, InputForm]],\n    Print["FAIL ", name];\n    Print["  value=", ToString[value, InputForm],\n      " expected=", ToString[expected, InputForm],\n      " residual=", ToString[residual, InputForm]];\n    Exit[1]\n  ]\n]', ('name', 'value', 'expected')),
     ('okClose', 'Module[{residual},\n  residual = Abs[N[value - expected]];\n  If[residual <= tol,\n    Print["ok ", name, ": ", ToString[N[value], InputForm]],\n    Print["FAIL ", name];\n    Print["  value=", ToString[N[value], InputForm],\n      " expected=", ToString[N[expected], InputForm],\n      " residual=", ToString[residual, InputForm], " tol=", ToString[tol, InputForm]];\n    Exit[1]\n  ]\n]', ('name', 'value', 'expected', 'tol')),

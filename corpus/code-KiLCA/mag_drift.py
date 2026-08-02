@@ -8,6 +8,10 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 243 non-assignment statement(s) remain.
+COMPARE = {
+    'resA': 'numeric',
+    'resE': 'numeric',
+}
 _ASSIGNMENTS = [
     ('Karg', 'Collect[Kmn[u1, u2, tau][[2,2]], {u1, u2}]', ()),
     ('CL', 'FullSimplify /@ CoefficientList[Karg, {u1, u2}]', ()),

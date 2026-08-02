@@ -8,6 +8,11 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 22 non-assignment statement(s) remain.
+COMPARE = {
+    'cHelicalValue': 'numeric',
+    'derivedFixture': 'numeric',
+    'printedFixture17': 'numeric',
+}
 _ASSIGNMENTS = [
     ('sExp', 's0 + eps u1 Cos[phi] + eps^2 (u20 + u22 Cos[2 phi])', ()),
     ('psiExp', 'Normal@Series[Psi0F[sExp] + eps Cos[phi] QQ[sExp], {eps, 0, 2}]', ()),

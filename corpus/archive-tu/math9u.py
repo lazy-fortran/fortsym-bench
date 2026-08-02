@@ -8,6 +8,11 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 15 non-assignment statement(s) remain.
+COMPARE = {
+    'a': 'numeric',
+    'a1': 'numeric',
+    'a2': 'numeric',
+}
 _ASSIGNMENTS = [
     ('F', '{{x^6 - 5*x^5 + 4*x^4 - 2*x^3 + 3*x^2 - x - 1, x^2 - x + 1}, {x^7 + x^6 - 1, x - 1}}', ()),
     ('SqTri', 'Solve[{b, a} . {s, s} == a*b && a^2 + b^2 == c^2 && a > 0 && b > 0, {a, b}, Reals]', ('s', 'c')),
