@@ -141,7 +141,7 @@ their syntaxes, the strictness policy, and the comparator version. On the
 the translator change took 4:54 with four workers. The latest native-only
 refresh took about 59 seconds
 with the available SymPy and Mathics rows cached. The compact 155 MB cache then
-served an identical warm audit in about 1.3 seconds, with no backend subprocesses
+served an identical warm audit in about 1.0 seconds, with no backend subprocesses
 started.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
@@ -223,10 +223,10 @@ non-empty results and 38 valid empty result sets), timed out on 1, and
 explicitly refused 2 unsupported constructs; it had no native crashes. The
 same compact cache contains 359 completed SymPy rows (332 non-empty, 27 empty,
 7 timeouts, 18 refusals) and 235 completed Mathics rows (208 non-empty, 27
-empty, 117 errors, 32 timeouts). The final binding-level audit has 3,120
-agreements, 790 declared differences, 20 unsupported outcomes, 40 timeouts,
-125 errors, 197 oracle disagreements, and 800 oracle-missing bindings. Its
-warm run takes about 1.3 seconds.
+empty, 117 errors, 32 timeouts). The final binding-level audit has 3,124
+agreements, 786 declared differences, 20 unsupported outcomes, 38 timeouts,
+122 errors, 197 oracle disagreements, and 800 oracle-missing bindings. Its
+warm run takes about 1.0 seconds.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
@@ -272,8 +272,8 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The latest full run produced 3,120 agreements, 790 declared
-differences, 20 unsupported outcomes, 40 timeouts, 125 errors, 197 oracle
+place. The latest full run produced 3,124 agreements, 786 declared
+differences, 20 unsupported outcomes, 38 timeouts, 122 errors, 197 oracle
 disagreements, and 800 oracle-missing bindings. Translation quality and the
 remaining backend parity work stay measured by the independent oracle report;
 the report is the source of truth for current counts.
