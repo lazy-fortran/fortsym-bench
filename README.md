@@ -142,13 +142,16 @@ comparison verdicts are cached separately in
 their syntaxes, the strictness policy, and the comparator version. On the
 2026-08-01 corpus, measured again on 2026-08-02, the earlier full refresh after
 the translator change took 4:54 with four workers. The latest bounded
-LegendreP/Diagonal/list-selector audit took 82.7 seconds with two workers and
+CharacteristicPolynomial/LegendreP/Diagonal/list-selector audit took 82.7 seconds with two workers and
 a 0.61 GiB peak RSS:
 380 native rows were fresh while all compatible SymPy and Mathics rows were
 reused. The 155 MB raw-result cache then served an identical warm audit in
 1.01 seconds at 417 MiB RSS, with no backend subprocesses started. The
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
+The SymPy cache is now version 10 because Unicode `λ` is protected while
+parsing function arguments; only affected rows need refreshing after that
+translator change.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
