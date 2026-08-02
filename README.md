@@ -239,8 +239,8 @@ The v31 callable-definition slice adds bounded scalar `Set`/`SetDelayed`
 semantics after `DSolve`, including Wolfram `C[1]` normalization; the v32
 slice adds bounded lexical `Module` locals with sequential assignments and
 nested shadowing, and v33 normalizes derivative `Subs` wrappers after
-replacement. The v52 full suite passed 196 tests; v53–v55 add nine focused
-tests, bringing collection to 205. The refreshed 384-source
+replacement. The v52 full suite passed 196 tests; v53–v56 add 15 focused
+tests, bringing collection to 211. The refreshed 384-source
 cache contains 374 successful SymPy rows, 5 unsupported rows, and 5 timeouts,
 plus 255 successful Mathics rows, 60 errors, and 69 timeouts; all rows are
 reusable at timeout 15. The native cache contains 379 successful rows, 3
@@ -284,10 +284,11 @@ flux-pumping recoveries, followed by the v51 general-Maxwell, corrugation, and
 math3y recoveries, and the v52 Appendix-B, Solovev, math11y, math8y, and flux
 recoveries, followed by the v53 math12y point, v54 iota-series and torus
 intermediate, and v55 math10y, Mercier, Cartesian, variational, math12u, and
-c-components recoveries, extend the source-faithful companion set. The current
-cache-only score is 3,791 agreements, 469 differences, 7
+c-components recoveries, followed by v56 TDRK and linear delta-f recoveries,
+extend the source-faithful companion set. The current cache-only score is
+3,798 agreements, 466 differences, 7
 unsupported outcomes, 74 timeouts, 61 errors, 2 unavailable oracle rows, 194
-oracle disagreements, and 372 oracle-missing bindings. The Mathics wrapper
+oracle disagreements, and 368 oracle-missing bindings. The Mathics wrapper
 also neutralizes `Quit`, isolates per-run protocol symbols, and restores
 `$Assumptions` safely after local integrals; current Mathics inventory is 255
 successful rows, 60 errors, and 69 timeouts.
@@ -384,10 +385,16 @@ native cache contains 379 successful script rows, 3 explicit unsupported
 rows, 1 timeout, and 1 runner error, with no native crashes. The SymPy cache
 contains 376 successful rows, 4 unsupported rows, and 4 timeouts; the Mathics
 cache contains 255 successful rows, 60 errors, and 69 timeouts. The latest
-committed full binding-level audit has 3,791 agreements, 469 declared
+committed full binding-level audit has 3,798 agreements, 466 declared
 differences, 7 unsupported outcomes, 74 timeouts, 61 errors, 194 oracle
-disagreements, and 372 oracle-missing bindings. Its warm run remains 0.56
-seconds at 344 MiB RSS; the current v55 parity batch is documented above.
+disagreements, and 368 oracle-missing bindings. Its warm run remains 0.56
+seconds at 344 MiB RSS; the current v56 parity batch is documented above.
+
+The bounded Fortran inventory in `tools/inventory_wl_to_f90.py` inspected all
+384 `.wl` sources on 2026-08-02 with a serial five-second limit. It emitted
+0 Fortran files and explicitly refused 384; there were no timeouts or runner
+errors. The inventory is an acceptance report only: emitted text is not yet
+compiled, executed, or compared semantically against the source.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
@@ -433,9 +440,9 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The latest full run produced 3,791 agreements, 469 declared
+place. The latest full run produced 3,798 agreements, 466 declared
 differences, 7 unsupported outcomes, 74 timeouts, 61 errors, 194 oracle
-disagreements, and 372 oracle-missing bindings. The v43-v55 batches add 51
+disagreements, and 368 oracle-missing bindings. The v43-v56 batches add 57
 independent behavioral tests covering new source-faithful Python companions.
 Translation quality and the remaining backend parity work stay measured by
 the independent oracle report; the report is the source of truth for current
