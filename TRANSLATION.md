@@ -43,6 +43,8 @@ which and how many source statements were not assignment expressions.
 | `CoefficientList[f, x]` | coefficients from constant term upward |
 | `Total[list]` | bounded explicit-list sum, including componentwise list sums |
 | `PseudoInverse[m]` | bounded full-rank numeric Moore–Penrose inverse |
+| `SingularValueList[m]` | diagonal/zero numeric singular values, sorted descending |
+| `Max[list]` / `Min[list]` | numeric extrema of an explicit list |
 | `FoldList[Plus, init, list]` | explicit prefix sums including `init` |
 | `ArrayFlatten[blocks]` | rectangular block-matrix concatenation |
 | `Together` / `Cancel` / `Apart` | `sp.together` / `sp.cancel` / `sp.apart` |
@@ -91,7 +93,8 @@ and rectangular-matrix `Diagonal` extraction, bounded exact
 non-negative `MatrixPower`, `Coefficient`/`CoefficientList`, single-variable
 `Solve` rule-list normalization, bounded `FoldList[Plus, init, list]`,
 bounded explicit-list `Total`, bounded full-rank numeric `PseudoInverse`,
-rectangular `ArrayFlatten`, quoted string literals mapped to the native
+diagonal/zero numeric `SingularValueList`, numeric `Max`/`Min`, rectangular
+`ArrayFlatten`, quoted string literals mapped to the native
 comparison atom, and a
 Wolfram matrix-product dot continued across a line break. Unicode `λ` is protected
 during SymPy parsing and restored as the original symbol. Unsupported selector and matrix shapes remain
