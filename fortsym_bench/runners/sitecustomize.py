@@ -11,8 +11,10 @@ from mathics.core.definitions import Definitions
 from mathics.core.list import ListExpression
 from mathics.core.symbols import BooleanType
 from mathics.builtin.numbers.calculus import Derivative
+from mathics.builtin.arithmetic import Im, Re
 from mathics.builtin.vectors.math_ops import Curl
 import sympy
+from sympy.polys.polyerrors import PolynomialError
 
 
 # Mathics 10.0.1 declares ``Curl`` as a SympyFunction but SymPy 1.14 no
@@ -104,3 +106,32 @@ def _safe_derivative_to_sympy(self, expr, **kwargs):
 
 
 Derivative.to_sympy = _safe_derivative_to_sympy
+
+
+# Mathics 10.0.1 routes Re[Root[...]] through SymPy's complex expansion.  For
+# algebraic roots whose polynomial is represented by a pure slot function,
+# SymPy raises PolynomialError instead of returning an unevaluated result.
+# Keep the Wolfram expression visible to the harness rather than aborting the
+# complete oracle process; ordinary numeric Re evaluation remains unchanged.
+_re_eval = Re.eval
+_im_eval = Im.eval
+
+
+def _safe_re_eval(self, number, evaluation):
+    try:
+        return _re_eval(self, number, evaluation)
+    except PolynomialError:
+        return None
+
+
+Re.eval = _safe_re_eval
+
+
+def _safe_im_eval(self, number, evaluation):
+    try:
+        return _im_eval(self, number, evaluation)
+    except PolynomialError:
+        return None
+
+
+Im.eval = _safe_im_eval
