@@ -181,7 +181,7 @@ def _wolfram_argv(backend: Backend, script: Path) -> list[str]:
         # like a missing file and is not. Neutralising Exit is the only way to
         # observe a script that was written to be run, not imported, without
         # editing all 384 of them.
-        'Unprotect[Exit]; Exit[___] := Null; '
+        'Unprotect[Exit, Quit]; Exit[___] := Null; Quit[___] := Null; '
         # Side-effect operations are neutralised. The corpus measures symbolic
         # results, not file I/O, and these actively destroy the measurement:
         # a failing CreateDirectory aborts the enclosing Get in Mathics and is
