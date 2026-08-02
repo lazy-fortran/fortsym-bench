@@ -12,13 +12,38 @@ _MODULE = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(_MODULE)
 
 
-def test_math8y_keeps_final_source_bindings_and_opaque_det():
+def test_math8y_recovers_source_bindings_and_opaque_det():
     values = _MODULE.results()
 
     assert values['aa'] == sp.Tuple(
-        sp.Tuple(sp.Symbol('a11'), sp.Symbol('a12'), sp.Symbol('a13'), sp.Symbol('a14')),
-        sp.Tuple(sp.Symbol('a21'), sp.Symbol('a22'), sp.Symbol('a23'), sp.Symbol('a24')),
-        sp.Tuple(sp.Symbol('a31'), sp.Symbol('a32'), sp.Symbol('a33'), sp.Symbol('a34')),
+        sp.Tuple(*(sp.Function('a')(1, j) for j in range(1, 5))),
+        sp.Tuple(*(sp.Function('a')(2, j) for j in range(1, 5))),
+        sp.Tuple(*(sp.Function('a')(3, j) for j in range(1, 5))),
+    )
+    x = sp.symbols('x1:5')
+    y = sp.Symbol('y')
+    vector = lambda terms: sp.Tuple(*terms)
+    assert values['g1'] == sp.Eq(vector(xi - 2*y for xi in x), -1,
+                                  evaluate=False)
+    assert values['g2'] == sp.Eq(vector(xi - 2*y for xi in x), -3.95,
+                                  evaluate=False)
+    assert values['g3'] == sp.Eq(vector(xi - 2*y for xi in x), -2.1,
+                                  evaluate=False)
+    assert values['eq'] == sp.Tuple(
+        sp.Eq(vector(xi - 2*y for xi in x), -1, evaluate=False),
+        sp.Eq(vector(xi - 2*y for xi in x), -3.95, evaluate=False),
+        sp.Eq(vector(xi + y for xi in x), 5, evaluate=False),
+    )
+    assert values['mi2'][0][0] == (
+        sp.Function('Subscript')(sp.Symbol('a'), 1, 1)
+        * sp.Function('Subscript')(sp.Symbol('a'), 2, 2)
+        - sp.Function('Subscript')(sp.Symbol('a'), 1, 2)
+        * sp.Function('Subscript')(sp.Symbol('a'), 2, 1)
+    )
+    assert len(values['mi3']) == 1 and len(values['mi3'][0]) == 4
+    assert values['rg'] == 3 and values['rh'] == 2
+    assert values['sa'] == sp.Tuple(
+        sp.Function('Rule')(sp.Symbol('a'), 19)
     )
     assert values['ceq'] == sp.Function('Det')(sp.Symbol('AM'))
     assert values['cp'] == sp.Tuple(
