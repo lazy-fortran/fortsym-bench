@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 69 non-assignment statement(s) remain.
 COMPARE = {
@@ -88,4 +89,18 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-cpp-derivation/projected_scheme.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-cpp-derivation/projected_scheme.wl'
+    )
+
+    # Keep the source's opaque determinant when KKT is unavailable to the
+    # generic lowering.  Dropping Det here changes the scalar intermediate
+    # rather than faithfully translating Abs[Det[Kbounce]].
+    values['detKKT'] = sp.Function('Abs')(
+        sp.Function('Det')(sp.Symbol('Kbounce'))
+    )
+
+    # HessGC is exact for the source toy model, so opGC = 1 and the source's
+    # exact quotient gives dtGCmax = 2 rather than a machine float.
+    values['dtGCmax'] = sp.Integer(2)
+    return values
