@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 56 non-assignment statement(s) remain.
 COMPARE = {
@@ -93,4 +94,17 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/35_detuning_closure_insertion.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/proj-flux_pumping/35_detuning_closure_insertion.wl',
+    )
+
+    # ``traceIota`` contains a bounded FindRoot/NIntegrate protocol that the
+    # independent SymPy evaluator cannot execute.  Preserve the two scalar
+    # source bindings as their exact unresolved call trees, matching the
+    # native Wolfram runner without inventing numerical trace values.
+    config = sp.Function('configFor')(1, sp.Rational(4, 25), 2)
+    trace_iota = sp.Function('traceIota')
+    values['sanityIotaZero'] = trace_iota(config, 1, 0, 0)
+    values['sanityIotaBase'] = trace_iota(config, 1, 1, 0)
+    return values
