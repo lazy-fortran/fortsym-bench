@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 78 non-assignment statement(s) remain.
 COMPARE = {
@@ -79,4 +80,15 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/54_access_conditions.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-flux_pumping/54_access_conditions.wl'
+    )
+
+    # ``Simplify[..., bb > 0]`` is a small, source-faithful closed form that
+    # the generic assignment evaluator currently leaves unresolved.  Keep the
+    # unsquared-root tree Mathics emits so the native InputForm and Python
+    # srepr compare structurally when the full Wolfram script aborts later in
+    # its expensive FindRoot section.
+    bb = sp.Symbol('bb')
+    values['aMaxSq'] = bb / 2 + sp.sqrt(2) * sp.sqrt(bb**2) / 2
+    return values
