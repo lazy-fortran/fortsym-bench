@@ -346,6 +346,10 @@ class ReferenceCache:
         numeric Boole conditions, version 22 lowers numeric Which branches,
         version 23 lowers bounded TrigReduce forms, and version 24 aligns
         multiple Integrate ranges with Wolfram's outer-to-inner order.
+        Version 25 reserves the user symbol ``CC`` before SymPy's parser
+        sees an expression.  Only sources containing that symbol need a
+        fresh oracle result; retaining unaffected version-24 rows avoids a
+        corpus-wide SymPy refresh.
         Older rows remain exact for
         sources unaffected by the
         corresponding change, which prevents a translator fix from forcing a
@@ -354,6 +358,18 @@ class ReferenceCache:
         version = entry.get("cache_version", 1)
         if version == backend.cache_version:
             return True
+        if (
+            backend.name == "sympy"
+            and backend.cache_version == 25
+            and version == 24
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                return "CC" not in Path(source).read_text()
+            except (OSError, UnicodeError):
+                return False
         if (
             backend.name == "sympy"
             and backend.cache_version == 10
