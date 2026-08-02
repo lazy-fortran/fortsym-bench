@@ -171,6 +171,36 @@ def test_matrix_power_uses_sympys_matrix_definition():
     )
 
 
+def test_coefficient_and_coefficient_list_reconstruct_a_polynomial():
+    assignments, skipped = extract_assignments(
+        "value = 5 + 2*x - 3*x^2 + 7*x^3; "
+        "coefficient = Coefficient[value, x, 2]; "
+        "coefficients = CoefficientList[value, x]"
+    )
+
+    assert skipped == []
+    values = evaluate_assignments(assignments)
+    x = sp.Symbol("x")
+    assert values["coefficient"] == -3
+    assert values["coefficients"] == sp.Tuple(5, 2, -3, 7)
+    reconstructed = sum(values["coefficients"][power] * x**power
+                         for power in range(4))
+    assert sp.expand(reconstructed - values["value"]) == 0
+
+
+def test_multivariate_coefficient_list_keeps_variable_order():
+    assignments, skipped = extract_assignments(
+        "value = 1 + 2*x + 3*y + 4*x*y; "
+        "coefficients = CoefficientList[value, {x, y}]"
+    )
+
+    assert skipped == []
+    x, y = sp.symbols("x y")
+    assert evaluate_assignments(assignments)["coefficients"] == sp.Tuple(
+        sp.Tuple(1, 3), sp.Tuple(2, 4)
+    )
+
+
 def test_unicode_lambda_is_safe_inside_sympy_function_calls():
     assignments, skipped = extract_assignments(
         "value = CharacteristicPolynomial[{{1, 2}, {3, 4}}, λ]"

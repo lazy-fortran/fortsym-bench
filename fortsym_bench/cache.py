@@ -325,10 +325,10 @@ class ReferenceCache:
         sets under the new protocol.
 
         SymPy version 10 added protection for literal Unicode ``λ`` inside
-        function calls. Older rows remain exact for sources that do not contain
-        that character, which prevents a translator fix from forcing a
-        multi-gigabyte full oracle refresh. A source containing ``λ`` must be
-        rerun under version 10.
+        function calls. Version 11 adds the Coefficient and CoefficientList
+        lowering. Older rows remain exact for sources unaffected by the
+        corresponding change, which prevents a translator fix from forcing a
+        multi-gigabyte full oracle refresh.
         """
         version = entry.get("cache_version", 1)
         if version == backend.cache_version:
@@ -343,6 +343,21 @@ class ReferenceCache:
                 return False
             try:
                 return "λ" not in Path(source).read_text()
+            except (OSError, UnicodeError):
+                return False
+        if (
+            backend.name == "sympy"
+            and backend.cache_version == 11
+            and version in (9, 10)
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                text = Path(source).read_text()
+                if "Coefficient" in text:
+                    return False
+                return version != 9 or "λ" not in text
             except (OSError, UnicodeError):
                 return False
         if backend.name != "mathics" or version > backend.cache_version:
