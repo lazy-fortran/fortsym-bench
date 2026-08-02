@@ -149,6 +149,28 @@ def test_legendre_polynomial_uses_sympys_independent_definition():
     assert evaluate_assignments(assignments)["value"] == sp.legendre(3, x)
 
 
+def test_characteristic_polynomial_uses_sympys_matrix_definition():
+    assignments, skipped = extract_assignments(
+        "value = CharacteristicPolynomial[{{1, 2}, {3, 4}}, z]"
+    )
+
+    assert skipped == []
+    z = sp.Symbol("z")
+    matrix = sp.Matrix([[1, 2], [3, 4]])
+    assert evaluate_assignments(assignments)["value"] == matrix.charpoly(z).as_expr()
+
+
+def test_unicode_lambda_is_safe_inside_sympy_function_calls():
+    assignments, skipped = extract_assignments(
+        "value = CharacteristicPolynomial[{{1, 2}, {3, 4}}, λ]"
+    )
+
+    assert skipped == []
+    lam = sp.Symbol("λ")
+    matrix = sp.Matrix([[1, 2], [3, 4]])
+    assert evaluate_assignments(assignments)["value"] == matrix.charpoly(lam).as_expr()
+
+
 def test_derivative_of_a_list_is_componentwise():
     assignments, skipped = extract_assignments(
         "value = D[{x^2, Sin[x]}, x]"

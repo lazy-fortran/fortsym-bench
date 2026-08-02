@@ -193,10 +193,21 @@ def evaluate_expression(text: str, environment: dict[str, object] | None = None)
 
     environment = {} if environment is None else environment
     normalised = _normalise_expression_layout(_normalise_named_characters(text))
+    greek_restore = {}
+    for character, safe_name in _GREEK_PARSE_NAMES.items():
+        if character not in normalised:
+            continue
+        normalised = re.sub(
+            rf"(?<![\\w$]){re.escape(character)}(?![\\w$])",
+            safe_name,
+            normalised,
+        )
+        greek_restore[safe_name] = character
     protected, parse_environment, restore = _protect_bound_names(
         normalised, environment
     )
     parsed = parse_mathematica(protected)
+    restore.update(greek_restore)
     return _restore_names(_lower(parsed, parse_environment), restore)
 
 
@@ -1278,6 +1289,15 @@ def _normalise_named_characters(text: str) -> str:
         lambda match: match.group(1),
         text,
     )
+
+
+# SymPy's Mathematica parser treats a Unicode Greek name as a Python-like
+# subscript target when it appears inside a function call (for example
+# ``CharacteristicPolynomial[m, λ]``). Keep the Wolfram spelling in returned
+# expressions, but parse the affected identifier as an ordinary ASCII symbol.
+_GREEK_PARSE_NAMES = {
+    "λ": "fortsymGreekLambda",
+}
 
 
 def _normalise_expression_layout(text: str) -> str:

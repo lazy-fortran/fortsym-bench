@@ -81,8 +81,10 @@ Use `--refresh-generated` after changing the translator to rewrite generated
 companions while preserving hand translations. The runtime covers common
 calculus, algebra, replacement, table, list, and matrix operations, including
 bounded `First`, `Last`, `Rest`, `Most`, `Reverse`, `Take`, and `Drop` selectors
-and rectangular-matrix `Diagonal` extraction, plus a Wolfram matrix-product dot
-continued across a line break. Unsupported selector and matrix shapes remain
+and rectangular-matrix `Diagonal` extraction, bounded exact
+`CharacteristicPolynomial` for explicit square matrices, plus a Wolfram
+matrix-product dot continued across a line break. Unicode `λ` is protected
+during SymPy parsing and restored as the original symbol. Unsupported selector and matrix shapes remain
 opaque. It intentionally
 refuses or skips side effects, plotting,
 opaque control flow, and Wolfram constructs whose semantics cannot be inferred
