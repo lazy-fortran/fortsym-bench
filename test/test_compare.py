@@ -72,6 +72,18 @@ def test_cross_language_assumption_stripping_handles_nested_tuples():
     assert result.outcome == AGREE
 
 
+def test_inputform_list_arithmetic_is_classified_without_parser_crash():
+    result = compare_cross_text(
+        "Sqrt[List[x, y]]",
+        "inputform",
+        "Tuple(sqrt(Symbol('x')), sqrt(Symbol('y')))",
+        "srepr",
+        "structural",
+    )
+
+    assert result.outcome == DIFFER
+
+
 def test_numeric_policy_accepts_guard_digit_rounding_at_requested_precision():
     result = compare_cross_text(
         "3.14159265358979323846264",
