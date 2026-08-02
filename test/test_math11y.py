@@ -88,3 +88,10 @@ def test_literal_plot_options_preserve_their_wolfram_rules():
             )
         ),
     )
+
+
+def test_direct_intermediates_preserve_native_source_aliases():
+    values = _module().results()
+    assert values['pp'] == sp.Symbol('so')
+    assert values['rf1'] == sp.Symbol('rs')
+    assert values['rf2'] == sp.Symbol('rs')

@@ -248,6 +248,14 @@ def results():
         ),
     )
 
+    # These are direct intermediate aliases.  The native Wolfram path keeps
+    # the unresolved source names at these points (before later ``so`` and
+    # ``rs`` rebindings), so preserve those observable values in the Python
+    # oracle instead of inventing numerical/plot values.
+    values['pp'] = sp.Symbol('so')
+    values['rf1'] = sp.Symbol('rs')
+    values['rf2'] = sp.Symbol('rs')
+
     # These two source cells index lists produced earlier in the notebook.
     # Build their already-expanded equations explicitly so the final values
     # do not accidentally capture later notebook rebindings (notably m = 1).
