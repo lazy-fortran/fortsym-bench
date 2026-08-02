@@ -8,6 +8,10 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 46 non-assignment statement(s) remain.
+COMPARE = {
+    'etaSidebands': 'equivalent',
+    'xiSidebands': 'equivalent',
+}
 _ASSIGNMENTS = [
     ('$Assumptions', 'Element[{a, b, c, d, m1, m2, r, s, phi1, phi2,\n    kxx, kxy, kyy, mxx, mxy, myy, lambda, theta, zeta, baseM,\n    baseN, envelopeM, envelopeN, xe, xo, ye, yo, referenceLength,\n    radialIntervals, poloidalPoints, toroidalPoints}, Reals] &&', ()),
     ('pass', '0', ()),
