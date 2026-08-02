@@ -1711,7 +1711,20 @@ def _replace_all(arguments: tuple[object, ...]):
         raise NotImplementedError("ReplaceAll needs at least one rule")
     value = arguments[0]
     if hasattr(value, "subs"):
-        return value.subs([(rule.left, rule.right) for rule in rules], simultaneous=True)
+        result = value.subs(
+            [(rule.left, rule.right) for rule in rules], simultaneous=True
+        )
+        # Wolfram evaluates derivatives before applying ``/.``.  SymPy keeps
+        # a derivative whose dummy variable was replaced as ``Subs`` instead
+        # of reducing it to the derivative at the replacement point.  Lower
+        # those wrappers here so ``D[f[x], x] /. x -> y`` has the expected
+        # ``Derivative(f(y), y)`` form.
+        if isinstance(result, sp.Basic) and result.has(sp.Subs):
+            result = result.replace(
+                lambda item: isinstance(item, sp.Subs),
+                lambda item: item.doit(),
+            )
+        return result
     if _is_sequence(value):
         return sp.Tuple(*(_replace_all((item, arguments[1])) for item in _sequence_items(value)))
     raise NotImplementedError("ReplaceAll value is not an expression")
