@@ -429,6 +429,8 @@ def _lower(expression, environment: dict[str, object]):
         return _piecewise(arguments)
     if name == "Boole":
         return _boole(arguments)
+    if name == "Which":
+        return _which(arguments)
     if name == "Add":
         return _elementwise_add(arguments)
     if name == "Mul":
@@ -1475,6 +1477,24 @@ def _boole(arguments: tuple[object, ...]):
     if condition is sp.false:
         return sp.Integer(0)
     return sp.Function("Boole")(condition)
+
+
+def _which(arguments: tuple[object, ...]):
+    if len(arguments) < 2 or len(arguments) % 2:
+        raise NotImplementedError("Which needs condition-value pairs")
+    preserved = []
+    for index in range(0, len(arguments), 2):
+        condition = arguments[index]
+        value = arguments[index + 1]
+        if condition is sp.true:
+            if not preserved:
+                return value
+            preserved.extend((condition, value))
+            continue
+        if condition is sp.false:
+            continue
+        preserved.extend((condition, value))
+    return sp.Function("Which")(*preserved)
 
 
 def _as_assignment(item) -> Assignment:

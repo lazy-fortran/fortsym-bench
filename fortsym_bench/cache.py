@@ -333,8 +333,9 @@ class ReferenceCache:
         the bounded diagonal SingularValueList and numeric extrema forms, and
         version 17 adds bounded polynomial heads, version 18 lets serialized
         Solve rules feed ReplaceAll, version 19 lowers bounded Thread, and
-        version 20 lowers bounded positive Map levels, and version 21 lowers
-        numeric Boole conditions. Older rows remain exact for
+        version 20 lowers bounded positive Map levels, version 21 lowers
+        numeric Boole conditions, and version 22 lowers numeric Which branches.
+        Older rows remain exact for
         sources unaffected by the
         corresponding change, which prevents a translator fix from forcing a
         multi-gigabyte full oracle refresh.
@@ -457,14 +458,16 @@ class ReferenceCache:
                 return False
         if (
             backend.name == "sympy"
-            and backend.cache_version == 21
-            and version in (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
+            and backend.cache_version in (21, 22)
+            and version in (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21)
         ):
             source = entry.get("source")
             if not isinstance(source, str):
                 return False
             try:
                 text = Path(source).read_text()
+                if backend.cache_version == 22 and "Which[" in text:
+                    return False
                 if "Boole[" in text:
                     return False
                 if version >= 18:
