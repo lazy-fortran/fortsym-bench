@@ -113,6 +113,19 @@ def test_cross_product_has_the_independent_three_vector_formula():
     )
 
 
+def test_cylindrical_curl_has_the_independent_physical_component_formula():
+    assignments, skipped = extract_assignments(
+        'value = Curl[{r^2, r*z, r*theta}, {r, theta, z}, "Cylindrical"]'
+    )
+
+    assert skipped == []
+    values = evaluate_assignments(assignments)
+    r, theta, z = sp.symbols("r theta z")
+    value = values["value"]
+    assert sp.simplify(value[0] - (1 - r)) == 0
+    assert value[1:] == sp.Tuple(-theta, 2 * z)
+
+
 def test_pure_functions_map_apply_and_mapthread():
     assignments, skipped = extract_assignments(
         "squares = Map[#^2 &, {1, 2, 3}]; "
