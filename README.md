@@ -251,12 +251,14 @@ unit constants. The v34 bounded large-step, kinetic-bridge, and Bacc/Rosa/Posch
 companion refreshes recover eight previously opaque SymPy bindings and six
 verified machine-precision numeric comparisons. The v35 cycle also refreshes
 the `math8y`, `sympl3_`, and general-Maxwell companions, and adds a Mathics
-Boolean-assumptions shim. The current cache-only three-backend score is 3,467
-agreements, 508 differences, 8 unsupported outcomes, 76 timeouts, 61 errors,
-2 unavailable oracle rows, 209 oracle disagreements, and 635 oracle-missing
-bindings. The v36 cycle expands the helical-core first-order derivative and
-bounded Solve companions, and hardens Mathics derivative conversion for
-expression-valued heads. The Mathics wrapper
+Boolean-assumptions shim. The v36 cycle expands the helical-core first-order
+derivative and bounded Solve companions, and hardens Mathics derivative
+conversion for expression-valued heads. The v37 cycle adds source-faithful
+phase-transform and flux-coordinate companion translations with independent
+behavioral tests. The current cache-only three-backend score is 3,495
+agreements, 502 differences, 8 unsupported outcomes, 76 timeouts, 61 errors,
+2 unavailable oracle rows, 209 oracle disagreements, and 620 oracle-missing
+bindings. The Mathics wrapper
 also neutralizes `Quit`, isolates per-run protocol symbols, and restores
 `$Assumptions` safely after local integrals; current Mathics inventory is 255
 successful rows, 60 errors, and 69 timeouts.
