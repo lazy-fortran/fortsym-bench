@@ -45,6 +45,7 @@ class ReferenceCache:
         self._lock = RLock()
         self._entries: dict[str, dict] = {}
         self._backend_fingerprints: dict[str, str] = {}
+        self._dirty = False
         # Keep write order so a refresh can discard superseded source rows
         # without guessing which hash-keyed entry is newest.
         self._touched_keys: list[str] = []
@@ -128,6 +129,7 @@ class ReferenceCache:
                 "results": results,
             }
             self._remember_touched(key)
+            self._dirty = True
             if self.autosave:
                 self._save()
 
@@ -151,6 +153,7 @@ class ReferenceCache:
                 "failure": {"kind": failure.kind, "detail": str(failure)},
             }
             self._remember_touched(key)
+            self._dirty = True
             if self.autosave:
                 self._save()
 
@@ -175,6 +178,8 @@ class ReferenceCache:
             self._entries = {}
 
     def _save(self) -> None:
+        if not self._dirty:
+            return
         if self.autosave:
             self._prune_superseded_rows()
         else:
@@ -199,6 +204,7 @@ class ReferenceCache:
                 )
                 stream.write("\n")
             os.replace(temporary, self.path)
+            self._dirty = False
         finally:
             if os.path.exists(temporary):
                 os.unlink(temporary)
@@ -729,6 +735,7 @@ class ComparisonCache:
         self.autosave = autosave
         self._lock = RLock()
         self._entries: dict[str, dict[str, str]] = {}
+        self._dirty = False
         self._load()
 
     def get(
@@ -776,6 +783,7 @@ class ComparisonCache:
                     strictness,
                 )
             ] = {"outcome": outcome, "detail": detail}
+            self._dirty = True
             if self.autosave:
                 self._save()
 
@@ -797,6 +805,8 @@ class ComparisonCache:
             self._entries = {}
 
     def _save(self) -> None:
+        if not self._dirty:
+            return
         self.path.parent.mkdir(parents=True, exist_ok=True)
         fd, temporary = tempfile.mkstemp(
             prefix=f".{self.path.name}.",
@@ -813,6 +823,7 @@ class ComparisonCache:
                 )
                 stream.write("\n")
             os.replace(temporary, self.path)
+            self._dirty = False
         finally:
             if os.path.exists(temporary):
                 os.unlink(temporary)

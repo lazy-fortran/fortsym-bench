@@ -214,7 +214,10 @@ definite/multiple-`Integrate` transition then evaluated the measured
 nested-limit script in a warm one-worker audit in 0.77 seconds at 402 MiB RSS.
 Native and SymPy produce the complete outer-to-inner result; Mathics retains a
 partial unevaluated result, so the three bindings are reported as oracle
-disagreements rather than scored as native errors.
+disagreements rather than scored as native errors. The v28 dirty-cache-flush
+transition then served a three-script warm slice in 0.30 seconds at 334 MiB
+RSS without rewriting either cache file or starting an oracle subprocess; the
+native backend itself took 0.0001--0.0014 seconds per script.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
