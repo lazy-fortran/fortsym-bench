@@ -239,8 +239,8 @@ The v31 callable-definition slice adds bounded scalar `Set`/`SetDelayed`
 semantics after `DSolve`, including Wolfram `C[1]` normalization; the v32
 slice adds bounded lexical `Module` locals with sequential assignments and
 nested shadowing, and v33 normalizes derivative `Subs` wrappers after
-replacement. The full suite now passes 138 tests. The refreshed 384-source
-cache contains 373 successful SymPy rows, 5 unsupported rows, and 6 timeouts,
+replacement. The full suite now passes 142 tests. The refreshed 384-source
+cache contains 374 successful SymPy rows, 5 unsupported rows, and 5 timeouts,
 plus 255 successful Mathics rows, 60 errors, and 69 timeouts; all rows are
 reusable at timeout 15. The native cache contains 379 successful rows, 3
 unsupported rows, 1 timeout, and 1 runner error.
@@ -255,10 +255,12 @@ Boolean-assumptions shim. The v36 cycle expands the helical-core first-order
 derivative and bounded Solve companions, and hardens Mathics derivative
 conversion for expression-valued heads. The v37 cycle adds source-faithful
 phase-transform and flux-coordinate companion translations with independent
-behavioral tests. The current cache-only three-backend score is 3,495
-agreements, 502 differences, 8 unsupported outcomes, 76 timeouts, 61 errors,
-2 unavailable oracle rows, 209 oracle disagreements, and 620 oracle-missing
-bindings. The Mathics wrapper
+behavioral tests. The v38 cycle adds source-faithful NAE/DESC geometry and
+Appendix-B integral companions, recovering 52 previously oracle-missing
+bindings and one SymPy timeout. The current cache-only three-backend score is
+3,537 agreements, 512 differences, 8 unsupported outcomes, 75 timeouts, 61
+errors, 2 unavailable oracle rows, 209 oracle disagreements, and 568
+oracle-missing bindings. The Mathics wrapper
 also neutralizes `Quit`, isolates per-run protocol symbols, and restores
 `$Assumptions` safely after local integrals; current Mathics inventory is 255
 successful rows, 60 errors, and 69 timeouts.
