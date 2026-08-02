@@ -49,7 +49,8 @@ def test_mathics_restores_assumptions_after_integral(tmp_path: Path):
     """A local assumption must not turn Mathics's restore into a crash."""
     source = tmp_path / "assumptions.wl"
     source.write_text(
-        "$Assumptions = x > 0; answer = Integrate[x, {x, 0, 1}]\n",
+        "$Assumptions = x > 0; answer = Integrate[x, {x, 0, 1}]; "
+        "simplified = Simplify[1 + 1, True]\n",
         encoding="utf-8",
     )
 
@@ -57,6 +58,7 @@ def test_mathics_restores_assumptions_after_integral(tmp_path: Path):
 
     # Independent oracle: the exact integral of x over [0, 1] is 1/2.
     assert results["answer"] == "1/2"
+    assert results["simplified"] == "2"
     assert seconds < 15.0
 
 

@@ -8,6 +8,15 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 16 non-assignment statement(s) remain.
+COMPARE = {
+    'Bthctr': 'equivalent',
+    'Bphctr': 'equivalent',
+    'Bthcov': 'equivalent',
+    'Bphcov': 'equivalent',
+    'Bmod': 'equivalent',
+    'hthcov': 'equivalent',
+    'hphcov': 'equivalent',
+}
 _ASSIGNMENTS = [
     ('$Assumptions', 'Element[{B0ph, B0th}, Reals]', ()),
     ('R', 'R0*(1 + (r/R0)*Cos[th])', ()),
