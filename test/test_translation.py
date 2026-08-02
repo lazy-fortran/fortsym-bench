@@ -34,6 +34,23 @@ def test_matrix_operations_and_replacement_have_independent_sympy_answers():
     )
 
 
+def test_zeta_coordinate_is_not_parsed_as_sympy_zeta_function():
+    assignments, skipped = extract_assignments(
+        "r = {x[s, theta, zeta], y[s, theta, zeta], z[s, theta, zeta]}; "
+        "rs = D[r, s]"
+    )
+
+    assert skipped == []
+    s, theta, zeta = sp.symbols("s theta zeta")
+    x, y, z = (sp.Function(name) for name in ("x", "y", "z"))
+    expected = sp.Tuple(
+        sp.diff(x(s, theta, zeta), s),
+        sp.diff(y(s, theta, zeta), s),
+        sp.diff(z(s, theta, zeta), s),
+    )
+    assert evaluate_assignments(assignments)["rs"] == expected
+
+
 def test_cross_product_has_the_independent_three_vector_formula():
     assignments, skipped = extract_assignments(
         "value = Cross[{a, b, c}, {d, e, f}]"
