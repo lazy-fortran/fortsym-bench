@@ -109,7 +109,7 @@ def test_reference_runner_version_invalidates_old_results(tmp_path):
     source.write_text("answer = 2\n")
     cache = ReferenceCache(tmp_path / "reference.json")
     old = Backend("mathics", ".wl", "inputform", cache_version=1)
-    current = Backend("mathics", ".wl", "inputform", cache_version=3)
+    current = Backend("mathics", ".wl", "inputform", cache_version=4)
 
     cache.put_result(old, source, 5.0, {"answer": "2"})
 

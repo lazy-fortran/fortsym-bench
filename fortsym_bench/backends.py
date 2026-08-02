@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 import subprocess
 import sys
 import tempfile
@@ -49,7 +50,11 @@ BACKENDS = {
         Backend("fortsym-sympy", ".py", "srepr", cache_version=2),
         Backend("mathics", ".wl", "inputform", is_oracle=True,
                 command=("mathics", "-q", "--no-readline", "-c"),
-                cache_version=3),
+                # The per-run protocol marker and Module-local harness state
+                # below change the wrapper's result contract. Keep old
+                # successful rows reusable, but force stale ``no results
+                # parsed`` rows through the wrapper again.
+                cache_version=4),
         Backend("fortsym-wl", ".wl", "inputform", command=("fortsym_wl_run",)),
     )
 }
@@ -83,13 +88,15 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
 
     if backend.syntax == "srepr":
         argv = [sys.executable, str(RUNNERS / "py_runner.py"), str(script), backend.name]
+        protocol = None
     elif backend.name == "fortsym-wl":
         # fortsym-wl speaks the R/T protocol itself, so it takes the corpus
         # file directly. It is not a Wolfram interpreter and cannot be handed a
         # wrapper expression to evaluate.
         argv = [*backend.command, str(script)]
+        protocol = None
     else:
-        argv = _wolfram_argv(backend, script)
+        argv, protocol = _wolfram_argv(backend, script)
 
     env = dict(os.environ, PYTHONHASHSEED="0")
     try:
@@ -122,6 +129,7 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
 
     if proc.returncode != 0:
         stderr = proc.stderr.strip()
+        stdout = proc.stdout.strip()
         # A backend that names what it cannot do is behaving correctly. Keep
         # that distinct from a crash: conflating the two makes an honest
         # refusal look like a wrong answer.
@@ -137,12 +145,13 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
         detail = next(
             (ln for ln in stderr.splitlines()
              if ln.startswith(("UNSUPPORTED:", "UNAVAILABLE:"))),
-            stderr.splitlines()[-1] if stderr else "no output",
+            (stderr.splitlines()[-1] if stderr else
+             stdout.splitlines()[-1] if stdout else "no output"),
         )
         raise RunFailure(kind, detail)
 
     if backend.syntax == "inputform":
-        return _parse_wolfram_output(proc.stdout)
+        return _parse_wolfram_output(proc.stdout, protocol)
 
     try:
         payload = json.loads(proc.stdout)
@@ -152,7 +161,7 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
     return payload["results"], float(payload.get("seconds", 0.0))
 
 
-def _wolfram_argv(backend: Backend, script: Path) -> list[str]:
+def _wolfram_argv(backend: Backend, script: Path) -> tuple[list[str], str]:
     """Wrap a .wl corpus file so it prints one top-level binding per line.
 
     The corpus is 359 real derivation scripts that were never written for a
@@ -166,6 +175,10 @@ def _wolfram_argv(backend: Backend, script: Path) -> list[str]:
     any parser expects. Flat ``R<TAB>name<TAB>value`` lines sidestep the
     pretty-printer entirely.
     """
+    # Corpus programs are allowed to Print arbitrary diagnostics. A fixed
+    # ``R``/``T`` prefix lets one of those diagnostics forge a result or time
+    # sample, so bind this run to a token that the child script cannot know.
+    protocol = f"__FORTSYM_BENCH_{secrets.token_hex(16)}__"
     wrapper = (
         # SetDirectory so a script that Gets a sibling by relative name finds
         # it, which most of the corpus does. Harness-owned names are excluded
@@ -192,30 +205,44 @@ def _wolfram_argv(backend: Backend, script: Path) -> list[str]:
         'Unprotect[CreateDirectory, Export, Put, PutAppend]; '
         'CreateDirectory[d___] := Null; '
         'Export[f_, ___] := f; Put[___] := Null; PutAppend[___] := Null; '
-        f'fsHarness = {{"fsHarness", "fsTime", "fsName", "fsEmit"}}; '
+        # Module keeps harness symbols out of the script's Global context.
+        # In particular, a real derivation may assign fsTime or fsEmit; those
+        # bindings must be observed rather than overwritten by the wrapper.
+        'Module[{fsSkip, fsTime, fsEmit, fsName}, '
         f'fsTime = AbsoluteTiming[Get["{script.resolve()}"]][[1]]; '
+        'fsSkip = SymbolName /@ {fsSkip, fsTime, fsEmit, fsName}; '
         'fsEmit[fsName_] := If[ValueQ[Symbol[fsName]] && '
-        '!MemberQ[fsHarness, fsName], '
+        '!MemberQ[fsSkip, fsName], '
         'If[Head[Symbol[fsName]] === Association, '
-        'Scan[Function[fsRule, Print["R\t", ToString[First[fsRule]], "\t", '
+        f'Scan[Function[fsRule, Print["{protocol}\tR\t", '
+        'ToString[First[fsRule]], "\t", '
         'ToString[InputForm[Last[fsRule]]]]], Normal[Symbol[fsName]]], '
-        'Print["R\t", fsName, "\t", ToString[InputForm[Symbol[fsName]]]]]]; '
+        f'Print["{protocol}\tR\t", fsName, "\t", '
+        'ToString[InputForm[Symbol[fsName]]]]]]; '
         'Scan[fsEmit, '
         'Names["Global`*"]]; '
-        'Print["T\t", fsTime]'
+        f'Print["{protocol}\tT\t", fsTime]]'
     )
-    return [*backend.command, wrapper]
+    return [*backend.command, wrapper], protocol
 
 
-def _parse_wolfram_output(stdout: str) -> tuple[dict, float]:
+def _parse_wolfram_output(
+    stdout: str, protocol: str | None = None
+) -> tuple[dict, float]:
     results, seconds = {}, 0.0
     saw_time = False
     for line in stdout.splitlines():
         parts = line.split("\t")
-        if parts[0] == "R" and len(parts) >= 3:
-            results[parts[1].strip()] = "\t".join(parts[2:]).strip()
-        elif parts[0] == "T" and len(parts) >= 2:
-            seconds = float(parts[1].strip())
+        if protocol is None:
+            record, offset = parts[0], 1
+        elif parts and parts[0] == protocol and len(parts) >= 2:
+            record, offset = parts[1], 2
+        else:
+            continue
+        if record == "R" and len(parts) >= offset + 2:
+            results[parts[offset].strip()] = "\t".join(parts[offset + 1:]).strip()
+        elif record == "T" and len(parts) >= offset + 1:
+            seconds = float(parts[offset].strip())
             saw_time = True
     if not saw_time:
         raise RunFailure("error", f"no results parsed from: {stdout[:200]}")
