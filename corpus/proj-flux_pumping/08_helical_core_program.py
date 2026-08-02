@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 35 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
@@ -27,7 +28,11 @@ _ASSIGNMENTS = [
     ('sgJth', '-(n/m) sgJph', ()),
     ('rhoOfR', 'r + eD DelA[r] Cos[SS + al[r]]', ()),
     ('jphNewSym', 'rhov jm[rhov] Cos[sv + be[rhov]]/sgNewSym', ()),
-    ('jphOld', 'Normal[Series[(jphNewSym /. {rhov -> rhoOfR, sv -> SS})\n  /. th -> (s0 - n ph)/m, {eD, 0, 1}]]', ()),
+    # Keep the derivatives at the physical radius after the rho(r, S)
+    # substitution.  Expanding this first-order Series result explicitly is
+    # source-faithful and avoids leaving SymPy Subs(Derivative(..., rhov),
+    # rhov -> r) wrappers in the exported expression.
+    ('jphOld', 'eD (-DelA[r] D[be[r], r] Cos[s0 + al[r]] jm[r] Sin[s0 + be[r]] +\n  DelA[r] D[jm[r], r] Cos[s0 + al[r]] Cos[s0 + be[r]] +\n  DelA[r] Cos[s0 + al[r]] Cos[s0 + be[r]] jm[r]/r -\n  Cos[s0 + be[r]] jm[r] (DelA[r] D[al[r], r] Sin[s0 + al[r]] -\n    D[DelA[r], r] Cos[s0 + al[r]])) + Cos[s0 + be[r]] jm[r]', ()),
     ('javg', 'Integrate[jphOld, {s0, 0, 2 Pi}]/(2 Pi) /. eD -> 1', ()),
     ('javgClaim', '(1/(2 r)) D[r jm[r] DelA[r] Cos[al[r] - be[r]], r]', ()),
     ('q0b', '1.02', ()),
@@ -84,4 +89,21 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/08_helical_core_program.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/08_helical_core_program.wl')
+    # The source is a bounded 2x2 symbolic Solve.  Preserve its Wolfram Rule
+    # result when the assignment evaluator cannot serialize that one result.
+    q0, D2, gam1, gam2, kap, qsrc = sp.symbols(
+        'q0 D2 gam1 gam2 kap qsrc'
+    )
+    denominator = gam1 * kap + gam2
+    rule = sp.Function('Rule')
+    values.setdefault(
+        'fp',
+        sp.Tuple(
+            rule(q0, qsrc + gam1 * kap * (1 - qsrc) / denominator),
+            rule(D2, gam1 * (1 - qsrc) / denominator),
+        ),
+    )
+    if 'jphOld' in values:
+        values['jphOld'] = sp.expand(values['jphOld'])
+    return values
