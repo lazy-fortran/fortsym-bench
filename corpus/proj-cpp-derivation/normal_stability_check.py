@@ -13,6 +13,7 @@ COMPARE = {
     'Heps': 'numeric',
     'boundSweep': 'numeric',
     'driftSweep': 'numeric',
+    'gIN': 'numeric',
     'muRateSweep': 'numeric',
     'nz': 'numeric',
 }
