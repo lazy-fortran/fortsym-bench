@@ -42,6 +42,7 @@ which and how many source statements were not assignment expressions.
 | `Coefficient[f, x, n]` | `f.coeff(x, n)` |
 | `CoefficientList[f, x]` | coefficients from constant term upward |
 | `FoldList[Plus, init, list]` | explicit prefix sums including `init` |
+| `ArrayFlatten[blocks]` | rectangular block-matrix concatenation |
 | `Together` / `Cancel` / `Apart` | `sp.together` / `sp.cancel` / `sp.apart` |
 | `Cross[a, b]` | `a.cross(b)` on `sp.Matrix` |
 | `Det` / `Inverse` / `Transpose` | `.det()` / `.inv()` / `.T` |
@@ -86,7 +87,8 @@ bounded `First`, `Last`, `Rest`, `Most`, `Reverse`, `Take`, and `Drop` selectors
 and rectangular-matrix `Diagonal` extraction, bounded exact
 `CharacteristicPolynomial` for explicit square matrices, plus a Wolfram
 non-negative `MatrixPower`, `Coefficient`/`CoefficientList`, single-variable
-`Solve` rule-list normalization, bounded `FoldList[Plus, init, list]`, and a
+`Solve` rule-list normalization, bounded `FoldList[Plus, init, list]`,
+rectangular `ArrayFlatten`, and a
 Wolfram matrix-product dot continued across a line break. Unicode `λ` is protected
 during SymPy parsing and restored as the original symbol. Unsupported selector and matrix shapes remain
 opaque. It intentionally
