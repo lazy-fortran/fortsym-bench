@@ -80,3 +80,24 @@ def test_mathics_leaves_derivative_of_relational_unevaluated(tmp_path: Path):
     # Derivative[1, 0][Greater][x, 0]; Simplify must preserve that result.
     assert results["answer"] == "Derivative[1, 0][Greater][x, 0]"
     assert seconds < 15.0
+
+
+@pytest.mark.skipif(shutil.which("mathics") is None, reason="Mathics3 is optional")
+def test_mathics_keeps_re_of_polynomial_root_unevaluated(tmp_path: Path):
+    """A concrete Solve/Root result must not crash the Mathics subprocess."""
+    source = tmp_path / "root_real_part.wl"
+    source.write_text(
+        "roots = Solve[x^7 + 3*x^3 == 1, x]\n"
+        "rootCount = Length[roots]\n"
+        "points = {Re[x], Im[x]} /. roots\n",
+        encoding="utf-8",
+    )
+
+    results, seconds = run(BACKENDS["mathics"], source, 15.0)
+
+    # The polynomial has seven algebraic roots.  Mathics cannot lower the
+    # slot-function Root form through SymPy's Re implementation, so retain
+    # the concrete Wolfram Re/Im expressions instead of crashing.
+    assert results["rootCount"] == "7"
+    assert results["points"].startswith("{{Re[Root[")
+    assert seconds < 15.0
