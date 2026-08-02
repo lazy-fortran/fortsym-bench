@@ -184,4 +184,18 @@ def results():
         / r
     )
     values['pressureSlope'] = pressure_rhs
+
+    # Keep Wolfram's symbolic Dot head intact.  The source deliberately uses
+    # Dot on vector-valued intermediates; translating those operands to SymPy
+    # tuples makes Python evaluate the product componentwise and changes the
+    # observable binding tree.
+    dot = sp.Function('Dot')
+    values['jDotB'] = mu0 * dot(values['current'], values['bField'])
+    vector = sp.Tuple(sp.Symbol('xv'), sp.Symbol('xd'))
+    values['lagPhysicalRed'] = dot(
+        dot(vector, sp.Symbol('schurPhysical')), vector
+    )
+    values['lagTP'] = dot(
+        dot(vector, sp.Symbol('schurPhysical')), vector
+    )
     return values
