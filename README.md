@@ -239,7 +239,7 @@ The v31 callable-definition slice adds bounded scalar `Set`/`SetDelayed`
 semantics after `DSolve`, including Wolfram `C[1]` normalization; the v32
 slice adds bounded lexical `Module` locals with sequential assignments and
 nested shadowing, and v33 normalizes derivative `Subs` wrappers after
-replacement. The full suite now passes 177 tests. The refreshed 384-source
+replacement. The full suite now passes 174 tests. The refreshed 384-source
 cache contains 374 successful SymPy rows, 5 unsupported rows, and 5 timeouts,
 plus 255 successful Mathics rows, 60 errors, and 69 timeouts; all rows are
 reusable at timeout 15. The native cache contains 379 successful rows, 3
@@ -412,7 +412,7 @@ Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
 place. The latest full run produced 3,672 agreements, 502 declared
 differences, 7 unsupported outcomes, 74 timeouts, 61 errors, 194 oracle
-disagreements, and 458 oracle-missing bindings. The v43-v47 batches add 23
+disagreements, and 458 oracle-missing bindings. The v43-v47 batches add 20
 independent behavioral tests covering new source-faithful Python companions.
 Translation quality and the remaining backend parity work stay measured by
 the independent oracle report; the report is the source of truth for current
