@@ -398,11 +398,12 @@ cache contains 255 successful rows, 60 errors, and 69 timeouts. The latest
 committed full binding-level audit has 3,853 agreements, 468 declared
 differences, 7 unsupported outcomes, 76 timeouts, 60 errors, 194 oracle
 disagreements, and 354 oracle-missing bindings. Its warm run took 0.66
-seconds at 337 MiB RSS. The v68 audit on 2026-08-03 reports 3,863
+seconds at 337 MiB RSS. The v69 audit on 2026-08-03 reports 3,863
 agreements, 465 declared differences, 7 unsupported outcomes, 76 timeouts, 61
 errors, 208 oracle disagreements, and 349 oracle-missing bindings across 4,888
 bindings. It reused 378 native, 375 SymPy, and 255 Mathics rows, and peaked at
-426 MiB RSS. The v68 cycle adds bounded cylindrical `Curl` support to both
+491 MiB RSS in 1.02 seconds after compact cache serialization. The v68 cycle
+adds bounded cylindrical `Curl` support to both
 open-source oracle paths, selective Mathics cache invalidation, bounded
 matrix contractions in the generated gc-drift companion, and the named-blank
 native rule path.
