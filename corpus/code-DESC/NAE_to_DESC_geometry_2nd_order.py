@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 64 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
@@ -47,5 +48,39 @@ _ASSIGNMENTS = [
     ('delZ2', '(-(1/2))*D[D[Z0[ϕ], ϕ], ϕ]*(x1th^2/R0[ϕ]^2) - (x2th/R0[ϕ] - (x1R*x1th)/R0[ϕ]^2)*D[Z0[ϕ], ϕ] - (x1th/R0[ϕ])*D[x1z - (x1th/R0[ϕ])*D[Z0[ϕ], ϕ], ϕ] + x2z', ()),
 ]
 
+def _source_names(text):
+    """Use parser-safe names internally, restoring the source spelling later."""
+
+    return (
+        text.replace("ϕ", "fortsymPhi")
+        .replace("θ", "fortsymTheta")
+        .replace("ϵ", "fortsymEpsilon")
+    )
+
+
+def _restore_source_names(value):
+    replacements = {
+        # The cross-language input-form parser canonicalises Wolfram's phi
+        # glyph to ``phi`` before parsing. Retain that spelling at the
+        # protocol boundary; it is only a serialization spelling, not a
+        # change to the coordinate represented here.
+        sp.Symbol("fortsymPhi"): sp.Symbol("phi"),
+        sp.Symbol("fortsymTheta"): sp.Symbol("θ"),
+        sp.Symbol("fortsymEpsilon"): sp.Symbol("ϵ"),
+    }
+    if hasattr(value, "xreplace"):
+        return value.xreplace(replacements)
+    if isinstance(value, tuple):
+        return tuple(_restore_source_names(item) for item in value)
+    return value
+
+
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/code-DESC/NAE_to_DESC_geometry_2nd_order.wl')
+    assignments = [
+        (name, _source_names(rhs), parameters)
+        for name, rhs, parameters in _ASSIGNMENTS
+    ]
+    values = evaluate_assignments(
+        assignments, 'corpus/code-DESC/NAE_to_DESC_geometry_2nd_order.wl'
+    )
+    return {name: _restore_source_names(value) for name, value in values.items()}
