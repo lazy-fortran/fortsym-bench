@@ -226,16 +226,19 @@ The v30 extraction slice also recovers assignments hidden in notebook-export
 `(compound-prefix)*opaque-head` wrappers, while preserving the opaque suffix;
 93 focused/full tests pass after that change.
 The v31 callable-definition slice adds bounded scalar `Set`/`SetDelayed`
-semantics after `DSolve`, including Wolfram `C[1]` normalization; the full
-suite now passes 108 tests. The refreshed 384-source cache contains 373
+semantics after `DSolve`, including Wolfram `C[1]` normalization; the v32
+slice adds bounded lexical `Module` locals with sequential assignments and
+nested shadowing, and v33 normalizes derivative `Subs` wrappers after
+replacement. The full suite now passes 114 tests. The refreshed 384-source
+cache contains 373
 successful SymPy rows, 5 unsupported rows, and 6 timeouts, plus 232 successful
 Mathics rows, 86 errors, and 66 timeouts; all rows are reusable at timeout 15.
 The subsequent slices protect ordinary `zeta` coordinates from SymPy's
 built-in Zeta parser, lower bounded `Position`/`Union`, classify list-valued
 InputForm arithmetic without comparator crashes, and normalize the `sympl3_`
-unit constants. The current cache-only three-backend score is 3,320
-agreements, 665 differences, 7 unsupported outcomes, 73 timeouts, 90 errors,
-198 oracle disagreements, and 739 oracle-missing bindings. The Mathics wrapper
+unit constants. The current cache-only three-backend score is 3,337
+agreements, 650 differences, 7 unsupported outcomes, 73 timeouts, 90 errors,
+197 oracle disagreements, and 717 oracle-missing bindings. The Mathics wrapper
 also neutralizes `Quit` so those scripts retain the result protocol; current
 Mathics inventory is 232 successful rows, 86 errors, and 66 timeouts.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
