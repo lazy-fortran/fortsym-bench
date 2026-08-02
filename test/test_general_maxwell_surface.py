@@ -82,7 +82,86 @@ def test_generated_maxwell_bindings_match_independent_source_normal_forms():
         source * sp.cos(chi),
     )
     assert sp.simplify(values["divB"] - expected_div_b) == 0
+    expected_br = (
+        sp.diff(u, r) - 4 * sp.pi * r * current / cl
+    ) * sp.sin(chi) / m
+    assert sp.simplify(values["br"] - expected_br) == 0
     assert all(
         sp.simplify(actual - expected) == 0
         for actual, expected in zip(values["curlB"], expected_curl_b)
+    )
+
+    rule = sp.Function("Rule")
+    derivative1 = sp.Function("Derivative1")
+    lower_green = sp.Function("lowerGreen")(r)
+    upper_green = sp.Function("upperGreen")(r)
+    reg = sp.Function("reg")(r)
+    dec = sp.Function("dec")(r)
+    source = 4 * sp.pi * current / cl
+    assert values["greenDerivativeRules"] == sp.Tuple(
+        rule(
+            derivative1(sp.Symbol("lowerGreen"), 1, r),
+            r**2 * derivative1(sp.Symbol("reg"), 1, r) * source,
+        ),
+        rule(
+            derivative1(sp.Symbol("upperGreen"), 1, r),
+            -r**2 * derivative1(sp.Symbol("dec"), 1, r) * source,
+        ),
+    )
+    assert values["greenHomogeneousRules"] == sp.Tuple(
+        rule(
+            derivative1(sp.Symbol("reg"), 2, r),
+            -derivative1(sp.Symbol("reg"), 1, r) / r
+            + reg * (m**2 / r**2 + k**2),
+        ),
+        rule(
+            derivative1(sp.Symbol("dec"), 2, r),
+            -derivative1(sp.Symbol("dec"), 1, r) / r
+            + dec * (m**2 / r**2 + k**2),
+        ),
+    )
+    assert values["surfaceRules"][0] == rule(
+        derivative1(sp.Symbol("psi0"), 1, r),
+        -r * (m * sp.Function("btheta0")(r) / r + k * sp.Function("bz0")(r)),
+    )
+    assert values["surfaceRules"][1] == rule(
+        derivative1(sp.Symbol("u"), 2, r),
+        -derivative1(sp.Symbol("u"), 1, r) / r
+        + (m**2 / r**2 + k**2) * sp.Function("u")(r)
+        + r * derivative1(sp.Symbol("source"), 1, r)
+        + 2 * source,
+    )
+    assert values["greenWronskian"] == sp.Eq(
+        reg * derivative1(sp.Symbol("dec"), 1, r)
+        - derivative1(sp.Symbol("reg"), 1, r) * dec,
+        -1 / r,
+    )
+    assert values["uGreenPrime"] == (
+        derivative1(sp.Symbol("dec"), 1, r) * lower_green
+        + derivative1(sp.Symbol("reg"), 1, r) * upper_green
+        + r * source
+    )
+    second_derivative = sp.Function("Derivative2")
+    expected_second = (
+        second_derivative(sp.Symbol("dec"), 1, 1, r) * lower_green
+        + second_derivative(sp.Symbol("reg"), 1, 1, r) * upper_green
+        + r * sp.diff(source, r)
+        + source
+    )
+    assert values["uGreenSecond"] == expected_second
+    assert values["greenResidual"] == (
+        expected_second
+        + values["uGreenPrime"] / r
+        - (k**2 + m**2 / r**2)
+        * (dec * lower_green + reg * upper_green)
+        - r * derivative1(sp.Symbol("source"), 1, r)
+        - 2 * source
+    )
+    assert values["uNumeric"].func == sp.Function("NDSolveValue")
+    assert values["uNumeric"].args[1] == sp.Symbol("v")
+    assert values["uNumeric"].args[2] == sp.Tuple(
+        sp.Symbol("x"), sp.Rational(1, 20), 14
+    )
+    assert values["uNumeric"].args[0][-1] == sp.Eq(
+        sp.Function("v")(14), sp.Function("uGreenNum")(14)
     )
