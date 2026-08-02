@@ -1067,9 +1067,7 @@ def _position(arguments: tuple[object, ...]):
         elif _position_pattern_matches(item, pattern):
             positions.append(sp.Tuple(*path))
 
-        children = _sequence_items(item)
-        if children is None and isinstance(item, sp.Basic) and not item.is_Atom:
-            children = item.args
+        children = _position_children(item)
         if children is None:
             return
         for index, child in enumerate(children, start=1):
@@ -1077,6 +1075,40 @@ def _position(arguments: tuple[object, ...]):
 
     visit(value, ())
     return sp.Tuple(*positions)
+
+
+def _position_children(value):
+    """Walk compound values in Wolfram's bounded arithmetic order.
+
+    SymPy and Wolfram both canonicalize ``Plus``, but not with the same child
+    order.  In the math5y power-position expression, Wolfram stores symbolic
+    products, then a bare power, then a numeric product; SymPy's default
+    order puts the bare power first.  Only reorder that explicit three-class
+    arithmetic shape here; ordinary expressions retain their SymPy child
+    order.
+    """
+
+    children = _sequence_items(value)
+    if children is None and isinstance(value, sp.Basic) and not value.is_Atom:
+        children = value.args
+    if not isinstance(value, sp.Add) or children is None:
+        return children
+
+    def add_class(term):
+        if not isinstance(term, sp.Mul):
+            return 1
+        coefficient, _ = term.as_coeff_Mul()
+        return 0 if coefficient == 1 else 2
+
+    classes = tuple(add_class(child) for child in children)
+    if {0, 1, 2}.issubset(classes):
+        return tuple(
+            sorted(
+                children,
+                key=lambda child: (add_class(child), sp.default_sort_key(child)),
+            )
+        )
+    return children
 
 
 def _head_matches(value, pattern: sp.Symbol) -> bool:
