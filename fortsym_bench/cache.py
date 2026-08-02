@@ -395,6 +395,18 @@ class ReferenceCache:
                 return False
         if (
             backend.name == "mathics"
+            and backend.cache_version == 6
+            and version == 5
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                return "Curl[" not in Path(source).read_text()
+            except (OSError, UnicodeError):
+                return False
+        if (
+            backend.name == "mathics"
             and backend.cache_version == 5
             and version == 4
         ):
