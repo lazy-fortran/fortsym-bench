@@ -18,6 +18,9 @@ from typing import Iterable
 import sympy as sp
 from sympy.parsing.mathematica import parse_mathematica
 
+MAX_MAP_LEVEL = 4
+MAX_MAP_NODES = 20_000
+
 
 @dataclass(frozen=True)
 class Assignment:
@@ -575,13 +578,40 @@ def _call_mapper(mapper, arguments, environment):
 
 
 def _map(expression_arguments, environment):
-    if len(expression_arguments) != 2:
+    if len(expression_arguments) not in (2, 3):
         raise NotImplementedError("Map needs a function and a list")
     mapper = _resolve_mapper(expression_arguments[0], environment)
-    values = _sequence_items(_lower(expression_arguments[1], environment))
+    level = 1
+    if len(expression_arguments) == 3:
+        specification = _sequence_items(
+            _lower(expression_arguments[2], environment)
+        )
+        if specification is None or len(specification) != 1:
+            raise NotImplementedError("Map level must be a one-item list")
+        level = specification[0]
+        if not _is_integer(level) or not 1 <= int(level) <= MAX_MAP_LEVEL:
+            raise NotImplementedError("Map level is outside the bounded subset")
+        level = int(level)
+    budget = [MAX_MAP_NODES]
+    return _map_values(
+        mapper, _lower(expression_arguments[1], environment), level, environment, budget
+    )
+
+
+def _map_values(mapper, value, level, environment, budget):
+    values = _sequence_items(value)
     if values is None:
-        raise NotImplementedError("Map needs a list")
-    return sp.Tuple(*(_call_mapper(mapper, (value,), environment) for value in values))
+        raise NotImplementedError("Map needs a list at the requested level")
+    if len(values) > budget[0]:
+        raise NotImplementedError("Map expansion exceeds its safety bound")
+    budget[0] -= len(values)
+    if level == 1:
+        return sp.Tuple(
+            *(_call_mapper(mapper, (item,), environment) for item in values)
+        )
+    return sp.Tuple(
+        *(_map_values(mapper, item, level - 1, environment, budget) for item in values)
+    )
 
 
 def _map_thread(expression_arguments, environment):
