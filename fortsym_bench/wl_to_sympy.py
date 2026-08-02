@@ -30,6 +30,10 @@ class Assignment:
     name: str
     rhs: str
     parameters: tuple[str, ...] = ()
+    # Legacy generated companions use three-item tuples and historically
+    # treated callable definitions as delayed. Source extraction records the
+    # actual Wolfram operator while preserving that default for old tuples.
+    delayed: bool = True
 
 
 @dataclass(frozen=True)
@@ -41,17 +45,29 @@ class WolframRule:
 class WolframFunction:
     """A small closure for ``f[x_] := rhs`` definitions."""
 
-    def __init__(self, parameters: tuple[str, ...], rhs: str, closure: dict):
+    def __init__(
+        self,
+        parameters: tuple[str, ...],
+        rhs: str | object,
+        closure: dict,
+        delayed: bool = True,
+    ):
         self.parameters = parameters
         self.rhs = rhs
         self.closure = closure
+        self.delayed = delayed
 
     def call(self, arguments: tuple[object, ...]):
         if len(arguments) != len(self.parameters):
             raise NotImplementedError("function arity is not supported")
         local = dict(self.closure)
         local.update(zip(self.parameters, arguments))
-        return evaluate_expression(self.rhs, local)
+        if self.delayed:
+            return evaluate_expression(self.rhs, local)
+        value = self.rhs
+        for parameter, argument in zip(self.parameters, arguments):
+            value = _substitute(value, sp.Symbol(parameter), argument)
+        return value
 
 
 class WolframPureFunction:
@@ -158,7 +174,7 @@ def assignment_from_statement(statement: str) -> Assignment | None:
     function = _function_name_and_parameters(left)
     if function is not None:
         name, parameters = function
-        return Assignment(name, right, parameters)
+        return Assignment(name, right, parameters, delayed=width == 2)
     return None
 
 
@@ -183,9 +199,30 @@ def evaluate_assignments(
         assignment = item
         try:
             if assignment.parameters:
-                environment[assignment.name] = WolframFunction(
-                    assignment.parameters, assignment.rhs, dict(environment)
-                )
+                if assignment.delayed:
+                    environment[assignment.name] = WolframFunction(
+                        assignment.parameters, assignment.rhs, environment
+                    )
+                else:
+                    # Set evaluates a patterned right-hand side immediately,
+                    # before installing the new definition. Evaluate it with
+                    # symbolic pattern variables so a redefinition can use
+                    # the previous callable, as in successive definitions of
+                    # v[tau1_].
+                    definition_environment = dict(environment)
+                    definition_environment.update(
+                        (parameter, sp.Symbol(parameter))
+                        for parameter in assignment.parameters
+                    )
+                    body = evaluate_expression(
+                        assignment.rhs, definition_environment
+                    )
+                    environment[assignment.name] = WolframFunction(
+                        assignment.parameters,
+                        body,
+                        environment,
+                        delayed=False,
+                    )
                 continue
             value = evaluate_expression(assignment.rhs, environment)
             environment[assignment.name] = value
@@ -516,7 +553,15 @@ def _dsolve(arguments: tuple[object, ...]):
     if not equation.has(trial) and not equation.has(sp.Derivative(trial, variable)):
         raise NotImplementedError("DSolve equation does not contain the requested function")
     solution = sp.dsolve(equation, trial)
-    rule = sp.Function("Rule")(trial, solution.rhs)
+    # SymPy names integration constants C1, C2, ...; Wolfram's DSolve emits
+    # callable constants C[1], C[2], ... and later corpus code addresses them
+    # with Solve[C[1], ...]. Preserve the Wolfram spelling at this boundary.
+    constants = {
+        sp.Symbol(f"C{index}"): sp.Function("C")(index)
+        for index in range(1, 10)
+    }
+    right = solution.rhs.xreplace(constants)
+    rule = sp.Function("Rule")(trial, right)
     return sp.Tuple(sp.Tuple(rule))
 
 
@@ -1569,8 +1614,11 @@ def _trig_reduce(arguments: tuple[object, ...]):
 def _as_assignment(item) -> Assignment:
     if isinstance(item, Assignment):
         return item
-    name, rhs, parameters = item
-    return Assignment(name, rhs, tuple(parameters))
+    if len(item) == 3:
+        name, rhs, parameters = item
+        return Assignment(name, rhs, tuple(parameters))
+    name, rhs, parameters, delayed = item
+    return Assignment(name, rhs, tuple(parameters), bool(delayed))
 
 
 def _head_name(expression) -> str:

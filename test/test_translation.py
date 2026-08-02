@@ -110,10 +110,49 @@ def test_bounded_dsolve_lowers_callable_ode_rules_with_unicode_parameters():
     )
 
     assert skipped == []
-    tau1, alpha, beta, c1 = sp.symbols("tau1 α β C1")
+    tau1, alpha, beta = sp.symbols("tau1 α β")
+    c1 = sp.Function("C")(1)
     assert evaluate_assignments(assignments)["solution"] == (
         c1 * sp.exp(alpha * tau1) - beta / alpha
     )
+
+
+def test_setdelayed_callable_reads_the_current_scalar_environment():
+    assignments, skipped = extract_assignments(
+        "scale = 2; f[x_] := scale*x; scale = 3; result = f[4]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["result"] == 12
+
+
+def test_immediate_scalar_definition_can_rebind_an_earlier_callable():
+    assignments, skipped = extract_assignments(
+        "f[x_] := x + 1; f[x_] = f[x] + 2; result = f[3]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["result"] == 6
+
+
+def test_dsolve_then_immediate_callable_chain_exports_a_later_series_value():
+    assignments, skipped = extract_assignments(
+        "dgl1 = D[v[tau1], tau1] == α*v[tau1] + β; "
+        "v[tau1_] = v[tau1] /. DSolve[dgl1, v[tau1], tau1][[1]]; "
+        "v[tau1_] = v[tau1] /. Solve[v[0] == vpar0, C[1]][[1]]; "
+        "v2[tau1_] = v[tau1]^2; "
+        "result = Normal[Series[v2[tau1], {tau1, 0, 2}]]"
+    )
+
+    assert skipped == []
+    tau, alpha, beta, vpar0 = sp.symbols("tau1 α β vpar0")
+    expected = (
+        vpar0**2
+        + 2 * vpar0 * (alpha * vpar0 + beta) * tau
+        + ((alpha * vpar0 + beta) ** 2
+           + alpha * vpar0 * (alpha * vpar0 + beta)) * tau**2
+    )
+    assert sp.expand(evaluate_assignments(assignments)["result"] - expected) == 0
 
 
 def test_leading_continuation_operators_stay_in_the_same_assignment():
