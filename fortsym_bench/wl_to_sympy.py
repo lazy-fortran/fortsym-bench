@@ -1913,7 +1913,7 @@ _GREEK_PARSE_NAMES = {
 # while Wolfram scripts routinely use it as an ordinary coordinate symbol.
 # Protect only this known parser collision; other built-in heads must retain
 # their normal parsing semantics.
-_PARSER_RESERVED_NAMES = ("zeta",)
+_PARSER_RESERVED_NAMES = ("len", "zeta")
 
 
 def _normalise_expression_layout(text: str) -> str:
