@@ -141,11 +141,11 @@ comparison verdicts are cached separately in
 `.cache/reference-results.comparisons.json`, keyed by both serialized operands,
 their syntaxes, the strictness policy, and the comparator version. On the
 2026-08-01 corpus, measured again on 2026-08-02, the earlier full refresh after
-the translator change took 4:54 with four workers. The latest dot-parser audit
-took 152.5 seconds with two workers and a 4.31 GiB peak RSS: 379 native rows
-and 26 changed SymPy rows were fresh, while Mathics and unaffected rows were
+the translator change took 4:54 with four workers. The latest bounded
+list-selector audit took 83.6 seconds with two workers and a 0.79 GiB peak RSS:
+380 native rows were fresh while all compatible SymPy and Mathics rows were
 reused. The 155 MB raw-result cache then served an identical warm audit in
-1.15 seconds at 413 MiB RSS, with no backend subprocesses started.
+1.01 seconds at 419 MiB RSS, with no backend subprocesses started.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
@@ -221,15 +221,15 @@ diagnostic, not evidence.
 **384 `.wl` scripts across 50 projects**, ingested 2026-08-01. Every script has
 a Python companion; the manifest distinguishes generated, hand, and preserved
 translations and counts statements that still need manual work. The latest
-60-second native sweep, using four workers, completed 381 scripts (343 with
-non-empty results and 38 valid empty result sets), timed out on 1, and
-explicitly refused 2 unsupported constructs; it had no native crashes. The
-same compact cache contains 359 completed SymPy rows (332 non-empty, 27 empty,
-7 timeouts, 18 refusals) and 235 completed Mathics rows (208 non-empty, 27
-empty, 117 errors, 32 timeouts). The final binding-level audit has 3,124
-agreements, 786 declared differences, 20 unsupported outcomes, 38 timeouts,
-122 errors, 197 oracle disagreements, and 800 oracle-missing bindings. Its
-warm run takes about 1.0 seconds.
+60-second native sweep, using two workers, completed 380 scripts (344 with
+non-empty results and 36 valid empty result sets), timed out on 1, reported 1
+runner error, and explicitly refused 2 unsupported constructs; it had no native
+crashes. The same compact cache contains 359 completed SymPy rows (332
+non-empty, 27 empty, 7 timeouts, 18 refusals) and 235 completed Mathics rows
+(208 non-empty, 27 empty, 107 errors, 30 timeouts, 12 unavailable). The final
+binding-level audit has 3,138 agreements, 790 declared differences, 20
+unsupported outcomes, 38 timeouts, 122 errors, 200 oracle disagreements, and
+798 oracle-missing bindings. Its warm run takes 1.01 seconds at 419 MiB RSS.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
