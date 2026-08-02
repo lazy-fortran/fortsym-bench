@@ -892,10 +892,33 @@ def _exponent(arguments: tuple[object, ...]):
     if len(arguments) != 2:
         raise NotImplementedError("Exponent needs an expression and a form")
     expression, form = arguments
-    degree = sp.degree(sp.expand(expression), form)
+    try:
+        degree = sp.degree(sp.expand(expression), form)
+    except sp.PolynomialError:
+        degree = _monomial_exponent(expression, form)
     if degree is None:
         return -sp.oo
-    return sp.Integer(degree)
+    return sp.Integer(degree) if isinstance(degree, int) else degree
+
+
+def _monomial_exponent(expression, form):
+    """Handle the bounded monomial form with an exact fractional power."""
+
+    if expression == form:
+        return sp.Integer(1)
+    if isinstance(expression, sp.Pow) and expression.base == form:
+        if expression.exp.is_number:
+            return expression.exp
+        raise NotImplementedError("Exponent has a non-numeric power")
+    if isinstance(expression, sp.Mul):
+        total = sp.Integer(0)
+        for factor in expression.args:
+            if factor.has(form):
+                total += _monomial_exponent(factor, form)
+        return total
+    if not expression.has(form):
+        return sp.Integer(0)
+    raise NotImplementedError("Exponent needs a polynomial or monomial")
 
 
 def _polynomial_gcd(arguments: tuple[object, ...]):
@@ -1208,6 +1231,12 @@ def _solve(arguments):
 def _rules(value):
     if isinstance(value, WolframRule):
         return [value]
+    if (
+        isinstance(value, sp.Basic)
+        and _head_name(value) in ("Rule", "RuleDelayed")
+        and len(value.args) == 2
+    ):
+        return [WolframRule(value.args[0], value.args[1])]
     if _is_sequence(value):
         rules = []
         for item in _sequence_items(value):
