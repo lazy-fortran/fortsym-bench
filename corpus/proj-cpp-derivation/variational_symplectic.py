@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 44 non-assignment statement(s) remain.
@@ -33,4 +35,21 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-cpp-derivation/variational_symplectic.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-cpp-derivation/variational_symplectic.wl'
+    )
+
+    # The generic lowering cannot serialize the opaque metric definitions
+    # above, but these two source expressions remain meaningful at that
+    # abstraction level. Preserve their exact symbolic Dot/Inverse structure
+    # so the native Wolfram path has the same Legendre-transform bindings.
+    inverse_gm = sp.Function('Inverse')(sp.Symbol('gM'))
+    dot = sp.Function('Dot')
+    pi_cov = values['piCov']
+    mm = sp.Symbol('mm')
+    values['uOfp'] = dot(inverse_gm, pi_cov) / mm
+    values['HcppExp'] = (
+        sp.Symbol('muu') * values['Bm']
+        + dot(dot(pi_cov, inverse_gm), pi_cov) / (2 * mm)
+    )
+    return values
