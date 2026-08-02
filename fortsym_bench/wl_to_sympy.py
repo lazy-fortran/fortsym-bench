@@ -22,6 +22,23 @@ from sympy.simplify.fu import TR8
 MAX_MAP_LEVEL = 4
 MAX_MAP_NODES = 20_000
 
+# These heads have names that the Mathematica parser either treats as Python
+# syntax or evaluates while constructing its parent expression. Give them
+# inert parser spellings and lower them explicitly below.  The aliases are
+# deliberately private: they are not Wolfram names that can leak into a
+# translated result.
+_PARSER_HEAD_ALIASES = {
+    "Subscript": "fortsymSubscript",
+    "StringMatchQ": "fortsymStringMatchQ",
+    "StringReplace": "fortsymStringReplace",
+    "ToExpression": "fortsymToExpression",
+}
+_STRING_ATOMS: dict[str, str] = {}
+_STRING_LITERALS: dict[str, str] = {}
+_NUMBER_STRING = re.compile(
+    r"[+-]?(?:(?:\d+(?:\.\d*)?)|(?:\.\d+))(?:[eE*^][+-]?\d+)?"
+)
+
 
 @dataclass(frozen=True)
 class Assignment:
@@ -256,9 +273,13 @@ def evaluate_expression(text: str, environment: dict[str, object] | None = None)
 
     environment = {} if environment is None else environment
     normalised = _normalise_expression_layout(_normalise_named_characters(text))
+    normalised = _protect_string_literals(normalised)
     normalised = _normalise_numeric_powers(normalised)
     normalised = _normalise_prefix_calls(normalised)
     normalised = _protect_thread_equal(normalised)
+    normalised = _wrap_string_predicates(normalised)
+    for original, alias in _PARSER_HEAD_ALIASES.items():
+        normalised = _replace_identifier(normalised, original, alias)
     # SymPy's Mathematica parser eagerly constructs Max/Min and rejects a
     # Wolfram list as one incomparable argument. Protect those heads so the
     # bounded lowering below receives the original argument sequence.
@@ -293,6 +314,13 @@ def evaluate_expression(text: str, environment: dict[str, object] | None = None)
     parse_environment.update(
         {safe: sp.Symbol(original) for safe, original in parser_restore.items()}
     )
+    parse_names = dict(greek_restore)
+    parse_names.update(parser_restore)
+    if parse_names:
+        parse_environment = {
+            name: _rename_parse_names(value, parse_names)
+            for name, value in parse_environment.items()
+        }
     parsed = parse_mathematica(protected)
     restore.update(greek_restore)
     restore.update(parser_restore)
@@ -327,6 +355,8 @@ def _lower(expression, environment: dict[str, object]):
         return _module(expression.args, environment)
     if name == "Map":
         return _map(expression.args, environment)
+    if name == "Select":
+        return _select(expression.args, environment)
     if name == "MapThread":
         return _map_thread(expression.args, environment)
     if name == "Apply":
@@ -339,17 +369,43 @@ def _lower(expression, environment: dict[str, object]):
         return _outer(expression.args, environment)
     if name == "Thread":
         return _thread(expression.args, environment)
+    if name == "_Str":
+        literal = _raw_string_literal(expression)
+        if literal is None:
+            raise NotImplementedError("malformed string literal")
+        return _string_atom(literal)
+    if name == "Slot":
+        if len(expression.args) != 1 or not _is_integer(expression.args[0]):
+            raise NotImplementedError("Slot needs one positive integer index")
+        index = int(expression.args[0])
+        if index < 1:
+            raise NotImplementedError("Slot indices are one-based")
+        value = environment.get(f"__fortsymSlot{index}")
+        if value is None:
+            raise NotImplementedError(
+                "Slot is translated only as an argument of a bounded pure function"
+            )
+        return value
+    if name == "SlotSequence":
+        raise NotImplementedError("SlotSequence is outside the bounded translator")
     arguments = tuple(_lower(arg, environment) for arg in expression.args)
     bound = environment.get(name)
     if isinstance(bound, WolframFunction):
         return bound.call(arguments)
 
-    if name == "_Str" and len(arguments) == 1:
-        # The comparison parser protects native InputForm strings with the
-        # same collision-resistant atom. Keep both oracle protocols aligned.
-        literal = f'"{arguments[0]}"'
-        digest = hashlib.sha256(literal.encode("utf-8")).hexdigest()
-        return sp.Symbol("fortsymString" + digest)
+    if name == "fortsymSubscript":
+        if len(arguments) != 2:
+            raise NotImplementedError("Subscript needs a base and one index")
+        # Subscript is notation for a symbolic label in this corpus, not a
+        # Python sequence access. Keep its two arguments explicit so R_0 and
+        # B_0 cannot collide with ordinary names or be mistaken for a list.
+        return sp.Function("Subscript")(*arguments)
+    if name == "fortsymStringMatchQ":
+        return _string_match(arguments)
+    if name == "fortsymStringReplace":
+        return _string_replace(arguments)
+    if name == "fortsymToExpression":
+        return _to_expression(arguments)
 
     if name == "D":
         return _differentiate(arguments)
@@ -810,6 +866,27 @@ def _map_values(mapper, value, level, environment, budget):
     return sp.Tuple(
         *(_map_values(mapper, item, level - 1, environment, budget) for item in values)
     )
+
+
+def _select(expression_arguments, environment):
+    """Lower ``Select[list, predicate]`` for a concrete bounded list."""
+
+    if len(expression_arguments) != 2:
+        raise NotImplementedError("Select needs a list and one predicate")
+    values = _sequence_items(_lower(expression_arguments[0], environment))
+    if values is None:
+        raise NotImplementedError("Select needs an explicit list")
+    predicate = _resolve_mapper(expression_arguments[1], environment)
+    selected = []
+    for value in values:
+        result = _call_mapper(predicate, (value,), environment)
+        if result is True or result is sp.true:
+            selected.append(value)
+        elif result is False or result is sp.false:
+            continue
+        else:
+            raise NotImplementedError("Select predicate did not resolve to True or False")
+    return sp.Tuple(*selected)
 
 
 def _map_thread(expression_arguments, environment):
@@ -1667,12 +1744,185 @@ def _parser_returns_symbol(name: str) -> bool:
         return False
 
 
+def _rename_parse_names(value, safe_to_original: dict[str, str]):
+    """Use the parser's protected spellings inside already-bound values."""
+
+    replacements = {
+        sp.Symbol(original): sp.Symbol(safe)
+        for safe, original in safe_to_original.items()
+    }
+    if isinstance(value, sp.Basic):
+        return value.xreplace(replacements)
+    if isinstance(value, sp.MatrixBase):
+        return value.applyfunc(lambda item: _rename_parse_names(item, safe_to_original))
+    if isinstance(value, WolframRule):
+        return WolframRule(
+            _rename_parse_names(value.left, safe_to_original),
+            _rename_parse_names(value.right, safe_to_original),
+        )
+    if _is_sequence(value):
+        return tuple(
+            _rename_parse_names(item, safe_to_original)
+            for item in _sequence_items(value)
+        )
+    return value
+
+
 def _replace_identifier(text: str, old: str, new: str) -> str:
     pattern = re.compile(rf"(?<![A-Za-z0-9$]){re.escape(old)}(?![A-Za-z0-9$])")
     pieces = re.split(r'("(?:\\.|[^"\\])*")', text)
     for index in range(0, len(pieces), 2):
         pieces[index] = pattern.sub(new, pieces[index])
     return "".join(pieces)
+
+
+def _protect_string_literals(text: str) -> str:
+    """Keep parser-invalid Wolfram string contents out of SymPy's parser."""
+
+    pieces: list[str] = []
+    cursor = 0
+    index = 0
+    while index < len(text):
+        if text[index] != '"':
+            index += 1
+            continue
+        start = index
+        index += 1
+        escaped = False
+        while index < len(text):
+            char = text[index]
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                break
+            index += 1
+        if index >= len(text):
+            raise NotImplementedError("unterminated string literal")
+        literal = text[start + 1 : index]
+        digest = hashlib.sha256(literal.encode("utf-8")).hexdigest()
+        placeholder = "fortsymLiteral" + digest
+        _STRING_LITERALS[placeholder] = literal
+        pieces.extend((text[cursor:start], '"', placeholder, '"'))
+        cursor = index + 1
+        index += 1
+    pieces.append(text[cursor:])
+    return "".join(pieces)
+
+
+def _wrap_string_predicates(text: str) -> str:
+    """Make ``StringMatchQ`` safe inside Mathematica's eager ``&&`` parser."""
+
+    marker = "StringMatchQ["
+    pieces: list[str] = []
+    cursor = 0
+    while True:
+        start = text.find(marker, cursor)
+        if start < 0:
+            pieces.append(text[cursor:])
+            return "".join(pieces)
+        open_index = start + len(marker) - 1
+        depth = 0
+        in_string = False
+        escaped = False
+        close_index = None
+        for index in range(open_index, len(text)):
+            char = text[index]
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == '"':
+                    in_string = False
+                continue
+            if char == '"':
+                in_string = True
+            elif char == "[":
+                depth += 1
+            elif char == "]":
+                depth -= 1
+                if depth == 0:
+                    close_index = index
+                    break
+        if close_index is None:
+            raise NotImplementedError("malformed StringMatchQ call")
+        pieces.append(text[cursor:start])
+        pieces.append("(")
+        pieces.append(text[start : close_index + 1])
+        pieces.append(" == 1)")
+        cursor = close_index + 1
+
+
+def _raw_string_literal(expression) -> str | None:
+    if _head_name(expression) != "_Str" or len(expression.args) != 1:
+        return None
+    value = str(expression.args[0])
+    return _STRING_LITERALS.get(value, value)
+
+
+def _string_atom(literal: str):
+    """Represent a Wolfram string as the existing collision-safe SymPy atom."""
+
+    quoted = f'"{literal}"'
+    digest = hashlib.sha256(quoted.encode("utf-8")).hexdigest()
+    name = "fortsymString" + digest
+    _STRING_ATOMS[name] = literal
+    return sp.Symbol(name)
+
+
+def _string_literal(value) -> str | None:
+    if isinstance(value, str):
+        return value
+    if isinstance(value, sp.Symbol):
+        return _STRING_ATOMS.get(str(value))
+    return None
+
+
+def _string_match(arguments: tuple[object, ...]):
+    if len(arguments) != 2:
+        raise NotImplementedError("StringMatchQ needs a string and one pattern")
+    literal = _string_literal(arguments[0])
+    if literal is None or str(arguments[1]) != "NumberString":
+        raise NotImplementedError("StringMatchQ supports NumberString only")
+    # Use 0/1 rather than a Boolean atom: the parser-safe wrapper around this
+    # head compares it with ``1`` so it can remain inside Mathematica's ``&&``
+    # expression while the pure-function predicate is being constructed.
+    return sp.Integer(1) if _is_number_string(literal) else sp.Integer(0)
+
+
+def _string_replace(arguments: tuple[object, ...]):
+    if len(arguments) != 2:
+        raise NotImplementedError("StringReplace needs a string and one rule")
+    literal = _string_literal(arguments[0])
+    rules = _rules(arguments[1])
+    if literal is None or len(rules) != 1:
+        raise NotImplementedError("StringReplace needs one literal-string rule")
+    left = _string_literal(rules[0].left)
+    right = _string_literal(rules[0].right)
+    if left is None or right is None:
+        raise NotImplementedError("StringReplace needs literal strings")
+    return _string_atom(literal.replace(left, right))
+
+
+def _to_expression(arguments: tuple[object, ...]):
+    if len(arguments) != 1:
+        raise NotImplementedError("ToExpression needs one string")
+    literal = _string_literal(arguments[0])
+    if literal is None:
+        raise NotImplementedError("ToExpression needs a literal numeric string")
+    numeric = literal.replace("*^", "e")
+    if not _is_number_string(literal):
+        raise NotImplementedError("ToExpression only accepts NumberString literals")
+    try:
+        return sp.sympify(numeric)
+    except (TypeError, ValueError, SyntaxError) as exc:
+        raise NotImplementedError("numeric string could not be parsed") from exc
+
+
+def _is_number_string(literal: str) -> bool:
+    return bool(_NUMBER_STRING.fullmatch(literal.replace("*^", "e")))
 
 
 def _protect_thread_equal(text: str) -> str:
@@ -1989,6 +2239,8 @@ _GREEK_PARSE_NAMES = {
     "λ": "fortsymGreekLambda",
     "α": "fortsymGreekAlpha",
     "β": "fortsymGreekBeta",
+    "φ": "fortsymGreekPhi",
+    "ϑ": "fortsymGreekTheta",
 }
 
 # SymPy's Mathematica parser resolves ``zeta`` as its built-in Zeta function,
