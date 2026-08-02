@@ -141,6 +141,7 @@ def results():
             "BstarPar": bstar_par,
             "vParallelPart": v_parallel,
             "streaming": streaming,
+            "vGCser": vGC,
             "remainder": remainder,
             "vPerpGC": vperp_gc,
             "vPerpGC0": vperp_gc,
