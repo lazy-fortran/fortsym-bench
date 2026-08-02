@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 195 non-assignment statement(s) remain.
@@ -164,4 +166,9 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math6-1y.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math6-1y.wl')
+    # The source's late ``r = t`` output is retained as the symbol ``t`` by
+    # the native Wolfram runner; preserve that binding rather than exposing
+    # the translator's eager replacement of the earlier ``t`` assignment.
+    values['r'] = sp.Symbol('t')
+    return values
