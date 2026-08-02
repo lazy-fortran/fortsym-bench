@@ -244,6 +244,22 @@ def test_solve_rules_can_feed_replace_all():
     assert evaluate_assignments(assignments)["value"] == sp.Rational(1, 5)
 
 
+def test_thread_expands_equal_lists_with_an_independent_shape_check():
+    assignments, skipped = extract_assignments(
+        "value = Thread[Equal[{x, y}, {a, b}]]; "
+        "numeric = Thread[Equal[{1, 2}, {1, 3}]]; "
+        "lhs = {x, y}; rhs = {a, b}; "
+        "bound = Thread[Equal[lhs, rhs]]"
+    )
+
+    assert skipped == []
+    values = evaluate_assignments(assignments)
+    x, y, a, b = sp.symbols("x y a b")
+    assert values["value"] == sp.Tuple(sp.Eq(x, a), sp.Eq(y, b))
+    assert values["numeric"] == sp.Tuple(sp.true, sp.false)
+    assert values["bound"] == values["value"]
+
+
 def test_fold_list_returns_prefix_sums_including_the_initial_value():
     assignments, skipped = extract_assignments(
         "value = FoldList[Plus, 1, Drop[{1, 2, 3, 4}, 1]]"

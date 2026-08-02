@@ -50,6 +50,7 @@ which and how many source statements were not assignment expressions.
 | `SingularValueList[m]` | diagonal/zero numeric singular values, sorted descending |
 | `Max[list]` / `Min[list]` | numeric extrema of an explicit list |
 | `FoldList[Plus, init, list]` | explicit prefix sums including `init` |
+| `Thread[Equal[{a, b}, {c, d}]]` | tuple of elementwise equalities |
 | `ArrayFlatten[blocks]` | rectangular block-matrix concatenation |
 | `Together` / `Cancel` / `Apart` | `sp.together` / `sp.cancel` / `sp.apart` |
 | `Cross[a, b]` | `a.cross(b)` on `sp.Matrix` |
@@ -104,7 +105,9 @@ fractional monomials, `PolynomialGCD`,
 `PolynomialQuotient`, `PolynomialRemainder`, `Numerator`, and `Denominator`),
 quoted string literals mapped to the native
 comparison atom, and a
-Wolfram matrix-product dot continued across a line break. Unicode `λ` is protected
+Wolfram matrix-product dot continued across a line break. Bounded one-level
+`Thread` over explicit lists, including list-valued `Equal`, is also lowered.
+Unicode `λ` is protected
 during SymPy parsing and restored as the original symbol. Unsupported selector and matrix shapes remain
 opaque. It intentionally
 refuses or skips side effects, plotting,
