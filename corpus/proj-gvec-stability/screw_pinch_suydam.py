@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 12 non-assignment statement(s) remain.
+# NOT TRANSLATED: 11 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('scriptDirectory', 'DirectoryName[ExpandFileName[$InputFileName]]', ()),
     ('projectDirectory', 'FileNameJoin[{scriptDirectory, ".."}]', ()),
@@ -45,7 +45,7 @@ _ASSIGNMENTS = [
     ('safety', 'rr bz[rr]/(len btheta[rr])', ()),
     ('shearTerm', '(D[safety, rr]/safety /. rr -> rs)', ()),
     ('suydamRatio', 'Simplify[\n  (1 + 8 mu0 Derivative[1][p][rs]/(rs bz[rs]^2 shearTerm^2)) /.\n    forceBalance, assumptions]', ()),
-    ('normalizedRatio', '1 + 8 mu0 pp/(rs bzs^2 st^2) /.', ()),
+    ('normalizedRatio', '1 + 8 mu0 pp/(rs bzs^2 st^2) /.\n  {pp -> -yy bzs^2/(2 mu0 rs), st -> xx/rs}', ()),
     ('stabilityPlot', 'Show[\n  RegionPlot[y < x^2/4, {x, 0, 3}, {y, 0, 2.5},\n    PlotStyle -> Directive[RGBColor[0.10, 0.35, 0.70], Opacity[0.12]],\n    BoundaryStyle -> None, PlotPoints -> 60],\n  Plot[x^2/4, {x, 0, 3},\n    PlotStyle -> Directive[RGBColor[0.10, 0.35, 0.70], Thick]],\n  Frame -> True,\n  FrameLabel -> {\n    Style["Normalized shear  X = r q\'/q", 12],\n    Style["Normalized pressure gradient  Y = \\[Minus]2\\[Mu]\\:2080r p\\[Prime]/Bz\\.b2",\n      12]},\n  Epilog -> {\n    Text[Style["Suydam stable", 12, RGBColor[0.10, 0.35, 0.70]],\n      {2.15, 0.45}],\n    Text[Style["interchange unstable", 12, RGBColor[0.65, 0.20, 0.12]],\n      {0.95, 1.9}],\n    Text[Style["Y = X\\.b2/4", 12], {2.45, 1.75}]},\n  PlotRange -> {{0, 3}, {0, 2.5}},\n  ImageSize -> 460,\n  BaseStyle -> {FontFamily -> "Latin Modern Roman", 11}]', ()),
 ]
 

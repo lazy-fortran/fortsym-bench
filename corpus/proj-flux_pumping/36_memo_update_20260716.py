@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 62 non-assignment statement(s) remain.
+# NOT TRANSLATED: 61 non-assignment statement(s) remain.
 COMPARE = {
     'cHelicalValue': 'numeric',
     'cMeanValue': 'numeric',
@@ -71,7 +71,7 @@ _ASSIGNMENTS = [
     ('ord2', 'Coefficient[psiExp - Psi0F[s0], eps, 2] /. u1 -> u1Sol //\n  TrigReduce // Expand', ()),
     ('u20Sol', 'u20 /. First@Solve[Coefficient[ord2, Cos[2 phi], 0] == 0, u20]', ()),
     ('u22Sol', 'u22 /. First@Solve[Coefficient[ord2, Cos[2 phi], 1] == 0, u22]', ()),
-    ('integrand', 'm (TT[sExp] + eps tt[sExp] Cos[phi])/\n  (PP[sExp] + eps pp[sExp] Cos[phi]) /.', ()),
+    ('integrand', 'm (TT[sExp] + eps tt[sExp] Cos[phi])/\n  (PP[sExp] + eps pp[sExp] Cos[phi]) /.\n  {u1 -> u1Sol, u20 -> u20Sol, u22 -> u22Sol}', ()),
     ('integrandSeries', 'Normal@Series[integrand, {eps, 0, 2}]', ()),
     ('avgExp', 'Integrate[integrandSeries, {phi, 0, 2 Pi}]/(2 Pi)', ()),
     ('invAvg', 'Normal@Series[1/avgExp, {eps, 0, 2}]', ()),

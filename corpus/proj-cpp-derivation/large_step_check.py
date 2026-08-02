@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 44 non-assignment statement(s) remain.
+# NOT TRANSLATED: 43 non-assignment statement(s) remain.
 COMPARE = {
     'Jred': 'numeric',
     'SqcAt': 'numeric',
@@ -46,7 +46,7 @@ _ASSIGNMENTS = [
     ('pSample', '{3/100, 1/4, -2/5}', ()),
     ('zsym', '{r, th, ph, p1, p2, p3}', ()),
     ('opn', 'Max[SingularValueList[A]]', ('A',)),
-    ('Hqc', '(1/(2 mass)) ({p1, p2, p3} - qc Acov[r, th]) . Inverse[gT[r, th]] .', ()),
+    ('Hqc', '(1/(2 mass)) ({p1, p2, p3} - qc Acov[r, th]) . Inverse[gT[r, th]] .\n        ({p1, p2, p3} - qc Acov[r, th]) + mu0 BmodF[r, th]', ()),
     ('SqcSym', 'Table[D[Hqc, zsym[[i]], zsym[[j]]], {i, 6}, {j, 6}]', ()),
     ('SqcAt', 'N[SqcSym /. {r -> r0, th -> th0, ph -> ph0,\n   p1 -> pSample[[1]], p2 -> pSample[[2]], p3 -> pSample[[3]]}, 30]', ()),
     ('qqB', 'SqcAt[[1 ;; 3, 1 ;; 3]]', ()),

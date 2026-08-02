@@ -7,9 +7,9 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 58 non-assignment statement(s) remain.
+# NOT TRANSLATED: 57 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
-    ('starLab', '(Derivative[2, 0][psiF][RR, ZZ] -\n    Derivative[1, 0][psiF][RR, ZZ]/RR +\n    Derivative[0, 2][psiF][RR, ZZ]) /.', ()),
+    ('starLab', '(Derivative[2, 0][psiF][RR, ZZ] -\n    Derivative[1, 0][psiF][RR, ZZ]/RR +\n    Derivative[0, 2][psiF][RR, ZZ]) /.\n  {RR -> R0 + rr Cos[ww], ZZ -> rr Sin[ww]}', ()),
     ('polarF', 'psiF[R0 + a Cos[b], a Sin[b]]', ('a', 'b')),
     ('starPolar', 'D[polarF[rr, ww], {rr, 2}] + D[polarF[rr, ww], rr]/rr +\n  D[polarF[rr, ww], {ww, 2}]/rr^2 -\n  (1/(R0 + rr Cos[ww])) (Cos[ww] D[polarF[rr, ww], rr] -\n     Sin[ww] D[polarF[rr, ww], ww]/rr)', ()),
     ('psiField', 'psi0[rr] + lam chi[rr] Cos[ww]', ()),

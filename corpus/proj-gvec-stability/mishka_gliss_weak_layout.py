@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 62 non-assignment statement(s) remain.
+# NOT TRANSLATED: 61 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('pass', '0', ()),
     ('fail', '0', ()),
@@ -41,7 +41,7 @@ _ASSIGNMENTS = [
     ('glissTest', 'layoutTransform . mishkaTest', ()),
     ('glissTrial', 'layoutTransform . mishkaTrial', ()),
     ('glissKernel', 'Array[kernel, {3, 3}]', ()),
-    ('translatedKernel', 'dsdr ConjugateTranspose[layoutTransform] .', ()),
+    ('translatedKernel', 'dsdr ConjugateTranspose[layoutTransform] .\n  glissKernel . layoutTransform', ()),
     ('layoutAssumptions', 'Element[{edgeFlux, dsdr, majorRadius, p0, q0}, Reals] &&', ()),
     ('realFourierAssumptions', 'Element[{aNormal, aTangential, bNormal, bTangential, phase}, Reals]', ()),
     ('realHarmonicProduct', 'Integrate[\n   (aNormal Cos[phase] + aTangential Sin[phase]) *\n    (bNormal Cos[phase] + bTangential Sin[phase]),\n   {phase, 0, 2 Pi}]/(2 Pi)', ()),

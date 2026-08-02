@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 8 non-assignment statement(s) remain.
+# NOT TRANSLATED: 7 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('pass', '0', ()),
     ('fail', '0', ()),
@@ -15,7 +15,7 @@ _ASSIGNMENTS = [
     ('check', 'If[\n  TrueQ[FullSimplify[condition, assumptions]],\n  pass++; Print["PASS  ", name], fail++; Print["FAIL  ", name]]', ('name', 'condition')),
     ('position', '{r Cos[2 Pi (u + lam[r])],\n  r Sin[2 Pi (u + lam[r])], len v}', ('r', 'u', 'v')),
     ('basis', '{D[position[r, u, v], r], D[position[r, u, v], u],\n  D[position[r, u, v], v]}', ('r', 'u', 'v')),
-    ('jac', 'basis[r, u, v][[1]] .', ('r', 'u', 'v')),
+    ('jac', 'basis[r, u, v][[1]] .\n  Cross[basis[r, u, v][[2]], basis[r, u, v][[3]]]', ('r', 'u', 'v')),
     ('duals', 'Module[{b = basis[r, u, v]},\n  {Cross[b[[2]], b[[3]]], Cross[b[[3]], b[[1]]],\n    Cross[b[[1]], b[[2]]]}/jac[r, u, v]]', ('r', 'u', 'v')),
     ('field', 'btheta[r] {-Sin[2 Pi (u + lam[r])],\n  Cos[2 Pi (u + lam[r])], 0} + bz[r] {0, 0, 1}', ('r', 'u', 'v')),
     ('bmag2', 'btheta[r]^2 + bz[r]^2', ()),

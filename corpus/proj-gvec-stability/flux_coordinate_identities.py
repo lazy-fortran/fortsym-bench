@@ -7,14 +7,14 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 20 non-assignment statement(s) remain.
+# NOT TRANSLATED: 19 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('pass', '0', ()),
     ('fail', '0', ()),
     ('check', 'If[TrueQ[FullSimplify[condition]],\n  pass++; Print["PASS  ", name], fail++; Print["FAIL  ", name]]', ('name', 'condition')),
     ('position', '{r Cos[2 Pi u], r Sin[2 Pi u], len v}', ('r', 'u', 'v')),
     ('basis', '{\n  D[position[r, u, v], r],\n  D[position[r, u, v], u],\n  D[position[r, u, v], v]}', ('r', 'u', 'v')),
-    ('jacobian', 'basis[r, u, v][[1]] .', ('r', 'u', 'v')),
+    ('jacobian', 'basis[r, u, v][[1]] .\n  Cross[basis[r, u, v][[2]], basis[r, u, v][[3]]]', ('r', 'u', 'v')),
     ('field', 'btheta[r] {-Sin[2 Pi u], Cos[2 Pi u], 0} +\n  bz[r] {0, 0, 1}', ('r', 'u', 'v')),
     ('toroidalFlux', 'Integrate[2 Pi rho bz[rho], {rho, 0, r},\n  Assumptions -> 0 < r]', ('r',)),
     ('poloidalFlux', 'Integrate[len btheta[rho], {rho, 0, r},\n  Assumptions -> 0 < r]', ('r',)),

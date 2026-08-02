@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 17 non-assignment statement(s) remain.
+# NOT TRANSLATED: 16 non-assignment statement(s) remain.
 COMPARE = {
     'compressionRatio': 'numeric',
     'eigenvector0': 'numeric',
@@ -32,7 +32,7 @@ _ASSIGNMENTS = [
     ('eigenvector0', 'eigenvectors0[[lowestIndex]]', ()),
     ('eigenvector0', 'eigenvector0/Sqrt[eigenvector0.N[mass[p0]].eigenvector0]', ()),
     ('lambda0', 'eigenvalues0[[lowestIndex]]', ()),
-    ('analyticDerivative', 'eigenvector0.', ()),
+    ('analyticDerivative', 'eigenvector0.\n  (D[stiffness[p], p] - lambda0 D[mass[p], p] /. p -> p0).eigenvector0', ()),
     ('stepSizes', '10.^Range[-8, -1, 1/4]', ()),
     ('derivativeErrors', 'Table[\n  Abs[(lowestEigenvalue[p0 + h] - lowestEigenvalue[p0 - h])/(2 h) -\n    analyticDerivative],\n  {h, stepSizes}]', ()),
     ('positiveDerivativeData', 'Select[\n  Transpose[{stepSizes, derivativeErrors}], Last[#] > 0 &]', ()),

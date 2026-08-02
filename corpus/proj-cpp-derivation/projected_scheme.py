@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 70 non-assignment statement(s) remain.
+# NOT TRANSLATED: 69 non-assignment statement(s) remain.
 COMPARE = {
     'Kbounce': 'numeric',
     'Krel0': 'numeric',
@@ -31,7 +31,7 @@ _ASSIGNMENTS = [
     ('OmOf', 'Sqrt[Bwell[xx]/Bref]/eps', ('xx', 'eps')),
     ('muStar', '(Bwell[xx] qq^2 + pp^2)/(2 eps Sqrt[Bwell[xx]/Bref])', ('xx', 'qq', 'pp', 'eps')),
     ('zsym', '{xx, qq, uu, pp}', ()),
-    ('HessFull', 'Table[D[Hfull[xx, qq, uu, pp, eps], zsym[[i]], zsym[[j]]], {i, 4}, {j, 4}] /.', ('x0', 'q0', 'u0', 'p0', 'eps')),
+    ('HessFull', 'Table[D[Hfull[xx, qq, uu, pp, eps], zsym[[i]], zsym[[j]]], {i, 4}, {j, 4}] /.\n    {xx -> x0, qq -> q0, uu -> u0, pp -> p0}', ('x0', 'q0', 'u0', 'p0', 'eps')),
     ('Lop', '(dt/2) Inverse[J4] . S', ('S', 'dt')),
     ('solvMat', 'IdentityMatrix[4] - Lop[S, dt]', ('S', 'dt')),
     ('solvDet', 'Det[N[solvMat[HessFull[x0, q0, u0, p0, eps], dt]]]', ('x0', 'q0', 'u0', 'p0', 'dt', 'eps')),

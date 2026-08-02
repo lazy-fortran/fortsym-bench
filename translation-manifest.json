@@ -340,12 +340,12 @@
  },
  "corpus/code-genex/mms_analytical.wl": {
   "assignments": 57,
-  "skipped_statements": 67,
+  "skipped_statements": 66,
   "status": "generated"
  },
  "corpus/code-genex/mms_analytical_vspec.wl": {
   "assignments": 80,
-  "skipped_statements": 68,
+  "skipped_statements": 67,
   "status": "generated"
  },
  "corpus/code-integrator-benchmark/tdrk_guiding_center_G.wl": {
@@ -475,7 +475,7 @@
  },
  "corpus/code-mhd1d/52_toroidal_corrections.wl": {
   "assignments": 52,
-  "skipped_statements": 58,
+  "skipped_statements": 57,
   "status": "generated"
  },
  "corpus/code-mhd1d/checklib.wl": {
@@ -969,7 +969,7 @@
  },
  "corpus/nc-stud-Bacc_Rosa_Posch/derivations.wl": {
   "assignments": 53,
-  "skipped_statements": 81,
+  "skipped_statements": 80,
   "status": "generated"
  },
  "corpus/nc-stud-Bacc_Rosa_Posch/derivations_bef7e6.wl": {
@@ -1059,12 +1059,12 @@
  },
  "corpus/proj-cpp-derivation/large_step_check.wl": {
   "assignments": 89,
-  "skipped_statements": 44,
+  "skipped_statements": 43,
   "status": "generated"
  },
  "corpus/proj-cpp-derivation/midpoint_resonance.wl": {
   "assignments": 50,
-  "skipped_statements": 41,
+  "skipped_statements": 40,
   "status": "generated"
  },
  "corpus/proj-cpp-derivation/midpoint_symplectic.wl": {
@@ -1074,7 +1074,7 @@
  },
  "corpus/proj-cpp-derivation/mu_preservation_criterion.wl": {
   "assignments": 73,
-  "skipped_statements": 54,
+  "skipped_statements": 53,
   "status": "generated"
  },
  "corpus/proj-cpp-derivation/normal_stability_check.wl": {
@@ -1089,7 +1089,7 @@
  },
  "corpus/proj-cpp-derivation/projected_scheme.wl": {
   "assignments": 68,
-  "skipped_statements": 70,
+  "skipped_statements": 69,
   "status": "generated"
  },
  "corpus/proj-cpp-derivation/separatrix_obstruction.wl": {
@@ -1234,7 +1234,7 @@
  },
  "corpus/proj-flux_pumping/17_loop_voltage_bridge.wl": {
   "assignments": 21,
-  "skipped_statements": 15,
+  "skipped_statements": 14,
   "status": "generated"
  },
  "corpus/proj-flux_pumping/18_wp0_risk_bounds.wl": {
@@ -1329,12 +1329,12 @@
  },
  "corpus/proj-flux_pumping/36_memo_update_20260716.wl": {
   "assignments": 68,
-  "skipped_statements": 62,
+  "skipped_statements": 61,
   "status": "generated"
  },
  "corpus/proj-flux_pumping/37_memo_update_20260717.wl": {
   "assignments": 49,
-  "skipped_statements": 22,
+  "skipped_statements": 21,
   "status": "generated"
  },
  "corpus/proj-flux_pumping/38_naive_vs_serious_comparison.wl": {
@@ -1369,7 +1369,7 @@
  },
  "corpus/proj-flux_pumping/54_access_conditions.wl": {
   "assignments": 56,
-  "skipped_statements": 81,
+  "skipped_statements": 78,
   "status": "generated"
  },
  "corpus/proj-flux_pumping/checklib.wl": {
@@ -1384,22 +1384,22 @@
  },
  "corpus/proj-gvec-stability/beta_spectral_solve.wl": {
   "assignments": 21,
-  "skipped_statements": 7,
+  "skipped_statements": 5,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/boozer_radial_derivative.wl": {
   "assignments": 37,
-  "skipped_statements": 13,
+  "skipped_statements": 12,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/c_components.wl": {
   "assignments": 30,
-  "skipped_statements": 7,
+  "skipped_statements": 6,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/cartesian_primitive_geometry.wl": {
   "assignments": 99,
-  "skipped_statements": 92,
+  "skipped_statements": 91,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/certified_shift_tracking.wl": {
@@ -1424,7 +1424,7 @@
  },
  "corpus/proj-gvec-stability/cylinder_compressional_spectrum.wl": {
   "assignments": 127,
-  "skipped_statements": 28,
+  "skipped_statements": 27,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/dense_generalized_subspace_iteration.wl": {
@@ -1454,7 +1454,7 @@
  },
  "corpus/proj-gvec-stability/flux_coordinate_identities.wl": {
   "assignments": 22,
-  "skipped_statements": 20,
+  "skipped_statements": 19,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/free_boundary_schur.wl": {
@@ -1474,12 +1474,12 @@
  },
  "corpus/proj-gvec-stability/generate_validation_figures.wl": {
   "assignments": 32,
-  "skipped_statements": 17,
+  "skipped_statements": 16,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/gvec_coordinate_fourier.wl": {
   "assignments": 15,
-  "skipped_statements": 16,
+  "skipped_statements": 15,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/gvec_export_consistency.wl": {
@@ -1499,7 +1499,7 @@
  },
  "corpus/proj-gvec-stability/interchange_drive.wl": {
   "assignments": 17,
-  "skipped_statements": 7,
+  "skipped_statements": 6,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/local_mode_energy.wl": {
@@ -1509,7 +1509,7 @@
  },
  "corpus/proj-gvec-stability/mercier_from_export.wl": {
   "assignments": 21,
-  "skipped_statements": 13,
+  "skipped_statements": 12,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/mercier_screw_pinch.wl": {
@@ -1524,7 +1524,7 @@
  },
  "corpus/proj-gvec-stability/mishka_gliss_weak_layout.wl": {
   "assignments": 78,
-  "skipped_statements": 62,
+  "skipped_statements": 61,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/mishka_global_pencil.wl": {
@@ -1554,7 +1554,7 @@
  },
  "corpus/proj-gvec-stability/phase_transform.wl": {
   "assignments": 52,
-  "skipped_statements": 51,
+  "skipped_statements": 46,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/radial_bspline_basis.wl": {
@@ -1564,7 +1564,7 @@
  },
  "corpus/proj-gvec-stability/radial_cubic_spline.wl": {
   "assignments": 43,
-  "skipped_statements": 26,
+  "skipped_statements": 25,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/radial_feec_complex.wl": {
@@ -1574,17 +1574,17 @@
  },
  "corpus/proj-gvec-stability/screw_pinch_suydam.wl": {
   "assignments": 38,
-  "skipped_statements": 12,
+  "skipped_statements": 11,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/sigma_tilde_recovery.wl": {
   "assignments": 23,
-  "skipped_statements": 8,
+  "skipped_statements": 7,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/solovev_axisymmetric_marginal.wl": {
   "assignments": 55,
-  "skipped_statements": 36,
+  "skipped_statements": 35,
   "status": "generated"
  },
  "corpus/proj-gvec-stability/suydam_marginal_threshold.wl": {

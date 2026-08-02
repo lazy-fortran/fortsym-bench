@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 16 non-assignment statement(s) remain.
+# NOT TRANSLATED: 15 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('passCount', '0', ()),
     ('failCount', '0', ()),
@@ -23,7 +23,7 @@ _ASSIGNMENTS = [
     ('phaseDerivative', '-cosineCoefficient Sin[phase] + sineCoefficient Cos[phase]', ()),
     ('sHalf', '(2 k + 1)/(2 ns)', ('k', 'ns')),
     ('fixture', '{\n  {m -> 0, n -> 0, cosineCoefficient -> 2,\n    sineCoefficient -> 0},\n  {m -> 1, n -> 1, cosineCoefficient -> 3,\n    sineCoefficient -> 5},\n  {m -> 2, n -> -1, cosineCoefficient -> 4,\n    sineCoefficient -> 6}}', ()),
-    ('fixtureBasis', 'Total[basis /. fixture] /.', ()),
+    ('fixtureBasis', 'Total[basis /. fixture] /.\n  {thetaC -> 1/8, zetaC -> 1/40, nfp -> 5}', ()),
 ]
 
 def results():

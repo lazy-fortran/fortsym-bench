@@ -1202,7 +1202,7 @@ def _awaits_operand(source: str, start: int, end: int) -> bool:
     index = end - 1
     while index >= start and source[index] in " \t\r":
         index -= 1
-    if index >= start and source[index] in "+-*/,^=<>|@:,~":
+    if index >= start and source[index] in "+-*/.^=<>|@:,~":
         return True
 
     # Wolfram input is commonly formatted with a continuation operator at the
@@ -1212,7 +1212,7 @@ def _awaits_operand(source: str, start: int, end: int) -> bool:
     index = end + 1
     while index < len(source) and source[index] in " \t\r":
         index += 1
-    return index < len(source) and source[index] in "+-*/,^=<>|@:,~"
+    return index < len(source) and source[index] in "+-*/.^=<>|@:,~"
 
 
 def _normalise_named_characters(text: str) -> str:
