@@ -222,6 +222,9 @@ The v29 SymPy translator slice now lowers bounded scalar first-order `DSolve`
 with callable dependent variables, with 35 focused translation tests passing;
 the corresponding velocity-integral companion still needs `SetDelayed`
 lowering before its later integral bindings can be exported.
+The v30 extraction slice also recovers assignments hidden in notebook-export
+`(compound-prefix)*opaque-head` wrappers, while preserving the opaque suffix;
+93 focused/full tests pass after that change.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
