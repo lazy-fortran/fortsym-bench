@@ -8,6 +8,16 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 62 non-assignment statement(s) remain.
+COMPARE = {
+    # Projector components are the same exact matrices/vectors after
+    # simplification; the native and SymPy serializers choose different trees.
+    'projector': 'equivalent',
+    'projector0': 'equivalent',
+    'projector1': 'equivalent',
+    'projector2': 'equivalent',
+    'projectorIn': 'equivalent',
+    'projectorOut': 'equivalent',
+}
 _ASSIGNMENTS = [
     ('bandIntegral', 'Integrate[constantDistribution, {eta, eta0, eta1}]', ()),
     ('lambdaAbs', 'Sqrt[1 - b0 eta]', ()),
