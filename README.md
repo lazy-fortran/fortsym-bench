@@ -203,6 +203,10 @@ was not rerun. The v25 native bounded symbolic 2x2 `Solve` transition then
 served the exposing corpus script in 0.78 second at 404 MiB RSS: 33
 agreements, 10 differences, 1 unavailable oracle row, and 1 oracle-missing
 binding, with no timeout or runner error.
+The v26 verified exponential-product `Integrate` transition then served a
+three-script slice in 0.78 second at 404 MiB RSS: 5 agreements, 1 difference,
+1 unsupported backend outcome, 1 unavailable oracle row, and 1 oracle
+disagreement, with no timeout or runner error.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
