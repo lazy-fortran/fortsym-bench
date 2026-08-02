@@ -58,6 +58,16 @@ It is a second opinion, not ground truth. **Where Mathics and SymPy disagree,
 that is a finding to investigate, not a number to average.** The harness reports
 oracle disagreement as its own outcome class.
 
+Install the Mathics oracle as an isolated UV tool with:
+
+```sh
+uv tool install --force --with packaging mathics3
+```
+
+The verified development installation is Mathics3 10.0.1. Its raw outcomes,
+like native and SymPy outcomes, are retained in the reference cache so warm
+audits do not rerun the interpreter.
+
 ## Layout
 
 ```
@@ -229,18 +239,19 @@ The v31 callable-definition slice adds bounded scalar `Set`/`SetDelayed`
 semantics after `DSolve`, including Wolfram `C[1]` normalization; the v32
 slice adds bounded lexical `Module` locals with sequential assignments and
 nested shadowing, and v33 normalizes derivative `Subs` wrappers after
-replacement. The full suite now passes 116 tests. The refreshed 384-source
-cache contains 373
-successful SymPy rows, 5 unsupported rows, and 6 timeouts, plus 232 successful
-Mathics rows, 86 errors, and 66 timeouts; all rows are reusable at timeout 15.
+replacement. The full suite now passes 126 tests. The refreshed 384-source
+cache contains 373 successful SymPy rows, 5 unsupported rows, and 6 timeouts,
+plus 238 successful Mathics rows, 80 errors, and 66 timeouts; all rows are
+reusable at timeout 15. The native cache contains 379 successful rows, 3
+unsupported rows, 1 timeout, and 1 runner error.
 The subsequent slices protect ordinary `zeta` coordinates from SymPy's
 built-in Zeta parser, lower bounded `Position`/`Union`, classify list-valued
 InputForm arithmetic without comparator crashes, and normalize the `sympl3_`
-unit constants. The current cache-only three-backend score is 3,337
-agreements, 650 differences, 7 unsupported outcomes, 73 timeouts, 90 errors,
-197 oracle disagreements, and 717 oracle-missing bindings. The Mathics wrapper
-also neutralizes `Quit` so those scripts retain the result protocol; current
-Mathics inventory is 232 successful rows, 86 errors, and 66 timeouts.
+unit constants. The current cache-only three-backend score is 3,310 agreements,
+640 differences, 8 unsupported outcomes, 73 timeouts, 81 errors, 2 unavailable
+oracle rows, 202 oracle disagreements, and 674 oracle-missing bindings. The
+Mathics wrapper also neutralizes `Quit` and isolates per-run protocol symbols;
+current Mathics inventory is 238 successful rows, 80 errors, and 66 timeouts.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
