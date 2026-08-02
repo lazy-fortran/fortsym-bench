@@ -277,6 +277,14 @@ def _lower(expression, environment: dict[str, object]):
         return _coefficient(arguments)
     if name == "CoefficientList":
         return _coefficient_list(arguments)
+    if name == "Exponent":
+        return _exponent(arguments)
+    if name == "PolynomialGCD":
+        return _polynomial_gcd(arguments)
+    if name in ("PolynomialQuotient", "PolynomialRemainder"):
+        return _polynomial_division(arguments, name == "PolynomialQuotient")
+    if name in ("Numerator", "Denominator"):
+        return _numerator_or_denominator(arguments, name == "Numerator")
     if name in ("Together", "Cancel", "Apart"):
         return getattr(sp, name.lower())(arguments[0])
     if name == "Collect":
@@ -876,6 +884,50 @@ def _coefficient_list(arguments: tuple[object, ...]):
         return sp.Tuple(*(coefficients(term, index + 1) for term in terms))
 
     return coefficients(expression, 0)
+
+
+def _exponent(arguments: tuple[object, ...]):
+    """Return the largest power of a form in an exact polynomial."""
+
+    if len(arguments) != 2:
+        raise NotImplementedError("Exponent needs an expression and a form")
+    expression, form = arguments
+    degree = sp.degree(sp.expand(expression), form)
+    if degree is None:
+        return -sp.oo
+    return sp.Integer(degree)
+
+
+def _polynomial_gcd(arguments: tuple[object, ...]):
+    """Return the polynomial gcd, retaining integer content like Wolfram."""
+
+    if len(arguments) != 2:
+        raise NotImplementedError("PolynomialGCD needs two polynomials")
+    return sp.gcd(arguments[0], arguments[1])
+
+
+def _polynomial_division(arguments: tuple[object, ...], quotient: bool):
+    """Divide two polynomials in the explicitly supplied Wolfram variable."""
+
+    if len(arguments) != 3:
+        raise NotImplementedError(
+            "PolynomialQuotient and PolynomialRemainder need two polynomials "
+            "and a variable"
+        )
+    dividend, divisor, variable = arguments
+    if _is_sequence(variable) or not isinstance(variable, sp.Symbol):
+        raise NotImplementedError("polynomial division needs one variable")
+    left = sp.Poly(dividend, variable, domain="EX")
+    right = sp.Poly(divisor, variable, domain="EX")
+    result, remainder = sp.div(left, right)
+    return (result if quotient else remainder).as_expr()
+
+
+def _numerator_or_denominator(arguments: tuple[object, ...], numerator: bool):
+    if len(arguments) != 1:
+        raise NotImplementedError("Numerator and Denominator take one argument")
+    top, bottom = sp.fraction(sp.cancel(arguments[0]))
+    return top if numerator else bottom
 
 
 def _cross(arguments: tuple[object, ...]):

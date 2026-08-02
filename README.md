@@ -147,18 +147,21 @@ FoldList/ArrayFlatten/Total/PseudoInverse/SingularValueList audit refreshed 380
 native rows in 1:14.19 with two workers and a 3.04 GiB peak RSS. The
 quoted-string translator refresh updated 175 SymPy rows in 2:00.16 with a 543
 MiB peak RSS; the v16 singular-value/extrema transition updated 22 rows in
-8.93 seconds. The 155 MB raw-result cache then served an identical warm audit
-in 1.06 seconds at 422 MiB RSS, with no backend subprocesses started. The
+8.93 seconds; the v17 polynomial transition updated eight rows in 11.28
+seconds. The 155 MB raw-result cache then served a warm audit in 1.24 seconds
+at 456 MiB RSS, with no backend subprocesses started. The
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
-The SymPy cache is now version 16: Unicode `λ` is protected while parsing
+The SymPy cache is now version 17: Unicode `λ` is protected while parsing
 function arguments, quoted string literals use the same collision-resistant
 comparison atom as the native backend, `Coefficient`/`CoefficientList` are
 lowered through SymPy, single-variable `Solve` results are serialized as
 Wolfram `Rule` heads, and bounded `FoldList[Plus, initial, list]` and
-`ArrayFlatten`, diagonal/zero numeric `SingularValueList`, and numeric `Max`/`Min`
+`ArrayFlatten`, diagonal/zero numeric `SingularValueList`, numeric `Max`/`Min`,
+and bounded polynomial heads (`Exponent`, `PolynomialGCD`,
+`PolynomialQuotient`, `PolynomialRemainder`, `Numerator`, and `Denominator`)
 are translated directly.
-The cache transition reuses unaffected version-9/10/11/12/13/14/15 rows and refreshes
+The cache transition reuses unaffected version-9/10/11/12/13/14/15/16 rows and refreshes
 only affected translations; the direct version-chain compatibility avoids
 repeating the six-minute transition on the next translator change.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
@@ -242,9 +245,9 @@ runner error, and explicitly refused 2 unsupported constructs; it had no native
 crashes. The same compact cache contains 359 completed SymPy rows (332
 non-empty, 27 empty, 7 timeouts, 18 refusals) and 235 completed Mathics rows
 (208 non-empty, 27 empty, 107 errors, 30 timeouts, 12 unavailable). The final
-binding-level audit has 3,218 agreements, 718 declared differences, 20
-unsupported outcomes, 38 timeouts, 122 errors, 192 oracle disagreements, and
-797 oracle-missing bindings. Its warm run takes 1.06 seconds at 422 MiB RSS.
+binding-level audit has 3,219 agreements, 716 declared differences, 20
+unsupported outcomes, 38 timeouts, 117 errors, 192 oracle disagreements, and
+798 oracle-missing bindings. Its warm run takes 1.24 seconds at 456 MiB RSS.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
@@ -290,8 +293,8 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The latest full run produced 3,218 agreements, 718 declared
-differences, 20 unsupported outcomes, 38 timeouts, 122 errors, 192 oracle
-disagreements, and 797 oracle-missing bindings. Translation quality and the
+place. The latest full run produced 3,219 agreements, 716 declared
+differences, 20 unsupported outcomes, 38 timeouts, 117 errors, 192 oracle
+disagreements, and 798 oracle-missing bindings. Translation quality and the
 remaining backend parity work stay measured by the independent oracle report;
 the report is the source of truth for current counts.
