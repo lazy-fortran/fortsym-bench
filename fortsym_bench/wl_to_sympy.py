@@ -414,6 +414,10 @@ def _lower(expression, environment: dict[str, object]):
         return _table(arguments)
     if name == "Range":
         return _range(arguments)
+    if name == "Position":
+        return _position(arguments)
+    if name == "Union":
+        return _union(arguments)
     if name == "Append":
         return _append(arguments)
     if name == "Flatten":
@@ -816,6 +820,86 @@ def _range(arguments: tuple[object, ...]):
     else:
         lower, upper, step = arguments
     return sp.Tuple(*_numeric_range(lower, upper, step))
+
+
+def _position(arguments: tuple[object, ...]):
+    """Return bounded one-based positions, including explicit heads.
+
+    The corpus uses the two-argument form.  Wolfram positions expose a head
+    at index zero, so ``Position[expr, Power]`` finds the heads of power
+    subexpressions while ordinary list matches retain their one-based child
+    indices.  Levels, options, and other pattern constructs remain unsupported.
+    """
+
+    if len(arguments) != 2:
+        raise NotImplementedError("Position needs an expression and a pattern")
+    value, pattern = arguments
+    positions: list[sp.Tuple] = []
+
+    def visit(item, path: tuple[int, ...]) -> None:
+        if isinstance(pattern, sp.Symbol):
+            if _head_matches(item, pattern):
+                positions.append(sp.Tuple(*(path + (0,))))
+            elif item == pattern:
+                positions.append(sp.Tuple(*path))
+        elif _position_pattern_matches(item, pattern):
+            positions.append(sp.Tuple(*path))
+
+        children = _sequence_items(item)
+        if children is None and isinstance(item, sp.Basic) and not item.is_Atom:
+            children = item.args
+        if children is None:
+            return
+        for index, child in enumerate(children, start=1):
+            visit(child, path + (index,))
+
+    visit(value, ())
+    return sp.Tuple(*positions)
+
+
+def _head_matches(value, pattern: sp.Symbol) -> bool:
+    """Match a plain Wolfram head name against a SymPy value."""
+
+    name = str(pattern)
+    aliases = {
+        "Power": "Pow",
+        "Plus": "Add",
+        "Times": "Mul",
+        "List": "Tuple",
+        "Log": "log",
+        "Exp": "exp",
+    }
+    return _head_name(value) == aliases.get(name, name)
+
+
+def _position_pattern_matches(value, pattern) -> bool:
+    """Match the corpus's bounded blank-power pattern."""
+
+    if (
+        isinstance(pattern, sp.Pow)
+        and len(pattern.args) == 2
+        and all(
+            getattr(argument, "func", None).__name__ == "Pattern"
+            and len(argument.args) == 2
+            and getattr(argument.args[1].func, "__name__", "") == "Blank"
+            for argument in pattern.args
+        )
+    ):
+        return isinstance(value, sp.Pow)
+    return value == pattern
+
+
+def _union(arguments: tuple[object, ...]):
+    """Flatten one level of explicit lists, remove duplicates, and sort."""
+
+    if not arguments or any(not _is_sequence(argument) for argument in arguments):
+        raise NotImplementedError("Union needs explicit list arguments")
+    values = []
+    for argument in arguments:
+        for item in _sequence_items(argument):
+            if not any(item == previous for previous in values):
+                values.append(item)
+    return sp.Tuple(*sorted(values, key=sp.default_sort_key))
 
 
 def _numeric_range(lower, upper, step):

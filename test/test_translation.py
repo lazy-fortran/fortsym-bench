@@ -120,6 +120,61 @@ def test_multiple_integrate_ranges_keep_the_first_range_outermost():
     assert evaluate_assignments(assignments)["value"] == sp.Rational(1, 2)
 
 
+def test_position_finds_one_based_list_paths_independently():
+    assignments, skipped = extract_assignments(
+        "value = Position[{{1, 2}, {2, 1}}, 2]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Tuple(
+        sp.Tuple(1, 2), sp.Tuple(2, 1)
+    )
+
+
+def test_position_matches_ordinary_symbols_at_their_actual_paths():
+    assignments, skipped = extract_assignments(
+        "value = Position[f[a, {a, b}], a]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Tuple(
+        sp.Tuple(1), sp.Tuple(2, 1)
+    )
+
+
+def test_position_finds_expression_heads_at_zero_index():
+    assignments, skipped = extract_assignments(
+        "value = Position[f[x^2, y], Power]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Tuple(
+        sp.Tuple(1, 0)
+    )
+
+
+def test_position_handles_a_bounded_blank_power_pattern():
+    assignments, skipped = extract_assignments(
+        "value = Position[f[x^2, y^3], (y_)^(n_)]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Tuple(
+        sp.Tuple(1),
+        sp.Tuple(2),
+    )
+
+
+def test_union_deduplicates_and_sorts_multiple_explicit_lists():
+    assignments, skipped = extract_assignments(
+        "value = Union[{d, a, c}, {b, c}, {a, e}]"
+    )
+
+    assert skipped == []
+    a, b, c, d, e = sp.symbols("a b c d e")
+    assert evaluate_assignments(assignments)["value"] == sp.Tuple(a, b, c, d, e)
+
+
 def test_bounded_dsolve_lowers_callable_ode_rules_with_unicode_parameters():
     assignments, skipped = extract_assignments(
         "dgl1 = D[v[tau1], tau1] == α*v[tau1] + β; "
