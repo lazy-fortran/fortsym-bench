@@ -54,7 +54,7 @@ BACKENDS = {
                 # below change the wrapper's result contract. Keep old
                 # successful rows reusable, but force stale ``no results
                 # parsed`` rows through the wrapper again.
-                cache_version=4),
+                cache_version=5),
         Backend("fortsym-wl", ".wl", "inputform", command=("fortsym_wl_run",),
                 cache_version=2),
     )
