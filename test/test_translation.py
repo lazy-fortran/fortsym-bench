@@ -1,8 +1,14 @@
 from __future__ import annotations
 
+from pathlib import Path
+import shutil
+
 import sympy as sp
+import pytest
 
 from tools.translate_wl_corpus import render_module
+from fortsym_bench.backends import BACKENDS, run
+from fortsym_bench.compare import parse
 from fortsym_bench.wl_to_sympy import evaluate_assignments, extract_assignments
 
 
@@ -263,6 +269,25 @@ def test_nested_modules_shadow_their_own_local_symbols():
     assert skipped == []
     # Independent oracle: inner x contributes 2 and outer x contributes 1.
     assert evaluate_assignments(assignments)["value"] == sp.Integer(3)
+
+
+@pytest.mark.skipif(shutil.which("mathics") is None, reason="Mathics3 is optional")
+def test_with_translation_matches_independent_mathics_oracle(tmp_path: Path):
+    source = tmp_path / "with.wl"
+    source.write_text(
+        "outer = 9; "
+        "answer = With[{x = 2, y = 3}, x^2 + y + outer]; "
+        "vector = With[{a = {1, 2}}, 2 a]\n",
+        encoding="utf-8",
+    )
+
+    oracle, seconds = run(BACKENDS["mathics"], source, 15.0)
+    values = evaluate_assignments(extract_assignments(source.read_text())[0])
+
+    assert seconds < 15.0
+    assert values["answer"] == parse(oracle["answer"], "inputform")
+    assert values["vector"] == parse(oracle["vector"], "inputform")
+    assert values["outer"] == parse(oracle["outer"], "inputform")
 
 
 def test_immediate_scalar_definition_can_rebind_an_earlier_callable():
