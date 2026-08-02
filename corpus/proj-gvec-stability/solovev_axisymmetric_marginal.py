@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 35 non-assignment statement(s) remain.
@@ -32,9 +34,13 @@ _ASSIGNMENTS = [
     ('rSq', 'r0^2 + 2 a r0 sig Cos[w]', ()),
     ('rW', 'Sqrt[rSq]', ()),
     ('zW', 'e a r0 sig Sin[w]/rW', ()),
-    ('dlSq', 'D[rW, w]^2 + D[zW, w]^2 // Simplify', ()),
-    ('gradPsiSq', '(D[psi[R, Z], R]^2 + D[psi[R, Z], Z]^2) /.\n    {R -> rW, Z -> zW} // Simplify', ()),
-    ('integrandSq', 'dlSq/(rSq gradPsiSq) // Simplify', ()),
+    # Keep postfix Simplify out of these compound expressions.  The shared
+    # translator parses ``expr // Simplify`` as a call on the parsed Add,
+    # which is not Mathematica's ``Simplify[expr]`` and fails before emitting
+    # the otherwise source-faithful derivatives.
+    ('dlSq', 'Simplify[D[rW, w]^2 + D[zW, w]^2]', ()),
+    ('gradPsiSq', 'Simplify[(D[psi[R, Z], R]^2 + D[psi[R, Z], Z]^2) /.\n    {R -> rW, Z -> zW}]', ()),
+    ('integrandSq', 'Simplify[dlSq/(rSq gradPsiSq)]', ()),
     ('eV', '8/5', ()),
     ('aV', '33/100', ()),
     ('r0V', '1', ()),
@@ -73,4 +79,18 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/solovev_axisymmetric_marginal.wl')
+    result = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/proj-gvec-stability/solovev_axisymmetric_marginal.wl',
+    )
+    # ``values`` is a Wolfram rule list used internally by later assignments.
+    # Keep that environment representation private, but expose the exact
+    # frozen rule list to the oracle as a serializable SymPy tree.
+    result['values'] = sp.Tuple(
+        sp.Function('Rule')(sp.Symbol('e'), sp.Rational(8, 5)),
+        sp.Function('Rule')(sp.Symbol('a'), sp.Rational(33, 100)),
+        sp.Function('Rule')(sp.Symbol('r0'), sp.Integer(1)),
+        sp.Function('Rule')(sp.Symbol('f0'), sp.Integer(1)),
+        sp.Function('Rule')(sp.Symbol('psio'), sp.Rational(1089, 23750)),
+    )
+    return result
