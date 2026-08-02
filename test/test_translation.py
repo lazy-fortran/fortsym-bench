@@ -94,6 +94,15 @@ def test_replace_all_evaluates_derivative_at_the_replacement_point():
     assert evaluate_assignments(assignments)["value"] == sp.Derivative(f(y), y)
 
 
+def test_named_derivative_upvalue_lowers_to_the_source_function():
+    assignments, skipped = extract_assignments(
+        "f /: Derivative[1][f] = g; value = Derivative[1][f][x]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Function("g")(sp.Symbol("x"))
+
+
 def test_len_coordinate_is_not_parsed_as_python_builtin():
     value = evaluate_assignments(extract_assignments("value = len + 1")[0])
     assert value["value"] == sp.Symbol("len") + 1

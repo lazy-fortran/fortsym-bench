@@ -54,6 +54,15 @@ class Assignment:
 
 
 @dataclass(frozen=True)
+class DerivativeDefinition:
+    """A bounded one-variable Wolfram derivative UpValue."""
+
+    function: str
+    order: int
+    rhs: str
+
+
+@dataclass(frozen=True)
 class WolframRule:
     left: object
     right: object
@@ -164,6 +173,10 @@ def extract_assignments(source: str) -> tuple[list[Assignment], list[str]]:
                     # SymPy value just because its setup assignments are usable.
                     skipped.append(remainder)
                 continue
+            derivative = derivative_definition_from_statement(fragment)
+            if derivative is not None:
+                assignments.append(derivative)
+                continue
             assignment = assignment_from_statement(fragment)
             if assignment is None:
                 if fragment.strip():
@@ -171,6 +184,31 @@ def extract_assignments(source: str) -> tuple[list[Assignment], list[str]]:
                 continue
             assignments.append(assignment)
     return assignments, skipped
+
+
+def derivative_definition_from_statement(
+    statement: str,
+) -> DerivativeDefinition | None:
+    """Recognise ``f /: Derivative[n][f] = g`` for one positive order.
+
+    This is the small UpValue form used by the flux-pumping memo.  It is
+    intentionally limited to a named function and a named right-hand side;
+    general pattern-based UpValues remain visible as untranslated source.
+    """
+
+    match = re.fullmatch(
+        r"([A-Za-z$][A-Za-z0-9$]*)\s*/:\s*"
+        r"Derivative\[([0-9]+)\]\[([A-Za-z$][A-Za-z0-9$]*)\]"
+        r"\s*=\s*(.+)",
+        statement.strip(),
+        re.DOTALL,
+    )
+    if match is None or match.group(1) != match.group(3):
+        return None
+    order = int(match.group(2))
+    if order < 1:
+        return None
+    return DerivativeDefinition(match.group(1), order, match.group(4).strip())
 
 
 def assignment_from_statement(statement: str) -> Assignment | None:
@@ -196,7 +234,9 @@ def assignment_from_statement(statement: str) -> Assignment | None:
 
 
 def evaluate_assignments(
-    assignments: Iterable[tuple[str, str, tuple[str, ...]] | Assignment],
+    assignments: Iterable[
+        tuple[str, str, tuple[str, ...]] | Assignment | DerivativeDefinition
+    ],
     source_name: str = "<translated Wolfram script>",
 ) -> dict[str, object]:
     """Evaluate extracted assignments in order, returning successful bindings."""
@@ -215,6 +255,11 @@ def evaluate_assignments(
     for item in assignments:
         assignment = item
         try:
+            if isinstance(assignment, DerivativeDefinition):
+                environment[_derivative_definition_key(
+                    assignment.function, assignment.order
+                )] = evaluate_expression(assignment.rhs, environment)
+                continue
             if assignment.parameters:
                 if assignment.delayed:
                     environment[assignment.name] = WolframFunction(
@@ -242,6 +287,7 @@ def evaluate_assignments(
                     )
                 continue
             value = evaluate_expression(assignment.rhs, environment)
+            value = _apply_derivative_definitions(value, environment)
             environment[assignment.name] = value
             # Rule objects, Python containers and opaque control-flow values
             # are useful in the sequential environment but cannot be emitted
@@ -266,6 +312,63 @@ def evaluate_assignments(
         reason = failures[0] if failures else "no translatable assignments"
         raise NotImplementedError(f"{source_name}: {reason}")
     return results
+
+
+def _derivative_definition_key(function: str, order: int) -> str:
+    return f"__fortsymDerivativeDefinition[{function},{order}]"
+
+
+def _apply_derivative_definitions(value, environment: dict[str, object]):
+    """Apply the supported derivative UpValues to an evaluated value."""
+
+    if not isinstance(value, sp.Basic):
+        return value
+    replacements = {}
+    for node in sp.preorder_traversal(value):
+        derivative = node
+        point = None
+        if isinstance(node, sp.Subs):
+            derivative = node.expr
+            if len(node.variables) != 1 or len(node.point) != 1:
+                continue
+            point = node.point[0]
+        match = _derivative_expression(derivative)
+        if match is None:
+            continue
+        function, order, argument = match
+        rhs = environment.get(_derivative_definition_key(function, order))
+        if rhs is None:
+            continue
+        replacements[node] = _apply_derivative_rhs(
+            rhs, point if point is not None else argument
+        )
+    return value.xreplace(replacements) if replacements else value
+
+
+def _derivative_expression(value):
+    if isinstance(value, sp.Derivative):
+        expression = value.expr
+        if not getattr(expression, "is_Function", False):
+            return None
+        if len(expression.args) != 1 or len(value.variable_count) != 1:
+            return None
+        variable, order = value.variable_count[0]
+        if expression.args[0] != variable:
+            return None
+        return str(expression.func.__name__), int(order), expression.args[0]
+    if _head_name(value) == "Derivative1" and len(value.args) == 3:
+        function, order, argument = value.args
+        if isinstance(function, sp.Symbol) and _is_integer(order):
+            return str(function), int(order), argument
+    return None
+
+
+def _apply_derivative_rhs(rhs, argument):
+    if isinstance(rhs, sp.Symbol):
+        return sp.Function(str(rhs))(argument)
+    if isinstance(rhs, (WolframFunction, WolframPureFunction)):
+        return rhs.call((argument,))
+    return rhs
 
 
 def evaluate_expression(text: str, environment: dict[str, object] | None = None):
@@ -2280,8 +2383,8 @@ def _trig_reduce(arguments: tuple[object, ...]):
     return reduced
 
 
-def _as_assignment(item) -> Assignment:
-    if isinstance(item, Assignment):
+def _as_assignment(item) -> Assignment | DerivativeDefinition:
+    if isinstance(item, (Assignment, DerivativeDefinition)):
         return item
     if len(item) == 3:
         name, rhs, parameters = item
