@@ -55,7 +55,8 @@ BACKENDS = {
                 # successful rows reusable, but force stale ``no results
                 # parsed`` rows through the wrapper again.
                 cache_version=4),
-        Backend("fortsym-wl", ".wl", "inputform", command=("fortsym_wl_run",)),
+        Backend("fortsym-wl", ".wl", "inputform", command=("fortsym_wl_run",),
+                cache_version=2),
     )
 }
 
