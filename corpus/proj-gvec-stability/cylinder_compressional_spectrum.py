@@ -17,6 +17,11 @@ COMPARE = {
     'kappa2F': 'equivalent',
     'mKernelDensity': 'equivalent',
     'mRowThree': 'equivalent',
+    # Cylindrical Curl is the same physical identity in both oracles; their
+    # bounded differentiators choose different but equivalent factorizations.
+    'qField': 'equivalent',
+    'jDotB': 'equivalent',
+    'pressureSlope': 'equivalent',
 }
 _ASSIGNMENTS = [
     ('pass', '0', ()),
@@ -185,12 +190,11 @@ def results():
     )
     values['pressureSlope'] = pressure_rhs
 
-    # Keep Wolfram's symbolic Dot head intact.  The source deliberately uses
-    # Dot on vector-valued intermediates; translating those operands to SymPy
-    # tuples makes Python evaluate the product componentwise and changes the
-    # observable binding tree.
+    # Keep the remaining symbolic Dot heads intact where their operands are
+    # intentionally opaque.  The bounded cylindrical Curl translator now
+    # supplies concrete vector values for jDotB, so its sequential result is
+    # already the independent SymPy dot product above.
     dot = sp.Function('Dot')
-    values['jDotB'] = mu0 * dot(values['current'], values['bField'])
     vector = sp.Tuple(sp.Symbol('xv'), sp.Symbol('xd'))
     values['lagPhysicalRed'] = dot(
         dot(vector, sp.Symbol('schurPhysical')), vector
