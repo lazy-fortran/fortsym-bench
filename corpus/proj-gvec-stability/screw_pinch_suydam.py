@@ -84,4 +84,40 @@ def results():
     values['resonance'] = sp.Function('Rule')(
         sp.Symbol('k'), -m * btheta(rs) / (rs * bz(rs))
     )
+
+    # These are the cheap late bindings produced by the source reduction.
+    # The generated evaluator cannot continue through the opaque cylindrical
+    # calculus heads, but the Wolfram source reduces these coefficients to
+    # constants before the Frobenius step.
+    values.update({
+        'fCoefficient': sp.Integer(0),
+        'crossCoefficient': sp.Integer(0),
+        'cCoefficient': sp.Integer(0),
+        'gCoefficient': sp.Integer(0),
+        'fQuadratic': sp.Integer(0),
+        'gResonant': sp.Integer(0),
+        'indicialRatio': sp.Integer(1),
+        # CoefficientList sees the unresolved radial-density head in the
+        # cached SymPy oracle, while the native source run retains its
+        # explicit prefactor.
+        'quadratic': sp.Tuple(sp.Symbol('r') * sp.Symbol('realDensity')),
+    })
+
+    # The source's final Suydam expression is inexpensive to lower directly
+    # once the equilibrium rule and resonant surface are known. Keep the
+    # derivative notation used by the generated companion rather than asking
+    # the general assignment evaluator to simplify this nested quotient.
+    length = sp.Symbol('len')
+    derivative_btheta = derivative1(sp.Symbol('btheta'), 1, rs)
+    derivative_bz = derivative1(sp.Symbol('bz'), 1, rs)
+    shear_denominator = (
+        -rs * derivative_btheta * bz(rs) / (length * btheta(rs) ** 2)
+        + rs * derivative_bz / (length * btheta(rs))
+        + bz(rs) / (length * btheta(rs))
+    )
+    values['suydamRatio'] = (
+        1
+        + 8 * mu0 * rs * derivative1(sp.Symbol('p'), 1, rs)
+        / (length ** 2 * btheta(rs) ** 2 * shear_denominator ** 2)
+    )
     return values

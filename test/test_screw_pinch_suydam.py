@@ -51,3 +51,40 @@ def test_resonance_binding_is_the_source_rule():
     assert values['resonance'] == sp.Function('Rule')(
         sp.Symbol('k'), -m * btheta(rs) / (rs * bz(rs))
     )
+
+
+def test_late_frobenius_coefficients_follow_source_reduction():
+    values = _load().results()
+    assert values['fCoefficient'] == 0
+    assert values['crossCoefficient'] == 0
+    assert values['cCoefficient'] == 0
+    assert values['gCoefficient'] == 0
+    assert values['fQuadratic'] == 0
+    assert values['gResonant'] == 0
+    assert values['indicialRatio'] == 1
+
+
+def test_suydam_ratio_is_the_source_equilibrium_expression():
+    values = _load().results()
+    mu0, rs, length = sp.symbols('mu0 rs len')
+    btheta = sp.Function('btheta')
+    bz = sp.Function('bz')
+    derivative1 = sp.Function('Derivative1')
+    den = (
+        -rs * derivative1(sp.Symbol('btheta'), 1, rs) * bz(rs)
+        / (length * btheta(rs) ** 2)
+        + rs * derivative1(sp.Symbol('bz'), 1, rs)
+        / (length * btheta(rs))
+        + bz(rs) / (length * btheta(rs))
+    )
+    expected = 1 + 8 * mu0 * rs * derivative1(
+        sp.Symbol('p'), 1, rs
+    ) / (length ** 2 * btheta(rs) ** 2 * den ** 2)
+    assert values['suydamRatio'] == expected
+
+
+def test_quadratic_keeps_the_source_radial_prefactor():
+    values = _load().results()
+    assert values['quadratic'] == sp.Tuple(
+        sp.Symbol('r') * sp.Symbol('realDensity')
+    )
