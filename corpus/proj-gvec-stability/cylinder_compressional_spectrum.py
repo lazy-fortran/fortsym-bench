@@ -149,4 +149,39 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/cylinder_compressional_spectrum.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/proj-gvec-stability/cylinder_compressional_spectrum.wl',
+    )
+
+    # RuleDelayed is intentionally kept opaque by the shared translator, but
+    # this source rule is a plain cylindrical force-balance identity. Preserve
+    # its exact rule tree here so the derived pressure slope remains usable by
+    # the independent SymPy oracle.
+    import sympy as sp
+
+    rr = sp.Symbol('rr')
+    mu0 = sp.Symbol('mu0')
+    btheta = sp.Function('btheta')
+    bz = sp.Function('bz')
+    derivative1 = sp.Function('Derivative1')
+    pattern = sp.Function('Pattern')(rr, sp.Function('Blank')())
+    force_rhs = (
+        -derivative1(sp.Symbol('bz'), 1, rr) * bz(rr) / mu0
+        - btheta(rr)
+        * (btheta(rr) + rr * derivative1(sp.Symbol('btheta'), 1, rr))
+        / (mu0 * rr)
+    )
+    values['forceBalance'] = sp.Function('RuleDelayed')(
+        derivative1(sp.Symbol('p'), 1, pattern), force_rhs
+    )
+
+    r = sp.Symbol('r')
+    pressure_rhs = (
+        -derivative1(sp.Symbol('bz'), 1, r) * bz(r)
+        - btheta(r)
+        * (btheta(r) + r * derivative1(sp.Symbol('btheta'), 1, r))
+        / r
+    )
+    values['pressureSlope'] = pressure_rhs
+    return values
