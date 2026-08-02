@@ -243,6 +243,30 @@ def test_sympy_cache_upgrade_reruns_sources_with_fold_list(tmp_path):
     assert cache.get(current, source, 300.0) is None
 
 
+def test_sympy_cache_upgrade_reuses_sources_without_trigreduce(tmp_path):
+    source = tmp_path / "case.py"
+    source.write_text("value = x + 1\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("sympy", ".py", "srepr", cache_version=22)
+    current = Backend("sympy", ".py", "srepr", cache_version=23)
+
+    cache.put_result(old, source, 5.0, {"value": "Add(Symbol('x'), Integer(1))"})
+
+    assert cache.get(current, source, 300.0) is not None
+
+
+def test_sympy_cache_upgrade_reruns_sources_with_trigreduce(tmp_path):
+    source = tmp_path / "case.py"
+    source.write_text("value = TrigReduce[Sin[x] Sin[y]]\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("sympy", ".py", "srepr", cache_version=22)
+    current = Backend("sympy", ".py", "srepr", cache_version=23)
+
+    cache.put_result(old, source, 5.0, {"value": "Integer(0)"})
+
+    assert cache.get(current, source, 300.0) is None
+
+
 def test_sympy_cache_upgrade_reuses_non_string_version_14_rows(tmp_path):
     source = tmp_path / "case.py"
     source.write_text("_ASSIGNMENTS = [('value', 'x + 1', ())]\n")
