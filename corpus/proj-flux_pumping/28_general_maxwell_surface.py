@@ -60,6 +60,18 @@ def _source_faithful_maxwell_forms():
     }
 
 
+def _rule(lhs, rhs):
+    """Represent a Wolfram Rule without making it a Python substitution."""
+    return sp.Function("Rule")(lhs, rhs)
+
+
+def _prime(name, order, argument):
+    """Represent the source's opaque derivative of a named function."""
+    return sp.Function("Derivative1")(
+        sp.Symbol(name), sp.Integer(order), argument
+    )
+
+
 # These repaired delayed derivatives and vector-calculus bindings are
 # algebraically equivalent to the native normal forms; numerical bindings
 # stay structural because their engines do not agree.
@@ -151,6 +163,10 @@ def results():
     u = sp.Function("u")(r)
     br_amp = (sp.diff(u, r) - 4 * sp.pi * r * current / cl) / m
     values["brTotal"] = eps * br_amp * sp.sin(chi)
+    # The source binds the physical radial component before introducing the
+    # perturbed field.  Keep this direct translation separate from brTotal so
+    # the native source binding is present in the Python companion as well.
+    values["br"] = br_amp * sp.sin(chi)
     values["psi"] = sp.Function("psi0")(r) - eps * r * br_amp * sp.cos(chi)
     values["rhoLabel"] = r + eps * br_amp / (
         m * sp.Function("btheta0")(r) / r + k * sp.Function("bz0")(r)
@@ -167,6 +183,105 @@ def results():
     )
     values.update(_source_faithful_maxwell_forms())
     values.update(_differentiate_vector_products(values))
+    lower_green = sp.Function("lowerGreen")(r)
+    upper_green = sp.Function("upperGreen")(r)
+    reg_value = sp.Function("reg")(r)
+    dec_value = sp.Function("dec")(r)
+    source_value = 4 * sp.pi * current / cl
+    values["greenDerivativeRules"] = sp.Tuple(
+        _rule(
+            _prime("lowerGreen", 1, r),
+            r**2 * _prime("reg", 1, r) * source_value,
+        ),
+        _rule(
+            _prime("upperGreen", 1, r),
+            -r**2 * _prime("dec", 1, r) * source_value,
+        ),
+    )
+    values["greenHomogeneousRules"] = sp.Tuple(
+        _rule(
+            _prime("reg", 2, r),
+            -_prime("reg", 1, r) / r
+            + reg_value * (m**2 / r**2 + k**2),
+        ),
+        _rule(
+            _prime("dec", 2, r),
+            -_prime("dec", 1, r) / r
+            + dec_value * (m**2 / r**2 + k**2),
+        ),
+    )
+    values["surfaceRules"] = sp.Tuple(
+        _rule(
+            _prime("psi0", 1, r),
+            -r * (
+                m * sp.Function("btheta0")(r) / r
+                + k * sp.Function("bz0")(r)
+            ),
+        ),
+        _rule(
+            _prime("u", 2, r),
+            -_prime("u", 1, r) / r
+            + (m**2 / r**2 + k**2) * sp.Function("u")(r)
+            + r * _prime("source", 1, r)
+            + 2 * source_value,
+        ),
+    )
+    values["greenWronskian"] = sp.Eq(
+        reg_value * _prime("dec", 1, r)
+        - _prime("reg", 1, r) * dec_value,
+        -1 / r,
+    )
+    values["uGreenPrime"] = (
+        _prime("dec", 1, r) * lower_green
+        + _prime("reg", 1, r) * upper_green
+        + r * source_value
+    )
+    second_dec = sp.Function("Derivative2")(
+        sp.Symbol("dec"), sp.Integer(1), sp.Integer(1), r
+    )
+    second_reg = sp.Function("Derivative2")(
+        sp.Symbol("reg"), sp.Integer(1), sp.Integer(1), r
+    )
+    values["uGreenSecond"] = (
+        second_dec * lower_green
+        + second_reg * upper_green
+        + r * sp.diff(source_value, r)
+        + source_value
+    )
+    values["greenResidual"] = (
+        values["uGreenSecond"]
+        + values["uGreenPrime"] / r
+        - (k**2 + m**2 / r**2)
+        * (dec_value * lower_green + reg_value * upper_green)
+        - r * _prime("source", 1, r)
+        - 2 * source_value
+    )
+    x = sp.Symbol("x")
+    v_value = sp.Function("v")(x)
+    source_num = sp.Function("sourceNum")(x)
+    source_num_prime = sp.Function("sourceNumPrime")(x)
+    values["uNumeric"] = sp.Function("NDSolveValue")(
+        sp.Tuple(
+            sp.Eq(
+                _prime("v", 2, x) + _prime("v", 1, x) / x
+                - v_value * (x**-2 + sp.Rational(1, 25)),
+                x * source_num_prime + 2 * source_num,
+            ),
+            sp.Eq(
+                sp.Function("v")(sp.Rational(1, 20)),
+                sp.Function("uGreenNum")(sp.Rational(1, 20)),
+            ),
+            sp.Eq(
+                sp.Function("v")(14),
+                sp.Function("uGreenNum")(14),
+            ),
+        ),
+        sp.Symbol("v"),
+        sp.Tuple(x, sp.Rational(1, 20), 14),
+        _rule(sp.Symbol("WorkingPrecision"), 35),
+        _rule(sp.Symbol("AccuracyGoal"), 24),
+        _rule(sp.Symbol("PrecisionGoal"), 20),
+    )
     # Max[list] is the source operation.  Spell out this fixed seven-point
     # list locally because the shared runtime does not yet lower pure-function
     # Map.  The expansion is bounded by the source's explicit radii.
