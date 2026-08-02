@@ -65,3 +65,26 @@ def test_final_deq_is_the_cylindrical_laplace_equation():
     )
     assert sp.simplify(values['deq'].lhs - expected.lhs) == 0
     assert values['deq'].rhs == 0
+
+
+def test_literal_plot_options_preserve_their_wolfram_rules():
+    values = _module().results()
+    rule = sp.Function('Rule')
+    dashing = sp.Function('Dashing')
+    assert values['dino'] == rule(
+        sp.Symbol('DisplayFunction'), sp.Symbol('Identity')
+    )
+    assert values['dd'] == rule(
+        sp.Symbol('PlotStyle'), dashing(sp.Tuple(sp.Float('0.01')))
+    )
+    assert values['dt'] == rule(
+        sp.Symbol('PlotStyle'),
+        dashing(
+            sp.Tuple(
+                sp.Float('0.02'),
+                sp.Float('0.01'),
+                sp.Float('0.0025'),
+                sp.Float('0.01'),
+            )
+        ),
+    )
