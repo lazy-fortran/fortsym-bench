@@ -193,6 +193,9 @@ def _recovered_bindings():
     unit = sp.Function("UnitStep")
     return {
         "fx": sp.cos(a * x) * sp.sin(b * x),
+        # Late, inexpensive bindings whose Wolfram values are independent
+        # of the disputed three-dimensional antiderivative ``g``.
+        "fxd": (sp.sin(a * x + b * x) - sp.sin(a * x - b * x)) / 2,
         "g1": x * sp.asinh(a / x) + a * sp.asinh(x / a),
         "go": (
             sp.sqrt(a**2 - x**2) * sp.sqrt(b**2 - x**2) / 2
@@ -211,6 +214,7 @@ def _recovered_bindings():
             / 2
         ),
         "gt": 1,
+        "gc": sp.cos(1) - sp.cos(2),
         "h1": sp.diff(x * sp.asinh(a / x) + a * sp.asinh(x / a), x),
         "iaf": sp.Integer(0),
         "irf": sp.Integer(0),
@@ -220,6 +224,7 @@ def _recovered_bindings():
         "fst": unit(t) + unit(a - t) - 1,
         "ft": 1 / (t**2 + a**2),
         "fu": t * unit(a + t) - t * unit(t - a),
+        "k": -sp.sin(3 * x) * sp.cos(x) ** 2,
     }
 
 
