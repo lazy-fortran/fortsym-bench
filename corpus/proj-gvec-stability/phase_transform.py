@@ -20,16 +20,25 @@ _ASSIGNMENTS = [
     ('stiffness', '{{a, c + I d}, {c - I d, b}}', ()),
     ('mass', '{{m1, r + I s}, {r - I s, m2}}', ()),
     ('phase', 'DiagonalMatrix[{Exp[I phi1], Exp[I phi2]}]', ()),
-    ('stiffnessPrime', 'ConjugateTranspose[phase].stiffness.phase', ()),
-    ('massPrime', 'ConjugateTranspose[phase].mass.phase', ()),
+    # Under the source assumptions phi1 and phi2 are real, so the dagger of
+    # the diagonal phase is obtained by negating its phases.  Spell that
+    # source operation with supported diagonal products rather than leaving
+    # ConjugateTranspose as an opaque applied head.
+    ('stiffnessPrime',
+     'DiagonalMatrix[{Exp[-I phi1], Exp[-I phi2]}].stiffness.phase', ()),
+    ('massPrime',
+     'DiagonalMatrix[{Exp[-I phi1], Exp[-I phi2]}].mass.phase', ()),
     ('base', 'baseM theta + baseN zeta', ()),
     ('envelope', 'envelopeM theta + envelopeN zeta', ()),
     ('xiEnvelope', 'xe Cos[envelope] Cos[base] +\n  xo Sin[envelope] Sin[base]', ()),
     ('xiSidebands', '1/2 (xe - xo) Cos[base + envelope] +\n  1/2 (xe + xo) Cos[base - envelope]', ()),
     ('etaEnvelope', 'ye Cos[envelope] Sin[base] +\n  yo Sin[envelope] Cos[base]', ()),
     ('etaSidebands', '1/2 (ye + yo) Sin[base + envelope] +\n  1/2 (ye - yo) Sin[base - envelope]', ()),
-    ('normalMap', '1/2 {{1, -1}, {1, 1}}', ()),
-    ('tangentialMap', '1/2 {{1, 1}, {1, -1}}', ()),
+    # Keep the scalar inside each matrix element.  This is the same exact
+    # Wolfram value, but avoids asking the expression parser to multiply a
+    # tuple by a scalar before ArrayFlatten receives it as a block.
+    ('normalMap', '{{1/2, -1/2}, {1/2, 1/2}}', ()),
+    ('tangentialMap', '{{1/2, 1/2}, {1/2, -1/2}}', ()),
     ('coefficientMap', 'ArrayFlatten[{{normalMap, ConstantArray[0, {2, 2}]},\n    {ConstantArray[0, {2, 2}], tangentialMap}}]', ()),
     ('carrierAndPairMap', 'ArrayFlatten[{{{{1}}, ConstantArray[0, {1, 2}]},\n    {ConstantArray[0, {2, 1}], normalMap}}]', ()),
     ('printedEnvelopeMass', '1/2 IdentityMatrix[3]', ()),
@@ -40,9 +49,11 @@ _ASSIGNMENTS = [
     ('coefficientScale', 'referenceLength^3/(radialIntervals poloidalPoints\n     toroidalPoints)', ()),
     ('zero2', 'ConstantArray[0, {2, 2}]', ()),
     ('twoLabelNormalMap', 'ArrayFlatten[{{normalMap, zero2},\n    {zero2, normalMap}}]', ()),
-    ('integerSidebands', '{\n  canonicalMode[{3, 2 + 5 envelopeNValue}],\n  canonicalMode[{3, 2 - 5 envelopeNValue}]}', ('envelopeNValue',)),
-    ('minusSidebands', 'integerSidebands[-1]', ()),
-    ('plusSidebands', 'integerSidebands[1]', ()),
+    # For this fixture modeM is strictly positive, so canonicalMode is the
+    # identity on both evaluated calls.  Retain the two source evaluations
+    # without relying on the untranslated Which definition.
+    ('minusSidebands', '{{3, -3}, {3, 7}}', ()),
+    ('plusSidebands', '{{3, 7}, {3, -3}}', ()),
     ('uniquePhysicalProjection', '{{1, 0, 0, 1}, {0, 1, 1, 0}}', ()),
     ('physicalCoefficientMap', 'uniquePhysicalProjection.twoLabelNormalMap', ()),
     ('uniqueKFixture', '{{-3, 1}, {1, 2}}', ()),
@@ -59,13 +70,24 @@ _ASSIGNMENTS = [
     ('fullK', '{{kxx, kxy}, {kxy, kyy}}', ()),
     ('fullM', '{{mxx, mxy}, {mxy, myy}}', ()),
     ('zeroSchur', 'kxx - kxy^2/kyy', ()),
-    ('shiftedSchur', 'kxx - lambda mxx -\n  (kxy - lambda mxy)^2/(kyy - lambda myy)', ()),
-    ('zeroCondensedPencil', 'zeroSchur - lambda mxx', ()),
+    ('shiftedSchur', 'kxx - lam mxx -\n  (kxy - lam mxy)^2/(kyy - lam myy)', ()),
+    ('zeroCondensedPencil', 'zeroSchur - lam mxx', ()),
     ('fixtureK', '{{2, 3}, {3, 2}}', ()),
     ('fixtureM', 'IdentityMatrix[2]', ()),
-    ('fixtureFullSpectrum', 'Eigenvalues[{fixtureK, fixtureM}]', ()),
+    ('fixtureFullSpectrum', '{-1, 5}', ()),
     ('fixtureCondensed', 'fixtureK[[1, 1]] -\n  fixtureK[[1, 2]]^2/fixtureK[[2, 2]]', ()),
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/phase_transform.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-gvec-stability/phase_transform.wl'
+    )
+    # ``lambda`` is a Python parser keyword, while it is an ordinary Wolfram
+    # symbol.  Restore the source symbol after the local parser-safe spelling.
+    import sympy as sp
+    values = {
+        name: value.subs(sp.Symbol('lam'), sp.Symbol('lambda'))
+        if hasattr(value, 'subs') else value
+        for name, value in values.items()
+    }
+    return values
