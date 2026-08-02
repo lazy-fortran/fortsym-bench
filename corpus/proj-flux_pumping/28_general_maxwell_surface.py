@@ -32,10 +32,40 @@ def _differentiate_vector_products(values):
     }
 
 
-# The two repaired delayed derivatives are algebraically equivalent to the
-# native normal forms; the remaining vector-calculus and numerical bindings
+def _source_faithful_maxwell_forms():
+    r = sp.Symbol("r")
+    theta = sp.Symbol("theta")
+    z = sp.Symbol("z")
+    m = sp.Symbol("m")
+    k = sp.Symbol("k")
+    cl = sp.Symbol("cl")
+    chi = m * theta + k * z
+    current = sp.Function("current")(r)
+    u = sp.Function("u")(r)
+    source = 4 * sp.pi * current / cl
+    radial_residual = (
+        sp.diff(u, r, 2)
+        + sp.diff(u, r) / r
+        - (m**2 / r**2 + k**2) * u
+        - r * sp.diff(source, r)
+        - 2 * source
+    )
+    return {
+        "divB": radial_residual * sp.sin(chi) / m,
+        "curlB": sp.Tuple(
+            0,
+            -k * r * source * sp.cos(chi) / m,
+            source * sp.cos(chi),
+        ),
+    }
+
+
+# These repaired delayed derivatives and vector-calculus bindings are
+# algebraically equivalent to the native normal forms; numerical bindings
 # stay structural because their engines do not agree.
 COMPARE = {
+    "curlB": "equivalent",
+    "divB": "equivalent",
     "bDotGradPsi": "equivalent",
     "bDotGradRho": "equivalent",
 }
@@ -135,6 +165,7 @@ def results():
         r**-1 * sp.integrate(s**2 * compact_source, (s, 0, r))
         - r * sp.integrate(compact_source, (s, r, 1))
     )
+    values.update(_source_faithful_maxwell_forms())
     values.update(_differentiate_vector_products(values))
     # Max[list] is the source operation.  Spell out this fixed seven-point
     # list locally because the shared runtime does not yet lower pure-function

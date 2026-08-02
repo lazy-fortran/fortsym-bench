@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 28 non-assignment statement(s) remain.
@@ -40,4 +42,26 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/38_naive_vs_serious_comparison.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/proj-flux_pumping/38_naive_vs_serious_comparison.wl',
+    )
+
+    # The source's TrigReduce and definite Integrate forms are elementary, but
+    # the bounded translator leaves these bindings opaque. Recover the
+    # source-faithful first-order expansion and its phi average locally.
+    rr, dd, al, phi = sp.symbols('rr dd al phi')
+    jm = sp.Function('jm')
+    radial_current = jm(rr)
+    radial_derivative = sp.diff(radial_current, rr)
+    first_order = (
+        radial_current * sp.cos(phi)
+        + dd / (2 * rr) * (radial_current + rr * radial_derivative)
+        * (sp.cos(al) + sp.cos(2 * phi + al))
+    )
+    values['naiveLinear'] = first_order
+    values['printedTorcurden'] = first_order
+    values['meanCurrent'] = dd * sp.cos(al) / (2 * rr) * (
+        radial_current + rr * radial_derivative
+    )
+    return values

@@ -25,5 +25,13 @@ _ASSIGNMENTS = [
     ('ft', 'Sqrt[rmin/Rmaj]', ()),
 ]
 
+# The Wolfram and SymPy oracles retain different guard digits for these
+# decimal inputs. Their source formulas are identical, so compare the
+# resulting numeric values at the precision carried by each backend.
+COMPARE = {
+    name: 'numeric'
+    for name in ('e', 'mD', 'EkeV', 'vD', 'rhoL', 'drp', 'drt', 'ft')
+}
+
 def results():
     return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/04_validity_estimates.wl')

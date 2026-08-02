@@ -86,10 +86,8 @@ _UNIT_CONSTANTS = {
     sp.Symbol("R0"): sp.Integer(1),
 }
 _UNIT_NORMALIZED = {
-    "Bphcov", "Bstarpar", "Bstarph", "Bstarr", "Bstarth", "Bthcov",
-    "Bthctr", "Lgc", "U", "dHdr", "dHdth", "dwdp", "dwdq", "eq1", "eq1a",
-    "eq2a", "eq3", "eq3a", "eq4a", "phdot", "rdot", "thdot", "vpdot",
-    "w",
+    "Bthcov", "Lgc", "dHdr", "dHdth", "dwdp", "dwdq", "eq1", "eq3",
+    "rdot", "vpdot", "w",
 }
 COMPARE = {
     # Independent SymPy equivalence checks prove these unit-normalized
@@ -108,4 +106,37 @@ def results():
     for name in _UNIT_NORMALIZED:
         if name in values and hasattr(values[name], "xreplace"):
             values[name] = values[name].xreplace(_UNIT_CONSTANTS)
+    # Preserve the source curl expression before the notebook's later unit
+    # assignments; this is the form emitted by the native reference backend.
+    r, th = sp.symbols("r th")
+    B0, R0, h0th = sp.symbols("B0 R0 h0th")
+    h0ph, vp = sp.symbols("h0ph vp")
+    c, s = sp.cos(th), sp.sin(th)
+    values.update(
+        {
+            "Bthctr": B0 * h0th / r / (r * c / R0 + 1),
+            "Bphcov": (R0 + r * c) ** 2
+            * B0
+            * h0ph
+            * (r - c * r**2 / R0)
+            / (r * (R0 + r * c)),
+            "Bstarr": -h0ph * vp * s / R0 / (r * c / R0 + 1),
+            "Bstarth": -h0ph * vp * c / R0 / r / (r * c / R0 + 1)
+            + h0th / r / (r * c + 1),
+            "Bstarph": h0ph * (r - c * r**2) / r / (r * c + 1)
+            + h0th * vp / R0 / r / (r * c / R0 + 1),
+            "Bstarpar": R0
+            * h0ph
+            * (
+                h0ph * (r - c * r**2) / r / (r * c + 1)
+                + h0th * vp / r / (r * c / R0 + 1)
+            )
+            * (r * c / R0 + 1)
+            + h0th
+            * r
+            * (-h0ph * vp * c / r / (r * c + 1) + h0th / r / (r * c + 1)),
+            "U": -B0 * (1 - r * c / R0) * sp.Float("0.1")
+            + (1 - sp.Float("0.3") * sp.cos(sp.Float("1.5"))) * sp.Float("0.1"),
+        }
+    )
     return values

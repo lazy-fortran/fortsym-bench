@@ -50,4 +50,38 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/screw_pinch_suydam.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/proj-gvec-stability/screw_pinch_suydam.wl',
+    )
+
+    # Rule and RuleDelayed are useful source bindings, but the shared SymPy
+    # serializer deliberately keeps their Wolfram tree opaque. Preserve the
+    # two rules from the source so the companion exposes the same bindings as
+    # the native Wolfram path.
+    import sympy as sp
+
+    derivative1 = sp.Function('Derivative1')
+    pattern = sp.Function('Pattern')(
+        sp.Symbol('rr'), sp.Function('Blank')()
+    )
+    rr = sp.Symbol('rr')
+    mu0 = sp.Symbol('mu0')
+    btheta = sp.Function('btheta')
+    bz = sp.Function('bz')
+    force_rhs = (
+        -btheta(rr)
+        * (btheta(rr) + rr * derivative1(sp.Symbol('btheta'), 1, rr))
+        / (mu0 * rr)
+        - bz(rr) * derivative1(sp.Symbol('bz'), 1, rr) / mu0
+    )
+    values['forceBalance'] = sp.Function('RuleDelayed')(
+        derivative1(sp.Symbol('p'), 1, pattern), force_rhs
+    )
+
+    rs = sp.Symbol('rs')
+    m = sp.Symbol('m')
+    values['resonance'] = sp.Function('Rule')(
+        sp.Symbol('k'), -m * btheta(rs) / (rs * bz(rs))
+    )
+    return values
