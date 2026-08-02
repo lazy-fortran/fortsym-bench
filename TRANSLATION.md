@@ -84,7 +84,8 @@ calculus, algebra, replacement, table, list, and matrix operations, including
 bounded `First`, `Last`, `Rest`, `Most`, `Reverse`, `Take`, and `Drop` selectors
 and rectangular-matrix `Diagonal` extraction, bounded exact
 `CharacteristicPolynomial` for explicit square matrices, plus a Wolfram
-non-negative `MatrixPower`, `Coefficient`/`CoefficientList`, and a Wolfram matrix-product dot continued across
+non-negative `MatrixPower`, `Coefficient`/`CoefficientList`, single-variable
+`Solve` rule-list normalization, and a Wolfram matrix-product dot continued across
 a line break. Unicode `λ` is protected
 during SymPy parsing and restored as the original symbol. Unsupported selector and matrix shapes remain
 opaque. It intentionally

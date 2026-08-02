@@ -45,7 +45,7 @@ BACKENDS = {
         # The assignment extractor and expression-layout normalisation are
         # part of the oracle contract, so invalidate old raw results when
         # either changes.
-        Backend("sympy", ".py", "srepr", is_oracle=True, cache_version=11),
+        Backend("sympy", ".py", "srepr", is_oracle=True, cache_version=13),
         Backend("fortsym-sympy", ".py", "srepr", cache_version=2),
         Backend("mathics", ".wl", "inputform", is_oracle=True,
                 command=("mathics", "-q", "--no-readline", "-c"),
