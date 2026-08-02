@@ -8,6 +8,12 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 49 non-assignment statement(s) remain.
+COMPARE = {
+    'Bth2test': 'equivalent',
+    'Bthat': 'equivalent',
+    'Btot0': 'equivalent',
+    'Rfa': 'equivalent',
+}
 _ASSIGNMENTS = [
     ('sqg', 'r*(Subscript[R, 0] + r*Cos[ϑ])', ()),
     ('psidot', '(1/(2*Pi))*Integrate[sqg*Subscript[B, φ], {ϑ, 0, 2*Pi}, Assumptions -> r > 0 && Subscript[R, 0] > r]', ()),

@@ -247,8 +247,8 @@ unsupported rows, 1 timeout, and 1 runner error.
 The subsequent slices protect ordinary `zeta` coordinates from SymPy's
 built-in Zeta parser, lower bounded `Position`/`Union`, classify list-valued
 InputForm arithmetic without comparator crashes, and normalize the `sympl3_`
-unit constants. The current cache-only three-backend score is 3,421 agreements,
-550 differences, 8 unsupported outcomes, 73 timeouts, 81 errors, 2 unavailable
+unit constants. The current cache-only three-backend score is 3,427 agreements,
+544 differences, 8 unsupported outcomes, 73 timeouts, 81 errors, 2 unavailable
 oracle rows, 202 oracle disagreements, and 653 oracle-missing bindings. The
 Mathics wrapper also neutralizes `Quit` and isolates per-run protocol symbols;
 current Mathics inventory is 238 successful rows, 80 errors, and 66 timeouts.
