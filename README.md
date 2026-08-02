@@ -218,6 +218,10 @@ disagreements rather than scored as native errors. The v28 dirty-cache-flush
 transition then served a three-script warm slice in 0.30 seconds at 334 MiB
 RSS without rewriting either cache file or starting an oracle subprocess; the
 native backend itself took 0.0001--0.0014 seconds per script.
+The v29 SymPy translator slice now lowers bounded scalar first-order `DSolve`
+with callable dependent variables, with 35 focused translation tests passing;
+the corresponding velocity-integral companion still needs `SetDelayed`
+lowering before its later integral bindings can be exported.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
