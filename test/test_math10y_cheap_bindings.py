@@ -53,3 +53,18 @@ def test_math10y_literal_rule_assignments_preserve_source_values():
         rule(sp.Symbol('L'), 110),
         rule(sp.Symbol('C'), 19),
     )
+
+
+def test_math10y_recovered_geometry_values_have_independent_numeric_oracles():
+    values = math10y.results()
+    a, b, x, phi = sp.symbols('a b x phi')
+
+    assert values['dy'] == b * sp.sqrt(1 - x**2 / a**2) * sp.cos(phi)
+    expected_corners = {
+        'g11': sp.Float('-4.393958173231915'),
+        'g01': sp.Float('-4.739667394322384'),
+        'g10': sp.Float('-0.3494354499302735'),
+        'g00': sp.Float('-0.6528664717019914'),
+    }
+    for name, expected in expected_corners.items():
+        assert abs(values[name] - expected) < sp.Float('1e-14')
