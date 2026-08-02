@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 15 non-assignment statement(s) remain.
+# NOT TRANSLATED: 14 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('$Assumptions', '{rad > 0, eta > 0, capR > 0,\n  Element[{alpha, chi, eps, dRe, dIm, jRe, jIm, eRe, eIm}, Reals]}', ()),
     ('rho', 'r + eps delta0 Cos[chi + alpha]', ()),
@@ -29,7 +29,7 @@ _ASSIGNMENTS = [
     ('j0', 'externalField/eta', ()),
     ('jPerturbed', 'Normal@Series[(externalField + eps dynamoField)/\n    (eta + eps deltaEta), {eps, 0, 1}]', ()),
     ('deltaJ', 'Coefficient[jPerturbed - j0, eps]', ()),
-    ('coreProfile', 'jExpected /.', ()),
+    ('coreProfile', 'jExpected /.\n  current -> Function[x, x Exp[-x^2/rad^2]]', ()),
 ]
 
 def results():

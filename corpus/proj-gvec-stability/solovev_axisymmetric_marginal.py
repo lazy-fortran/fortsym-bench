@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 36 non-assignment statement(s) remain.
+# NOT TRANSLATED: 35 non-assignment statement(s) remain.
 COMPARE = {
     'boundaryRows': 'numeric',
     'gradOnBoundary': 'numeric',
@@ -33,7 +33,7 @@ _ASSIGNMENTS = [
     ('rW', 'Sqrt[rSq]', ()),
     ('zW', 'e a r0 sig Sin[w]/rW', ()),
     ('dlSq', 'D[rW, w]^2 + D[zW, w]^2 // Simplify', ()),
-    ('gradPsiSq', '(D[psi[R, Z], R]^2 + D[psi[R, Z], Z]^2) /.', ()),
+    ('gradPsiSq', '(D[psi[R, Z], R]^2 + D[psi[R, Z], Z]^2) /.\n    {R -> rW, Z -> zW} // Simplify', ()),
     ('integrandSq', 'dlSq/(rSq gradPsiSq) // Simplify', ()),
     ('eV', '8/5', ()),
     ('aV', '33/100', ()),

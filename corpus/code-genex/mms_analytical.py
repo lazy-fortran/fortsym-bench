@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 67 non-assignment statement(s) remain.
+# NOT TRANSLATED: 66 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('argv', 'Rest @ $ScriptCommandLine', ()),
     ('argc', 'Length @ argv', ()),
@@ -46,7 +46,7 @@ _ASSIGNMENTS = [
     ('dApardt', 'D[Apar[t, R, phi, Z], t]', ('t', 'R', 'phi', 'Z')),
     ('gradApar', 'Grad[Apar[t, R, phi, Z], {R, phi, Z}, coordinatesystem]', ('t', 'R', 'phi', 'Z')),
     ('gradpot', 'Grad[pot[t, R, phi, Z], {R, phi, Z}, coordinatesystem]', ('t', 'R', 'phi', 'Z')),
-    ('gradpot2', 'Grad[pot[t, R, phi, Z], {R, Z}, "Cartesian"] \\', ('t', 'R', 'phi', 'Z')),
+    ('gradpot2', 'Grad[pot[t, R, phi, Z], {R, Z}, "Cartesian"] \\\n    . Grad[pot[t, R, phi, Z], {R, Z}, "Cartesian"]', ('t', 'R', 'phi', 'Z')),
     ('gradH2', '- (rhoref / Lref)^2 \\\n    * Grad[masses[[sigma]] / (2 * absBfunc[R, phi, Z]^2) \\\n            * gradpot2[t, R, phi, Z], {R, phi, Z}, coordinatesystem]', ('t', 'R', 'phi', 'Z', 'sigma')),
     ('gradBpar', 'Grad[Bpar[t, R, phi, Z], {R, phi, Z}, coordinatesystem]', ('t', 'R', 'phi', 'Z')),
     ('gradB', 'Grad[absBfunc[R, phi, Z], {R, phi, Z}, coordinatesystem]', ('R', 'phi', 'Z')),

@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 41 non-assignment statement(s) remain.
+# NOT TRANSLATED: 40 non-assignment statement(s) remain.
 COMPARE = {
     'SatBad': 'numeric',
     'opGC': 'numeric',
@@ -31,7 +31,7 @@ _ASSIGNMENTS = [
     ('Hfull', 'uu^2/2 + (1/(2 eps^2)) (Bwell[xx] qq^2 + pp^2)/Bref + muFloor', ('xx', 'qq', 'uu', 'pp', 'eps')),
     ('J4', '{{0, 0, 1, 0}, {0, 0, 0, 1}, {-1, 0, 0, 0}, {0, -1, 0, 0}}', ()),
     ('zsym', '{xx, qq, uu, pp}', ()),
-    ('HessFull', 'Table[D[Hfull[xx, qq, uu, pp, eps], zsym[[i]], zsym[[j]]], {i, 4}, {j, 4}] /.', ('x0', 'q0', 'u0', 'p0', 'eps')),
+    ('HessFull', 'Table[D[Hfull[xx, qq, uu, pp, eps], zsym[[i]], zsym[[j]]], {i, 4}, {j, 4}] /.\n    {xx -> x0, qq -> q0, uu -> u0, pp -> p0}', ('x0', 'q0', 'u0', 'p0', 'eps')),
     ('Lop', '(dt/2) Inverse[J4] . S', ('S', 'dt')),
     ('solvMat', 'IdentityMatrix[4] - Lop[S, dt]', ('S', 'dt')),
     ('solvDet', 'Det[N[solvMat[HessFull[x0, q0, u0, p0, eps], dt]]]', ('x0', 'q0', 'u0', 'p0', 'dt', 'eps')),

@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 92 non-assignment statement(s) remain.
+# NOT TRANSLATED: 91 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('pass', '0', ()),
     ('fail', '0', ()),
@@ -68,7 +68,7 @@ _ASSIGNMENTS = [
     ('secondZZ', 'unitNormal . rzz', ()),
     ('fixturePhase', 'phase /. {m -> 2, n -> -1, theta -> 1/8, zeta -> 1/8}', ()),
     ('fixtureValue', '4 Cos[fixturePhase] + 6 Sin[fixturePhase]', ()),
-    ('fixtureJet', '{fixtureValue,\n  D[4 Cos[phase] + 6 Sin[phase], {theta, 2}],\n  D[4 Cos[phase] + 6 Sin[phase], theta, zeta],\n  D[4 Cos[phase] + 6 Sin[phase], {zeta, 2}]} /.', ()),
+    ('fixtureJet', '{fixtureValue,\n  D[4 Cos[phase] + 6 Sin[phase], {theta, 2}],\n  D[4 Cos[phase] + 6 Sin[phase], theta, zeta],\n  D[4 Cos[phase] + 6 Sin[phase], {zeta, 2}]} /.\n {m -> 2, n -> -1, theta -> 1/8, zeta -> 1/8}', ()),
     ('frs', '{1, 2, -1}', ()),
     ('frt', '{0, 2, 1}', ()),
     ('frz', '{3, -1, 2}', ()),

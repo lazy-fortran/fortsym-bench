@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 28 non-assignment statement(s) remain.
+# NOT TRANSLATED: 27 non-assignment statement(s) remain.
 COMPARE = {
     'alfvenPoint': 'numeric',
     'branchZeroQ': 'numeric',
@@ -18,7 +18,7 @@ _ASSIGNMENTS = [
     ('fail', '0', ()),
     ('check', 'If[TrueQ[condition],\n  pass++; Print["PASS  ", name], fail++; Print["FAIL  ", name]]', ('name', 'condition')),
     ('zeroQ', 'SameQ[Together[expr], 0]', ('expr',)),
-    ('phaseAverage', 'Expand[TrigReduce[expr]] /.', ('expr', 'angle')),
+    ('phaseAverage', 'Expand[TrigReduce[expr]] /.\n  {Cos[a_] /; ! FreeQ[a, angle] :> 0,\n   Sin[a_] /; ! FreeQ[a, angle] :> 0}', ('expr', 'angle')),
     ('coords', '{r, theta, z}', ()),
     ('phase', 'm theta + k z', ()),
     ('bField', '{0, btheta[r], bz[r]}', ()),

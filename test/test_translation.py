@@ -95,6 +95,16 @@ def test_multiline_rhs_is_arithmetic_not_a_compound_expression():
     assert evaluate_assignments(assignments)["value"] == a + b
 
 
+def test_multiline_matrix_product_keeps_a_trailing_dot_in_the_rhs():
+    assignments, skipped = extract_assignments(
+        "value = {1, 2} .\n  {x, y}"
+    )
+
+    assert skipped == []
+    x, y = sp.symbols("x y")
+    assert evaluate_assignments(assignments)["value"] == x + 2 * y
+
+
 def test_derivative_of_a_list_is_componentwise():
     assignments, skipped = extract_assignments(
         "value = D[{x^2, Sin[x]}, x]"

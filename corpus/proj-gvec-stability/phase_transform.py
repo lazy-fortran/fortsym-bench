@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 51 non-assignment statement(s) remain.
+# NOT TRANSLATED: 46 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('$Assumptions', 'Element[{a, b, c, d, m1, m2, r, s, phi1, phi2,\n    kxx, kxy, kyy, mxx, mxy, myy, lambda, theta, zeta, baseM,\n    baseN, envelopeM, envelopeN, xe, xo, ye, yo, referenceLength,\n    radialIntervals, poloidalPoints, toroidalPoints}, Reals] &&', ()),
     ('pass', '0', ()),
@@ -30,9 +30,9 @@ _ASSIGNMENTS = [
     ('carrierAndPairMap', 'ArrayFlatten[{{{{1}}, ConstantArray[0, {1, 2}]},\n    {ConstantArray[0, {2, 1}], normalMap}}]', ()),
     ('printedEnvelopeMass', '1/2 IdentityMatrix[3]', ()),
     ('carrierAndPairInverse', 'Inverse[carrierAndPairMap]', ()),
-    ('inducedPhysicalMass', 'Transpose[carrierAndPairInverse].', ()),
+    ('inducedPhysicalMass', 'Transpose[carrierAndPairInverse].\n  printedEnvelopeMass.carrierAndPairInverse', ()),
     ('carrierPairK', '{{3, 1, -2}, {1, 5, 1}, {-2, 1, 7}}', ()),
-    ('carrierPairEnvelopeK', 'Transpose[carrierAndPairMap].carrierPairK.', ()),
+    ('carrierPairEnvelopeK', 'Transpose[carrierAndPairMap].carrierPairK.\n  carrierAndPairMap', ()),
     ('coefficientScale', 'referenceLength^3/(radialIntervals poloidalPoints\n     toroidalPoints)', ()),
     ('zero2', 'ConstantArray[0, {2, 2}]', ()),
     ('twoLabelNormalMap', 'ArrayFlatten[{{normalMap, zero2},\n    {zero2, normalMap}}]', ()),
@@ -43,9 +43,9 @@ _ASSIGNMENTS = [
     ('physicalCoefficientMap', 'uniquePhysicalProjection.twoLabelNormalMap', ()),
     ('uniqueKFixture', '{{-3, 1}, {1, 2}}', ()),
     ('uniqueMFixture', '{{2, 0}, {0, 3}}', ()),
-    ('collidingKFixture', 'Transpose[physicalCoefficientMap].uniqueKFixture.', ()),
-    ('collidingMFixture', 'Transpose[physicalCoefficientMap].uniqueMFixture.', ()),
-    ('quotientLift', 'Transpose[physicalCoefficientMap].', ()),
+    ('collidingKFixture', 'Transpose[physicalCoefficientMap].uniqueKFixture.\n  physicalCoefficientMap', ()),
+    ('collidingMFixture', 'Transpose[physicalCoefficientMap].uniqueMFixture.\n  physicalCoefficientMap', ()),
+    ('quotientLift', 'Transpose[physicalCoefficientMap].\n  Inverse[physicalCoefficientMap.Transpose[physicalCoefficientMap]]', ()),
     ('quotientKFixture', 'Transpose[quotientLift].collidingKFixture.quotientLift', ()),
     ('quotientMFixture', 'Transpose[quotientLift].collidingMFixture.quotientLift', ()),
     ('sidebandK', '{{a, c, 0, d}, {c, b, -d, 0},\n  {0, -d, a + b, r}, {d, 0, r, a + 2 b}}', ()),

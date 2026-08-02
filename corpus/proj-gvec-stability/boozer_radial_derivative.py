@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 13 non-assignment statement(s) remain.
+# NOT TRANSLATED: 12 non-assignment statement(s) remain.
 COMPARE = {
     'at': 'numeric',
 }
@@ -26,7 +26,7 @@ _ASSIGNMENTS = [
     ('thetaB', 'u + la[r, u, v] + iota[r] nu[r, u, v]', ('r', 'u', 'v')),
     ('zetaB', 'v + nu[r, u, v]', ('r', 'u', 'v')),
     ('basis', '{D[position[r, u, v], r],\n  D[position[r, u, v], u], D[position[r, u, v], v]}', ('r', 'u', 'v')),
-    ('jac', 'basis[r, u, v][[1]] .', ('r', 'u', 'v')),
+    ('jac', 'basis[r, u, v][[1]] .\n  Cross[basis[r, u, v][[2]], basis[r, u, v][[3]]]', ('r', 'u', 'v')),
     ('duals', 'Module[{b = basis[r, u, v]},\n  {Cross[b[[2]], b[[3]]], Cross[b[[3]], b[[1]]],\n    Cross[b[[1]], b[[2]]]}/jac[r, u, v]]', ('r', 'u', 'v')),
     ('gradScalar', 'Module[{d = duals[r, u, v]},\n  D[f[r, u, v], r] d[[1]] + D[f[r, u, v], u] d[[2]] +\n    D[f[r, u, v], v] d[[3]]]', ('f', 'r', 'u', 'v')),
     ('angleJacobian', '{{D[thetaB[r, u, v], u], D[thetaB[r, u, v], v]},\n   {D[zetaB[r, u, v], u], D[zetaB[r, u, v], v]}}', ('r', 'u', 'v')),

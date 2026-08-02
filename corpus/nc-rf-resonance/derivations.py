@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 81 non-assignment statement(s) remain.
+# NOT TRANSLATED: 80 non-assignment statement(s) remain.
 COMPARE = {
     'refs': 'numeric',
 }
@@ -63,7 +63,7 @@ _ASSIGNMENTS = [
     ('ngRef', '133.322 2/(1.380649*^-23 300.)', ()),
     ('nuRef', 'ngRef 1.*^-19 Sqrt[8 1.602176634*^-19 2./(Pi 9.1093837015*^-31)]', ()),
     ('sigmaRefC', 'ne qe^2/(me (\\[Nu] + I \\[Omega])) //. refRules', ()),
-    ('zplRef', 'zPl /. kk -> Sqrt[-I \\[Omega] \\[Mu]0 \\[Sigma]] /.', ()),
+    ('zplRef', 'zPl /. kk -> Sqrt[-I \\[Omega] \\[Mu]0 \\[Sigma]] /.\n    \\[Sigma] -> sigmaRefC //. refRules', ()),
     ('refs', '{\n  {"gamma_swr3", N[gammaOfSWR /. s -> 3]},\n  {"b_over_i", N[(bCenter/II) //. refRules]},\n  {"delta_cu",\n   N[Sqrt[2 1.68*^-8/((2 Pi 13.56*^6) (4 Pi 10^-7))]]},\n  {"n_g_2torr", N[ngRef]},\n  {"nu_m_2torr_2ev", N[nuRef]},\n  {"sigma_re_1e17", N[Re[sigmaRefC]]},\n  {"sigma_im_1e17", N[Im[sigmaRefC]]},\n  {"delta_coll_1e17", N[Sqrt[2/((4 Pi 10^-7) (2 Pi 13.56*^6)\n       Re[sigmaRefC])]]},\n  {"r_pl_exact_1e17", N[Re[zplRef]]},\n  {"x_pl_exact_1e17", N[Im[zplRef]]},\n  {"r_pl_uniform_1e17", N[rplUniform /. \\[Sigma] -> Re[sigmaRefC] //.\n      refRules]},\n  {"k_geo2", N[kgeo^2 //. refRules]},\n  {"r_pl_finite_1e17", N[(kgeo^2 //. refRules) Re[zplRef]]},\n  {"paschen_pd_min_ar", N[pdMin /. {AP -> 12, \\[Gamma]se -> 0.05}]},\n  {"paschen_v_min_ar",\n   N[vbMin /. {AP -> 12, BP -> 180, \\[Gamma]se -> 0.05}]}}', ()),
 ]
 

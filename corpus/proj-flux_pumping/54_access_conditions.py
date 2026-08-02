@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 81 non-assignment statement(s) remain.
+# NOT TRANSLATED: 78 non-assignment statement(s) remain.
 COMPARE = {
     'aNeeded': 'numeric',
     'eEffKinetic': 'numeric',
@@ -25,13 +25,13 @@ _ASSIGNMENTS = [
     ('gDim', '(DOhm - dd)/tR - ka aa^2', ()),
     ('aStarSqDim', '(DOhm - Dc)/(ka tR + al/g0)', ()),
     ('dStarDim', 'Dc + al aStarSqDim/g0', ()),
-    ('jacDim', '{{D[fDim, aa], D[fDim, dd]}, {D[gDim, aa], D[gDim, dd]}} /.', ()),
+    ('jacDim', '{{D[fDim, aa], D[fDim, dd]}, {D[gDim, aa], D[gDim, dd]}} /.\n  {aa -> Sqrt[aStarSqDim], dd -> dStarDim}', ()),
     ('traceDim', 'FullSimplify[Tr[jacDim]]', ()),
     ('detDim', 'FullSimplify[Det[jacDim]]', ()),
     ('fRed', 'Ga ((dd - Dc) aa - aa^3)', ()),
     ('gRed', 'DOhm - (1 - Ee) dd - Kk aa^2', ()),
     ('xStar', '(DOhm - (1 - Ee) Dc)/((1 - Ee) + Kk)', ()),
-    ('jacRed', '{{D[fRed, aa], D[fRed, dd]}, {D[gRed, aa], D[gRed, dd]}} /.', ()),
+    ('jacRed', '{{D[fRed, aa], D[fRed, dd]}, {D[gRed, aa], D[gRed, dd]}} /.\n  {aa -> Sqrt[xx], dd -> Dc + xx}', ()),
     ('hopfEe', '1 + 2 Ga xx', ()),
     ('fixedPointResidual', 'xx ((1 - Ee) + Kk) - (DOhm - (1 - Ee) Dc)', ()),
     ('hopfQuadratic', 'FullSimplify[fixedPointResidual /. Ee -> hopfEe]', ()),
@@ -44,7 +44,7 @@ _ASSIGNMENTS = [
     ('ceilingAug', 'kkAug^2/(8 dOhmAug)', ()),
     ('kkAugReal', '172817679558011/100000000000000', ()),
     ('teFixed', 'sig /. Solve[{2 sig == -3 sig + 2}, sig][[1]]', ()),
-    ('teDegraded', 'sig /.', ()),
+    ('teDegraded', 'sig /.\n  Solve[{2 sig + (2/3) (-3 sig + 2) == -3 sig + 2}, sig][[1]]', ()),
     ('dcOf', 'dc0 (1 - (b^nn - betaB^nn)/(betaC^nn - betaB^nn))', ('b',)),
     ('nullQuintic', '(dd - Dc) + bb xx - xx^2', ()),
     ('foldSolution', 'Solve[{nullQuintic == 0, D[nullQuintic, xx] == 0}, {xx, dd}]', ()),

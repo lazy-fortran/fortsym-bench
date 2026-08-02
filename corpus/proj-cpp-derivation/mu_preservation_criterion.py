@@ -7,7 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
-# NOT TRANSLATED: 54 non-assignment statement(s) remain.
+# NOT TRANSLATED: 53 non-assignment statement(s) remain.
 COMPARE = {
     'muStarOrbitInvariant': 'numeric',
     'opGC': 'numeric',
@@ -31,7 +31,7 @@ _ASSIGNMENTS = [
     ('muStar', '(Bwell[xx] qq^2 + pp^2)/(2 eps Sqrt[Bwell[xx]/Bref])', ('xx', 'qq', 'pp', 'eps')),
     ('muStarOrbitInvariant', 'Module[{x0 = 7/10, eps = 1/40, amp = 1/2, b, ref, vals},\n  b = N[Bwell[x0]/Bref];\n  ref = N[muStar[x0, amp, 0, eps]];\n  vals = Table[N[muStar[x0, amp Cos[th], amp Sqrt[b] Sin[th], eps]] - ref, {th, 0, 2 Pi, 2 Pi/16}];\n  Max[Abs[vals]]]', ()),
     ('zsym', '{xx, qq, uu, pp}', ()),
-    ('HessFull', 'Table[D[Hfull[xx, qq, uu, pp, eps], zsym[[i]], zsym[[j]]], {i, 4}, {j, 4}] /.', ('x0', 'q0', 'u0', 'p0', 'eps')),
+    ('HessFull', 'Table[D[Hfull[xx, qq, uu, pp, eps], zsym[[i]], zsym[[j]]], {i, 4}, {j, 4}] /.\n    {xx -> x0, qq -> q0, uu -> u0, pp -> p0}', ('x0', 'q0', 'u0', 'p0', 'eps')),
     ('Lop', '(dt/2) Inverse[J4] . S', ('S', 'dt')),
     ('solvMat', 'IdentityMatrix[4] - Lop[S, dt]', ('S', 'dt')),
     ('solvDet', 'Det[N[solvMat[HessFull[x0, q0, u0, p0, eps], dt]]]', ('x0', 'q0', 'u0', 'p0', 'dt', 'eps')),
