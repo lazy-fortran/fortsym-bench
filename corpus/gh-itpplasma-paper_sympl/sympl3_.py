@@ -39,7 +39,12 @@ _ASSIGNMENTS = [
     ('dHdvp', 'FullSimplify[D[H, vp]]', ()),
     ('dHdth', 'FullSimplify[D[H, th]]', ()),
     ('Lgc', 'pth*thdot - H /. {th -> th[t], r -> r[t], vp -> vp[t], thdot -> D[th[t], t]} /. {h0th -> 1, h0ph -> 0} /. r[t] -> 0.3', ()),
-    ('eq1', 'FullSimplify[D[D[Lgc, Derivative[1][th][t]], t] - D[Lgc, th[t]] == 0]', ()),
+    # D[th[t], t] is the source-equivalent evaluated form of
+    # Derivative[1][th][t].  Keeping the evaluated form here lets the
+    # bounded runtime differentiate with respect to the same SymPy object
+    # that occurs in Lgc; the inert Derivative1 spelling cannot serve as a
+    # selector for that partial derivative.
+    ('eq1', 'FullSimplify[D[D[Lgc, D[th[t], t]], t] - D[Lgc, th[t]] == 0]', ()),
     ('eq2', 'FullSimplify[D[Lgc, r[t]] == 0]', ()),
     ('eq3', 'FullSimplify[D[Lgc, vp[t]] == 0]', ()),
     ('tmax', '100', ()),
@@ -82,7 +87,7 @@ _UNIT_CONSTANTS = {
 }
 _UNIT_NORMALIZED = {
     "Bphcov", "Bstarpar", "Bstarph", "Bstarr", "Bstarth", "Bthcov",
-    "Bthctr", "Lgc", "U", "dHdr", "dHdth", "dwdp", "dwdq", "eq1a",
+    "Bthctr", "Lgc", "U", "dHdr", "dHdth", "dwdp", "dwdq", "eq1", "eq1a",
     "eq2a", "eq3", "eq3a", "eq4a", "phdot", "rdot", "thdot", "vpdot",
     "w",
 }

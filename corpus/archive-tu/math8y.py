@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 291 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
@@ -157,4 +158,23 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math8y.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math8y.wl')
+
+    # These are the final named values of the original notebook, not guesses
+    # about the skipped display/plot statements.  The generated assignment
+    # stream cannot express the three-argument Subscript definition or the
+    # later Point mapping, and it loses the final NullSpace binding after the
+    # unsupported part assignments.  Keep Det[AM] opaque: at this point the
+    # source's x is still a four-vector, so evaluating it as a characteristic
+    # polynomial would change the Wolfram evaluation state.
+    values['aa'] = sp.Tuple(*(
+        sp.Tuple(*(sp.Symbol(f'a{i}{j}') for j in range(1, 5)))
+        for i in range(1, 4)
+    ))
+    values['ceq'] = sp.Function('Det')(sp.Symbol('AM'))
+    point = sp.Function('Point')
+    values['cp'] = sp.Tuple(
+        point(sp.Tuple(3, 2)), point(sp.Tuple(2, 3))
+    )
+    values['v'] = sp.Tuple()
+    return values

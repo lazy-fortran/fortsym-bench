@@ -8,6 +8,8 @@ restore while leaving all ordinary assignments untouched.
 """
 
 from mathics.core.definitions import Definitions
+from mathics.core.list import ListExpression
+from mathics.core.symbols import BooleanType
 
 
 _set_ownvalue = Definitions.set_ownvalue
@@ -27,3 +29,11 @@ def _safe_set_ownvalue(self, name, value):
 
 
 Definitions.set_ownvalue = _safe_set_ownvalue
+
+
+def _boolean_assumptions(self, head, **kwargs):
+    """Make Simplify[expr, True/False] compatible with list flattening."""
+    return ListExpression(self)
+
+
+BooleanType.flatten_with_respect_to_head = _boolean_assumptions

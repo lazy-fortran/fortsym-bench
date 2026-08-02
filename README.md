@@ -239,9 +239,9 @@ The v31 callable-definition slice adds bounded scalar `Set`/`SetDelayed`
 semantics after `DSolve`, including Wolfram `C[1]` normalization; the v32
 slice adds bounded lexical `Module` locals with sequential assignments and
 nested shadowing, and v33 normalizes derivative `Subs` wrappers after
-replacement. The full suite now passes 132 tests. The refreshed 384-source
+replacement. The full suite now passes 136 tests. The refreshed 384-source
 cache contains 373 successful SymPy rows, 5 unsupported rows, and 6 timeouts,
-plus 249 successful Mathics rows, 66 errors, and 69 timeouts; all rows are
+plus 255 successful Mathics rows, 60 errors, and 69 timeouts; all rows are
 reusable at timeout 15. The native cache contains 379 successful rows, 3
 unsupported rows, 1 timeout, and 1 runner error.
 The subsequent slices protect ordinary `zeta` coordinates from SymPy's
@@ -249,13 +249,15 @@ built-in Zeta parser, lower bounded `Position`/`Union`, classify list-valued
 InputForm arithmetic without comparator crashes, and normalize the `sympl3_`
 unit constants. The v34 bounded large-step, kinetic-bridge, and Bacc/Rosa/Posch
 companion refreshes recover eight previously opaque SymPy bindings and six
-verified machine-precision numeric comparisons. The current cache-only
-three-backend score is 3,449 agreements, 531 differences, 8 unsupported
-outcomes, 76 timeouts, 67 errors, 2 unavailable oracle rows, 203
-oracle disagreements, and 643 oracle-missing bindings. The Mathics wrapper
+verified machine-precision numeric comparisons. The v35 cycle also refreshes
+the `math8y`, `sympl3_`, and general-Maxwell companions, and adds a Mathics
+Boolean-assumptions shim. The current cache-only three-backend score is 3,467
+agreements, 514 differences, 8 unsupported outcomes, 76 timeouts, 61 errors,
+2 unavailable oracle rows, 209 oracle disagreements, and 636 oracle-missing
+bindings. The Mathics wrapper
 also neutralizes `Quit`, isolates per-run protocol symbols, and restores
 `$Assumptions` safely after local integrals; current Mathics inventory is 249
-successful rows, 66 errors, and 69 timeouts.
+successful rows, 60 errors, and 69 timeouts.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
