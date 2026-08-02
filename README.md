@@ -225,6 +225,11 @@ lowering before its later integral bindings can be exported.
 The v30 extraction slice also recovers assignments hidden in notebook-export
 `(compound-prefix)*opaque-head` wrappers, while preserving the opaque suffix;
 93 focused/full tests pass after that change.
+The v31 callable-definition slice adds bounded scalar `Set`/`SetDelayed`
+semantics after `DSolve`, including Wolfram `C[1]` normalization; the full
+suite now passes 96 tests. The refreshed 384-source cache contains 374
+successful SymPy rows, 5 unsupported rows, and 5 timeouts, plus 214 successful
+Mathics rows, 104 errors, and 66 timeouts; all rows are reusable at timeout 15.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
