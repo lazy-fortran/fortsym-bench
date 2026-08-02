@@ -229,6 +229,29 @@ def test_string_literals_use_the_native_comparison_atom():
     )
 
 
+def test_diagonal_singular_values_and_numeric_extrema_lower_directly():
+    assignments, skipped = extract_assignments(
+        "values = SingularValueList[{{0.0, 0.0}, {0.0, -3.0}}]; "
+        "largest = Max[values]; smallest = Min[values]"
+    )
+
+    assert skipped == []
+    values = evaluate_assignments(assignments)
+    assert values["values"] == sp.Tuple(sp.Float(3.0), sp.Integer(0))
+    assert values["largest"] == sp.Float(3.0)
+    assert values["smallest"] == sp.Integer(0)
+
+
+def test_unsupported_singular_value_shapes_remain_opaque():
+    assignments, skipped = extract_assignments("value = SingularValueList[{{x, 1}, {0, y}}]")
+
+    assert skipped == []
+    x, y = sp.symbols("x y")
+    assert evaluate_assignments(assignments)["value"] == sp.Function(
+        "SingularValueList"
+    )(sp.Tuple(sp.Tuple(x, 1), sp.Tuple(0, y)))
+
+
 def test_unicode_lambda_is_safe_inside_sympy_function_calls():
     assignments, skipped = extract_assignments(
         "value = CharacteristicPolynomial[{{1, 2}, {3, 4}}, λ]"

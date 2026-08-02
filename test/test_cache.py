@@ -248,7 +248,7 @@ def test_sympy_cache_upgrade_reuses_non_string_version_14_rows(tmp_path):
     source.write_text("_ASSIGNMENTS = [('value', 'x + 1', ())]\n")
     cache = ReferenceCache(tmp_path / "reference.json")
     old = Backend("sympy", ".py", "srepr", cache_version=14)
-    current = Backend("sympy", ".py", "srepr", cache_version=15)
+    current = Backend("sympy", ".py", "srepr", cache_version=16)
 
     cache.put_result(old, source, 5.0, {"value": "Add(Symbol('x'), Integer(1))"})
 
@@ -260,7 +260,7 @@ def test_sympy_cache_upgrade_reruns_version_14_string_rows(tmp_path):
     source.write_text("_ASSIGNMENTS = [('value', '\"figures\"', ())]\n")
     cache = ReferenceCache(tmp_path / "reference.json")
     old = Backend("sympy", ".py", "srepr", cache_version=14)
-    current = Backend("sympy", ".py", "srepr", cache_version=15)
+    current = Backend("sympy", ".py", "srepr", cache_version=16)
 
     cache.put_result(old, source, 5.0, {"value": "Function('_Str')(Symbol('figures'))"})
 

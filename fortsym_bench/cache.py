@@ -328,11 +328,12 @@ class ReferenceCache:
         function calls. Version 11 adds the Coefficient and CoefficientList
         lowering, versions 12/13 normalize single-variable Solve results to
         Wolfram rule lists and serialize those rules as opaque Rule heads, and
-        version 14 adds the bounded FoldList form and version 15 aligns
-        protected string literals with the native comparison protocol. Older
-        rows remain exact for sources unaffected by the corresponding change,
-        which prevents a translator fix from forcing a multi-gigabyte full
-        oracle refresh.
+        version 14 adds the bounded FoldList form, version 15 aligns protected
+        string literals with the native comparison protocol, and version 16
+        lowers the bounded diagonal SingularValueList and numeric extrema
+        forms. Older rows remain exact for sources unaffected by the
+        corresponding change, which prevents a translator fix from forcing a
+        multi-gigabyte full oracle refresh.
         """
         version = entry.get("cache_version", 1)
         if version == backend.cache_version:
@@ -414,7 +415,20 @@ class ReferenceCache:
                 return False
         if (
             backend.name == "sympy"
-            and backend.cache_version == 15
+            and backend.cache_version == 16
+            and version == 15
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                text = Path(source).read_text()
+                return "SingularValueList" not in text and "Max[" not in text and "Min[" not in text
+            except (OSError, UnicodeError):
+                return False
+        if (
+            backend.name == "sympy"
+            and backend.cache_version == 16
             and version in (9, 10, 11, 12, 13, 14)
         ):
             source = entry.get("source")
