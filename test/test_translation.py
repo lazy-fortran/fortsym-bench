@@ -133,6 +133,14 @@ def test_diagonal_extracts_the_shorter_dimension_of_a_matrix():
     assert evaluate_assignments(assignments)["value"] == sp.Tuple(1, 5)
 
 
+def test_diagonal_preserves_a_non_matrix_argument():
+    assignments, skipped = extract_assignments("value = Diagonal[s]")
+
+    assert skipped == []
+    s = sp.Symbol("s")
+    assert evaluate_assignments(assignments)["value"] == sp.Function("Diagonal")(s)
+
+
 def test_derivative_of_a_list_is_componentwise():
     assignments, skipped = extract_assignments(
         "value = D[{x^2, Sin[x]}, x]"
