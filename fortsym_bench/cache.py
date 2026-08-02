@@ -316,17 +316,35 @@ class ReferenceCache:
 
     @staticmethod
     def _cache_version_compatible(backend: Backend, entry: dict) -> bool:
-        """Accept Mathics answers across the protocol-only cache bump.
+        """Accept cache rows whose semantic change does not affect the source.
 
         Version 3 changed only the parser's treatment of a valid ``T`` line
         with no ``R`` lines. Successful older Mathics answers and named old
         failures remain valid; the old ``no results parsed`` failures are the
         one class that must be rerun because they may actually be empty result
         sets under the new protocol.
+
+        SymPy version 10 added protection for literal Unicode ``λ`` inside
+        function calls. Older rows remain exact for sources that do not contain
+        that character, which prevents a translator fix from forcing a
+        multi-gigabyte full oracle refresh. A source containing ``λ`` must be
+        rerun under version 10.
         """
         version = entry.get("cache_version", 1)
         if version == backend.cache_version:
             return True
+        if (
+            backend.name == "sympy"
+            and backend.cache_version == 10
+            and version == 9
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                return "λ" not in Path(source).read_text()
+            except (OSError, UnicodeError):
+                return False
         if backend.name != "mathics" or version > backend.cache_version:
             return False
         if entry.get("outcome") != "failure":

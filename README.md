@@ -150,8 +150,8 @@ reused. The 155 MB raw-result cache then served an identical warm audit in
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
 The SymPy cache is now version 10 because Unicode `λ` is protected while
-parsing function arguments; only affected rows need refreshing after that
-translator change.
+parsing function arguments. The cache transition reuses version-9 rows for
+sources without `λ` and refreshes only affected translations.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
