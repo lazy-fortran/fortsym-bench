@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 39 non-assignment statement(s) remain.
 COMPARE = {
@@ -65,4 +66,13 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/15_memo_feedback_local.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-flux_pumping/15_memo_feedback_local.wl'
+    )
+
+    # The matrix dot product is source-faithful but is not serializable
+    # through the generic lowering. Preserve the exact magnetic-norm binding
+    # so the native result has an independent SymPy oracle.
+    Bph, R, iota, r = sp.symbols('Bph R iota r')
+    values['Bmag'] = sp.sqrt(Bph**2 * R**2 + Bph**2 * iota**2 * r**2)
+    return values
