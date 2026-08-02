@@ -8,6 +8,9 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 192 non-assignment statement(s) remain.
+COMPARE = {
+    'test': 'numeric',
+}
 _ASSIGNMENTS = [
     ('p1', 'Plot[Floor[x], {x, -3, 3}, AxesLabel -> {"x", "Floor[x]"}]', ()),
     ('p2', 'Plot[Ceiling[x], {x, -3, 3}, AxesLabel -> {"x", "Ceiling[x]"}]', ()),

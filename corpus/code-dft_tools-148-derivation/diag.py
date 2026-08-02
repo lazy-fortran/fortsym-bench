@@ -8,6 +8,9 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 5 non-assignment statement(s) remain.
+COMPARE = {
+    'closure': 'numeric',
+}
 _ASSIGNMENTS = [
     ('rots', '{IdentityMatrix[3],\n        RotationMatrix[Pi/2,{0,0,1}], RotationMatrix[Pi,{0,0,1}], RotationMatrix[3 Pi/2,{0,0,1}],\n        RotationMatrix[Pi,{1,0,0}], RotationMatrix[Pi,{0,1,0}],\n        RotationMatrix[Pi,{1,1,0}], RotationMatrix[Pi,{1,-1,0}]}', ()),
     ('ng', 'Length[rots]', ()),

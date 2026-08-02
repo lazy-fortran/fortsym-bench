@@ -8,6 +8,9 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 42 non-assignment statement(s) remain.
+COMPARE = {
+    'qq': 'numeric',
+}
 _ASSIGNMENTS = [
     ('S', '{{omc^2*Wf[0, 0], omc*Vth*Wf[0, 0] + omc*hth*Wf[0, 1], omc*Vz*Wf[0, 0] + omc*hz*Wf[0, 1]}, {Vth*omc*Wf[0, 0] + hth*omc*Wf[0, 1], Vth^2*Wf[0, 0] + 2*hth*Vth*Wf[0, 1] + hth^2*Wf[1, 1], Vth*Vz*Wf[0, 0] + (hth*Vz + hz*Vth)*Wf[0, 1] + hth*hz*Wf[1, 1]}, {Vz*omc*Wf[0, 0] + hz*omc*Wf[0, 1], Vth*Vz*Wf[0, 0] + (hth*Vz + hz*Vth)*Wf[0, 1] + hth*hz*Wf[1, 1], Vz^2*Wf[0, 0] + 2*hz*Vz*Wf[0, 1] + hz^2*Wf[1, 1]}}', ()),
     ('L', 'Eigenvalues[S]', ()),

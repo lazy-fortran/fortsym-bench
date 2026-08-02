@@ -8,6 +8,10 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 102 non-assignment statement(s) remain.
+COMPARE = {
+    'cn': 'numeric',
+    'd2': 'numeric',
+}
 _ASSIGNMENTS = [
     ('data', '{{2, 1}, {3, 7}, {5, 8}, {6, 11}}', ()),
     ('d', 'ListPlot[data, PlotRange -> {{0, 6.1}, {0, 12}}, Prolog -> PointSize[0.015]]', ()),

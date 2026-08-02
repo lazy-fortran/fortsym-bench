@@ -8,6 +8,12 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 62 non-assignment statement(s) remain.
+COMPARE = {
+    'cHelicalValue': 'numeric',
+    'cMeanValue': 'numeric',
+    'fixtureValue': 'numeric',
+    'printedFixture': 'numeric',
+}
 _ASSIGNMENTS = [
     ('b15New', '2^(2/3) Gamma[1/6] Gamma[1/3]/(3^(5/3) Sqrt[Pi])', ()),
     ('b15Ours', '2^(1/3) Gamma[1/3]^3/(3^(7/6) Pi)', ()),

@@ -8,6 +8,9 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 114 non-assignment statement(s) remain.
+COMPARE = {
+    'v0': 'numeric',
+}
 _ASSIGNMENTS = [
     ('e', 'Expand[(1 + 3*x + 4*y^2)^2]', ()),
     ('pp', '17 + 2*x*y^2 + 3*x^3*y', ()),

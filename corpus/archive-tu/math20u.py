@@ -8,6 +8,9 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 17 non-assignment statement(s) remain.
+COMPARE = {
+    'RelFreq': 'numeric',
+}
 _ASSIGNMENTS = [
     ('RelFreq', '(N[(1/Length[n])*Count[n, #1]] & ) /@ Range[0, b - 1]', ('n', 'b')),
     ('num', '{2^2^11 + 1, 100!}', ()),

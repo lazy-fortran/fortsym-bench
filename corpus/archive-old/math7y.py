@@ -8,6 +8,10 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 171 non-assignment statement(s) remain.
+COMPARE = {
+    'ps': 'numeric',
+    'sn': 'numeric',
+}
 _ASSIGNMENTS = [
     ('f', 'Sum[1/(i + 1), {i, 0, 4}]', ()),
     ('f', 'Sum[q^n, {n, 0, Infinity}]', ()),

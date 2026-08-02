@@ -8,6 +8,10 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 179 non-assignment statement(s) remain.
+COMPARE = {
+    'tmax': 'numeric',
+    'ts': 'numeric',
+}
 _ASSIGNMENTS = [
     ('so', 'DSolve[Derivative[1][Derivative[1][Derivative[1][Derivative[1][y]]]][x] + 3*Derivative[1][Derivative[1][Derivative[1][y]]][x] + k^4*y[x] == 0, y[x], x]', ()),
     ('so', 'Flatten[DSolve[{Derivative[1][y][x] == 2*y[x], y[0] == 3}, y[x], x]]', ()),

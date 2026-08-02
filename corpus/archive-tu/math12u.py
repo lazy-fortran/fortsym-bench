@@ -8,6 +8,9 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 42 non-assignment statement(s) remain.
+COMPARE = {
+    'cn': 'numeric',
+}
 _ASSIGNMENTS = [
     ('data', '{{2, 1}, {3, 7}, {5, 8}, {6, 11}}', ()),
     ('f', 'SplineFit[data, Cubic]', ()),

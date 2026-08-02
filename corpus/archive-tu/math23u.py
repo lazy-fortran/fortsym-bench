@@ -8,6 +8,9 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 7 non-assignment statement(s) remain.
+COMPARE = {
+    'c2': 'numeric',
+}
 _ASSIGNMENTS = [
     ('fc', '-Conjugate[2*I*Sqrt[Exp[x + I*y] - 1] - Log[(1 + I*Sqrt[Exp[x + I*y] - 1])/(1 - I*Sqrt[Exp[x + I*y] - 1])]]', ()),
     ('c1', 'ListPlot[{{-5, 0}, {0, 0}, {0, 7}}, Joined -> True, PlotStyle -> {Black, Thick}]', ()),

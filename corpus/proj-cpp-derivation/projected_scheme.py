@@ -8,6 +8,14 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 70 non-assignment statement(s) remain.
+COMPARE = {
+    'Kbounce': 'numeric',
+    'Krel0': 'numeric',
+    'opGC': 'numeric',
+    'sigGCbad': 'numeric',
+    'sigMin': 'numeric',
+    'solvDet': 'numeric',
+}
 _ASSIGNMENTS = [
     ('pass', '0', ()),
     ('fail', '0', ()),
