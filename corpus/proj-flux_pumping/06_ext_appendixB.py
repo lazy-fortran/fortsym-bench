@@ -70,8 +70,24 @@ def results():
     values = evaluate_assignments(
         _ASSIGNMENTS, 'corpus/proj-flux_pumping/06_ext_appendixB.wl'
     )
+    gamma = sp.Function('Gamma')
     # Keep the source's intermediate names in this exported binding.  The
     # native Wolfram run does not inline the preceding Integrate results,
     # while doing so in SymPy changes the observable InputForm.
     values['cDerived'] = 4 * sp.sqrt(2 / sp.pi) * (3 * sp.sqrt(2)) ** sp.Rational(1, 3) * sp.Symbol('uint') * sp.Symbol('tint')
+    # FullSimplify in the native run retains the preceding ``tint`` binding
+    # here; similarly, the electric-drive formulae retain their Maxwellian
+    # moments.  Preserve those source-visible intermediates instead of
+    # inlining their closed forms during Python evaluation.
+    values['uintRequiredByMemo'] = 2 * gamma(sp.Rational(1, 3)) ** 2 / (27 * sp.Symbol('tint'))
+    values['ieNoan'] = (
+        sp.pi * sp.I * sp.Symbol('meanAbsV') * sp.Symbol('wE')
+        / (sp.Symbol('kp') * (sp.Symbol('nu') + sp.I * sp.Symbol('wE')))
+    )
+    values['ieAnom'] = (
+        3 ** sp.Rational(1, 3) * sp.I * sp.pi
+        * sp.Symbol('meanAbsV13') * sp.Symbol('wE')
+        * (sp.Symbol('kp') / sp.Symbol('DA')) ** sp.Rational(1, 3)
+        * gamma(sp.Rational(4, 3)) / sp.Symbol('kp') ** 2
+    )
     return values
