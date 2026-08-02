@@ -260,6 +260,10 @@ def _lower(expression, environment: dict[str, object]):
         return sp.expand(arguments[0])
     if name == "Factor":
         return sp.factor(arguments[0])
+    if name == "Coefficient":
+        return _coefficient(arguments)
+    if name == "CoefficientList":
+        return _coefficient_list(arguments)
     if name in ("Together", "Cancel", "Apart"):
         return getattr(sp, name.lower())(arguments[0])
     if name == "Collect":
@@ -794,6 +798,47 @@ def _dot(arguments: tuple[object, ...]):
     for argument in arguments[1:]:
         result = _dot_two(result, argument)
     return result
+
+
+def _coefficient(arguments: tuple[object, ...]):
+    """Return a Wolfram coefficient using SymPy's expanded expression form."""
+
+    if len(arguments) not in (2, 3):
+        raise NotImplementedError("Coefficient needs two or three arguments")
+    expression, variable = arguments[:2]
+    order = arguments[2] if len(arguments) == 3 else sp.Integer(1)
+    if not _is_integer(order) or int(order) < 0:
+        raise NotImplementedError("Coefficient power is not a non-negative integer")
+    if isinstance(variable, sp.Pow) and _is_integer(variable.exp):
+        order = variable.exp
+        variable = variable.base
+    return sp.expand(expression).coeff(variable, int(order))
+
+
+def _coefficient_list(arguments: tuple[object, ...]):
+    """Return coefficients from constant term upward, including nested lists."""
+
+    if len(arguments) != 2:
+        raise NotImplementedError("CoefficientList needs two arguments")
+    expression = sp.expand(arguments[0])
+    variables = _sequence_items(arguments[1])
+    if variables is None:
+        variables = (arguments[1],)
+    if not variables:
+        return sp.Tuple(expression)
+
+    def coefficients(value, index):
+        variable = variables[index]
+        degree = sp.degree(value, variable)
+        if degree is None:
+            degree = 0
+        degree = int(degree)
+        terms = [sp.expand(value).coeff(variable, power) for power in range(degree + 1)]
+        if index + 1 == len(variables):
+            return sp.Tuple(*terms)
+        return sp.Tuple(*(coefficients(term, index + 1) for term in terms))
+
+    return coefficients(expression, 0)
 
 
 def _cross(arguments: tuple[object, ...]):
