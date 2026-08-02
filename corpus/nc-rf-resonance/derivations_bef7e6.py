@@ -23,7 +23,10 @@ _ASSIGNMENTS = [
     ('Xp', 'Rhi/Qmatch // Simplify', ()),
     ('Xs', 'Qmatch Rlo // Simplify', ()),
     ('Bz', 'n0 Integrate[mu0 Ic/(4 Pi) R^2/(R^2 + z^2)^(3/2), {phi, 0, 2 Pi}]', ()),
-    ('Bz', 'Bz // Simplify', ()),
+    # The preceding integral is already in simplified form. Preserve its
+    # value instead of sending the postfix operator through the generic
+    # parser as a callable head.
+    ('Bz', 'Bz', ()),
     ('Bcenter', 'Simplify[Bz /. z -> 0, R > 0]', ()),
     ('Bt', 'B0 Cos[w t]', ()),
     ('Ephi', '-1/(2 Pi r) D[Pi r^2 Bt, t] // Simplify', ()),
