@@ -233,9 +233,9 @@ Mathics rows, 86 errors, and 66 timeouts; all rows are reusable at timeout 15.
 The subsequent slices protect ordinary `zeta` coordinates from SymPy's
 built-in Zeta parser, lower bounded `Position`/`Union`, classify list-valued
 InputForm arithmetic without comparator crashes, and normalize the `sympl3_`
-unit constants. The current cache-only three-backend score is 3,288
-agreements, 691 differences, 7 unsupported outcomes, 73 timeouts, 90 errors,
-200 oracle disagreements, and 743 oracle-missing bindings. The Mathics wrapper
+unit constants. The current cache-only three-backend score is 3,320
+agreements, 665 differences, 7 unsupported outcomes, 73 timeouts, 90 errors,
+198 oracle disagreements, and 739 oracle-missing bindings. The Mathics wrapper
 also neutralizes `Quit` so those scripts retain the result protocol; current
 Mathics inventory is 232 successful rows, 86 errors, and 66 timeouts.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
