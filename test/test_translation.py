@@ -220,6 +220,15 @@ def test_fold_list_returns_prefix_sums_including_the_initial_value():
     assert evaluate_assignments(assignments)["value"] == sp.Tuple(1, 3, 6, 10)
 
 
+def test_string_literals_use_the_native_comparison_atom():
+    assignments, skipped = extract_assignments('value = "figures"')
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Symbol(
+        "fortsymString195f2d656951581bf511ac10931f425807ef65c7833998a8a11aed68ed769300"
+    )
+
+
 def test_unicode_lambda_is_safe_inside_sympy_function_calls():
     assignments, skipped = extract_assignments(
         "value = CharacteristicPolynomial[{{1, 2}, {3, 4}}, λ]"

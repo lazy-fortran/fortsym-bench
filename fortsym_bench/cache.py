@@ -328,9 +328,11 @@ class ReferenceCache:
         function calls. Version 11 adds the Coefficient and CoefficientList
         lowering, versions 12/13 normalize single-variable Solve results to
         Wolfram rule lists and serialize those rules as opaque Rule heads, and
-        version 14 adds the bounded FoldList form. Older rows remain exact for
-        sources unaffected by the corresponding change, which prevents a
-        translator fix from forcing a multi-gigabyte full oracle refresh.
+        version 14 adds the bounded FoldList form and version 15 aligns
+        protected string literals with the native comparison protocol. Older
+        rows remain exact for sources unaffected by the corresponding change,
+        which prevents a translator fix from forcing a multi-gigabyte full
+        oracle refresh.
         """
         version = entry.get("cache_version", 1)
         if version == backend.cache_version:
@@ -408,6 +410,31 @@ class ReferenceCache:
                 if version < 13 and "Solve" in text:
                     return False
                 return "FoldList" not in text
+            except (OSError, UnicodeError):
+                return False
+        if (
+            backend.name == "sympy"
+            and backend.cache_version == 15
+            and version in (9, 10, 11, 12, 13, 14)
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                text = Path(source).read_text()
+                if version == 9 and "λ" in text:
+                    return False
+                if version <= 10 and "Coefficient" in text:
+                    return False
+                if version < 13 and "Solve" in text:
+                    return False
+                if version < 14 and "FoldList" in text:
+                    return False
+                assignments = text.split("_ASSIGNMENTS = [", 1)
+                if len(assignments) == 2:
+                    body = assignments[1].split("]\n\ndef results", 1)[0]
+                    return '"' not in body
+                return '"' not in text
             except (OSError, UnicodeError):
                 return False
         if backend.name != "mathics" or version > backend.cache_version:
