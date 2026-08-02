@@ -326,11 +326,11 @@ class ReferenceCache:
 
         SymPy version 10 added protection for literal Unicode ``λ`` inside
         function calls. Version 11 adds the Coefficient and CoefficientList
-        lowering, and versions 12/13 normalize single-variable Solve results
-        to Wolfram rule lists and serialize those rules as opaque Rule heads.
-        Older rows remain exact for sources unaffected by the corresponding
-        change, which prevents a translator fix from forcing a multi-gigabyte
-        full oracle refresh.
+        lowering, versions 12/13 normalize single-variable Solve results to
+        Wolfram rule lists and serialize those rules as opaque Rule heads, and
+        version 14 adds the bounded FoldList form. Older rows remain exact for
+        sources unaffected by the corresponding change, which prevents a
+        translator fix from forcing a multi-gigabyte full oracle refresh.
         """
         version = entry.get("cache_version", 1)
         if version == backend.cache_version:
@@ -389,6 +389,25 @@ class ReferenceCache:
                 if version <= 10 and "Coefficient" in text:
                     return False
                 return "Solve" not in text
+            except (OSError, UnicodeError):
+                return False
+        if (
+            backend.name == "sympy"
+            and backend.cache_version == 14
+            and version in (9, 10, 11, 12, 13)
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                text = Path(source).read_text()
+                if version == 9 and "λ" in text:
+                    return False
+                if version <= 10 and "Coefficient" in text:
+                    return False
+                if version < 13 and "Solve" in text:
+                    return False
+                return "FoldList" not in text
             except (OSError, UnicodeError):
                 return False
         if backend.name != "mathics" or version > backend.cache_version:
