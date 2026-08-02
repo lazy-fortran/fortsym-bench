@@ -271,6 +271,20 @@ def test_map_supports_a_bounded_nested_level():
     )
 
 
+def test_piecewise_selects_numeric_branches_and_default():
+    assignments, skipped = extract_assignments(
+        "value = Piecewise[{{10, 1 < 2}, {20, 2 < 3}}, 0]"
+    )
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Integer(10)
+
+    assignments, skipped = extract_assignments(
+        "value = Piecewise[{{10, 1 > 2}}, 7]"
+    )
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Integer(7)
+
+
 def test_fold_list_returns_prefix_sums_including_the_initial_value():
     assignments, skipped = extract_assignments(
         "value = FoldList[Plus, 1, Drop[{1, 2, 3, 4}, 1]]"
