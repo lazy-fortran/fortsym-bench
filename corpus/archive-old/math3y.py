@@ -73,5 +73,23 @@ _ASSIGNMENTS = [
 def results():
     values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math3y.wl')
     # The source rebinds p3 after the preceding NSolve/Solve examples.
-    values['p3'] = sp.Symbol('x')**3 + sp.Symbol('x') + 1
+    x = sp.Symbol('x')
+    values['p3'] = x**3 + x + 1
+    # These are direct late source bindings.  The sequential evaluator keeps
+    # the earlier ``%`` and ``x = 3`` values through unsupported Clear and
+    # Thread statements, so restore the source expressions explicitly.
+    values['p5'] = x**5 - x + 1
+    t = sp.Symbol('t')
+    derivative2 = sp.Function('Derivative2')
+    values['sys'] = sp.Tuple(
+        sp.Eq(derivative2(x, 1, 1, t), 0),
+        sp.Eq(derivative2(sp.Symbol('y'), 1, 1, t), -10),
+    )
+    derivative1 = sp.Function('Derivative1')
+    values['anf'] = sp.Tuple(
+        sp.Eq(sp.Function('x')(0), 0),
+        sp.Eq(sp.Function('y')(0), 0),
+        sp.Eq(derivative1(x, 1, 0), 2),
+        sp.Eq(derivative1(sp.Symbol('y'), 1, 0), 10),
+    )
     return values
