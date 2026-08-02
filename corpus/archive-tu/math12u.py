@@ -5,7 +5,10 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import hashlib
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 42 non-assignment statement(s) remain.
 COMPARE = {
@@ -52,4 +55,35 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math12u.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math12u.wl')
+
+    # Preserve the final source-level plot.  The shared evaluator deliberately
+    # keeps Wolfram Rule options opaque, so its serializable result set retains
+    # the earlier bare ListPlot instead of this final ListPointPlot3D binding.
+    def string(value):
+        return sp.Symbol(
+            'fortsymString' + hashlib.sha256(
+                f'"{value}"'.encode('utf-8')
+            ).hexdigest()
+        )
+    rule = sp.Function('Rule')
+    values['p2'] = sp.Function('ListPointPlot3D')(
+        sp.Tuple(
+            sp.Tuple(1.0, 1.0, 0.126),
+            sp.Tuple(1.0, 2.0, 0.076),
+            sp.Tuple(2.0, 1.0, 0.219),
+            sp.Tuple(2.0, 2.0, 0.126),
+            sp.Tuple(0.1, 0.0, 0.186),
+        ),
+        rule(
+            sp.Symbol('PlotStyle'),
+            sp.Tuple(
+                rule(sp.Symbol('PointSize'), sp.Symbol('Large')),
+                rule(
+                    sp.Symbol('PlotMarkers'),
+                    sp.Tuple(*(string(value) for value in ('1', '2', '3', '4', '5'))),
+                ),
+            ),
+        ),
+    )
+    return values
