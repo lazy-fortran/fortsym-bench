@@ -349,6 +349,16 @@ def _lower(expression, environment: dict[str, object]):
             return sp.Function("Diagonal")(*arguments)
         matrix = _matrix(arguments[0])
         return sp.Tuple(*(matrix[i, i] for i in range(min(matrix.rows, matrix.cols))))
+    if name == "LegendreP":
+        if len(arguments) == 2 and _is_integer(arguments[0]) and int(arguments[0]) >= 0:
+            return sp.legendre(int(arguments[0]), arguments[1])
+        if (
+            len(arguments) == 3
+            and all(_is_integer(argument) for argument in arguments[:2])
+            and int(arguments[0]) >= 0
+        ):
+            return sp.assoc_legendre(int(arguments[0]), int(arguments[1]), arguments[2])
+        return sp.Function("LegendreP")(*arguments)
     if name == "Rule":
         return WolframRule(arguments[0], arguments[1])
     if name == "RuleDelayed":

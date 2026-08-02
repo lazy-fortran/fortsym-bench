@@ -141,6 +141,14 @@ def test_diagonal_preserves_a_non_matrix_argument():
     assert evaluate_assignments(assignments)["value"] == sp.Function("Diagonal")(s)
 
 
+def test_legendre_polynomial_uses_sympys_independent_definition():
+    assignments, skipped = extract_assignments("value = LegendreP[3, x]")
+
+    assert skipped == []
+    x = sp.Symbol("x")
+    assert evaluate_assignments(assignments)["value"] == sp.legendre(3, x)
+
+
 def test_derivative_of_a_list_is_componentwise():
     assignments, skipped = extract_assignments(
         "value = D[{x^2, Sin[x]}, x]"
