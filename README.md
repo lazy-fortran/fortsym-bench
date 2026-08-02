@@ -199,7 +199,10 @@ bindings. Its cached timeout/unavailable outcomes were not rerun.
 The v24 native `TrigReduce` transition then served a six-script warm slice in
 0.72 second at 404 MiB RSS: 101 agreements, 48 differences, 3 unavailable
 oracle rows, 1 timeout, and 103 oracle-missing bindings. Its cached timeout
-was not rerun.
+was not rerun. The v25 native bounded symbolic 2x2 `Solve` transition then
+served the exposing corpus script in 0.78 second at 404 MiB RSS: 33
+agreements, 10 differences, 1 unavailable oracle row, and 1 oracle-missing
+binding, with no timeout or runner error.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
