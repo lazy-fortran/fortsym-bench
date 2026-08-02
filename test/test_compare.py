@@ -84,6 +84,30 @@ def test_inputform_list_arithmetic_is_classified_without_parser_crash():
     assert result.outcome == DIFFER
 
 
+def test_inputform_subscript_is_opaque_and_cross_language_parseable():
+    result = compare_cross_text(
+        "Subscript[R, 0]",
+        "inputform",
+        "Function('Subscript')(Symbol('R'), Integer(0))",
+        "srepr",
+        "structural",
+    )
+
+    assert result.outcome == AGREE
+
+
+def test_inputform_higher_order_heads_do_not_execute_during_parsing():
+    result = compare_cross_text(
+        "StringMatchQ[Part[Slot(1), 1], NumberString]",
+        "inputform",
+        "Function('StringMatchQ')(Function('Part')(Function('Slot')(Integer(1)), Integer(1)), Symbol('NumberString'))",
+        "srepr",
+        "structural",
+    )
+
+    assert result.outcome == AGREE
+
+
 def test_numeric_policy_accepts_guard_digit_rounding_at_requested_precision():
     result = compare_cross_text(
         "3.14159265358979323846264",
