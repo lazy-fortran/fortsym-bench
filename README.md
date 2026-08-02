@@ -164,12 +164,13 @@ updated 16 rows in 16.51 seconds at 399 MiB RSS; the v20 positive-level
 `Map` transition updated six rows in 4.07 seconds at 403 MiB RSS. The 155 MB
 raw-result cache
 then served
-a warm audit in 19.51 seconds
-at 444 MiB RSS, with no backend subprocesses started. The native-only cache
-refresh took 1:15.03 at a 1.61 GiB peak RSS with one worker. The
+a warm audit in 0.66 seconds
+at 337 MiB RSS, with no backend subprocesses started. The full v60 refresh
+took 2:14.26 at a 1.61 GiB peak RSS with one worker. The
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
-The SymPy cache is now version 25: Unicode `λ` and the user symbol `CC` are
+The SymPy cache is now version 26: Unicode `λ`, the user symbol `CC`, and
+bounded `With`/`Do` forms are
 protected while parsing
 function arguments, quoted string literals use the same collision-resistant
 comparison atom as the native backend, `Coefficient`/`CoefficientList` are
@@ -241,8 +242,8 @@ The v31 callable-definition slice adds bounded scalar `Set`/`SetDelayed`
 semantics after `DSolve`, including Wolfram `C[1]` normalization; the v32
 slice adds bounded lexical `Module` locals with sequential assignments and
 nested shadowing, and v33 normalizes derivative `Subs` wrappers after
-replacement. The v52 full suite passed 196 tests; v53–v59 add 27 focused
-tests, bringing collection to 223. The refreshed 384-source
+replacement. The v52 full suite passed 196 tests; v53–v60 add 33 focused
+tests, bringing collection to 229. The refreshed 384-source
 cache contains 376 successful SymPy rows, 4 unsupported rows, and 4 timeouts,
 plus 255 successful Mathics rows, 60 errors, and 69 timeouts; all rows are
 reusable at timeout 15. The native cache contains 378 successful rows, 3
@@ -291,8 +292,9 @@ extend the source-faithful companion set, followed by v57 math11y aliases and
 code-mhd1d equilibrium intermediates, and v58 detuning, projected-scheme,
 profile-certificate, and gc-drift recoveries. The v59 cycle adds bounded
 Wolfram `With` translation, native scientific-literal precedence and
-vector-matrix `Dot`, and selective cache invalidation. The current cache-only
-score is 3,852 agreements, 470 differences, 7 unsupported outcomes, 76
+vector-matrix `Dot`; v60 adds bounded `Do`, numeric native `FindRoot`, and the
+`aMaxSq` oracle binding. The current cache-only score is 3,853 agreements, 468
+differences, 7 unsupported outcomes, 76
 timeouts, 60 errors, 2 unavailable oracle rows, 194 oracle disagreements, and
 354 oracle-missing bindings. The Mathics wrapper
 also neutralizes `Quit`, isolates per-run protocol symbols, and restores
@@ -391,10 +393,10 @@ native cache contains 378 successful script rows, 3 explicit unsupported
 rows, 3 timeouts, and no runner errors, with no native crashes. The SymPy cache
 contains 376 successful rows, 4 unsupported rows, and 4 timeouts; the Mathics
 cache contains 255 successful rows, 60 errors, and 69 timeouts. The latest
-committed full binding-level audit has 3,852 agreements, 470 declared
+committed full binding-level audit has 3,853 agreements, 468 declared
 differences, 7 unsupported outcomes, 76 timeouts, 60 errors, 194 oracle
-disagreements, and 354 oracle-missing bindings. Its warm run took 19.51
-seconds at 444 MiB RSS; the current v59 parity batch is documented above.
+disagreements, and 354 oracle-missing bindings. Its warm run took 0.66
+seconds at 337 MiB RSS; the current v60 parity batch is documented above.
 
 The bounded Fortran inventory in `tools/inventory_wl_to_f90.py` inspected all
 384 `.wl` sources on 2026-08-02 with a serial five-second limit. It emitted
@@ -446,9 +448,9 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The latest full run produced 3,852 agreements, 470 declared
+place. The latest full run produced 3,853 agreements, 468 declared
 differences, 7 unsupported outcomes, 76 timeouts, 60 errors, 194 oracle
-disagreements, and 354 oracle-missing bindings. The v43-v59 batches add 67
+disagreements, and 354 oracle-missing bindings. The v43-v60 batches add 68
 independent behavioral tests covering new source-faithful Python companions
 and native backend semantics.
 Translation quality and the remaining backend parity work stay measured by
