@@ -8,6 +8,7 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 25 non-assignment statement(s) remain.
+COMPARE = {'xc': 'equivalent'}
 _ASSIGNMENTS = [
     ('xmap', '{\n   (R0 + r Cos[th]) Cos[ph],\n   -(R0 + r Cos[th]) Sin[ph],\n   r Sin[th] + eps r^2 Sin[ph]}', ('r', 'ph', 'th')),
     ('uvars', '{r, ph, th}', ()),
