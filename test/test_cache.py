@@ -354,6 +354,33 @@ def test_sympy_cache_upgrade_reuses_sources_without_abs(tmp_path):
     assert cached.results == {"value": "Add(Symbol('x'), Integer(1))"}
 
 
+def test_sympy_cache_upgrade_reruns_sources_with_named_derivative(tmp_path):
+    source = tmp_path / "case.py"
+    source.write_text("value = Derivative[1][f]\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("sympy", ".py", "srepr", cache_version=28)
+    current = Backend("sympy", ".py", "srepr", cache_version=29)
+
+    cache.put_result(old, source, 5.0, {"value": "Derivative(Symbol('f'))"})
+
+    assert cache.get(current, source, 300.0) is None
+
+
+def test_sympy_cache_upgrade_reuses_sources_without_named_derivative(tmp_path):
+    source = tmp_path / "case.py"
+    source.write_text("value = x + 1\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("sympy", ".py", "srepr", cache_version=28)
+    current = Backend("sympy", ".py", "srepr", cache_version=29)
+
+    cache.put_result(old, source, 5.0, {"value": "Add(Symbol('x'), Integer(1))"})
+
+    cached = cache.get(current, source, 300.0)
+
+    assert cached is not None
+    assert cached.results == {"value": "Add(Symbol('x'), Integer(1))"}
+
+
 def test_sympy_cache_upgrade_reuses_sources_without_solve(tmp_path):
     source = tmp_path / "case.py"
     source.write_text("value = x + 1\n")
