@@ -17,6 +17,7 @@ from typing import Iterable
 
 import sympy as sp
 from sympy.parsing.mathematica import parse_mathematica
+from sympy.simplify.fu import TR8
 
 MAX_MAP_LEVEL = 4
 MAX_MAP_NODES = 20_000
@@ -295,6 +296,8 @@ def _lower(expression, environment: dict[str, object]):
         return getattr(sp, name.lower())(arguments[0])
     if name == "Collect":
         return sp.collect(arguments[0], arguments[1])
+    if name == "TrigReduce":
+        return _trig_reduce(arguments)
     if name == "Integrate":
         return sp.integrate(
             arguments[0],
@@ -1495,6 +1498,18 @@ def _which(arguments: tuple[object, ...]):
             continue
         preserved.extend((condition, value))
     return sp.Function("Which")(*preserved)
+
+
+def _trig_reduce(arguments: tuple[object, ...]):
+    if len(arguments) != 1:
+        raise NotImplementedError("TrigReduce needs one expression")
+    expression = arguments[0]
+    if sp.count_ops(expression) > 2_000:
+        raise NotImplementedError("TrigReduce input exceeds its safety bound")
+    reduced = TR8(expression)
+    if sp.count_ops(reduced) > 10_000:
+        raise NotImplementedError("TrigReduce result exceeds its safety bound")
+    return reduced
 
 
 def _as_assignment(item) -> Assignment:

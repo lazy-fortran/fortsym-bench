@@ -303,6 +303,23 @@ def test_which_selects_the_first_true_numeric_branch():
     assert evaluate_assignments(assignments)["value"] == sp.Integer(20)
 
 
+def test_trigreduce_linearises_products_and_powers():
+    x, y = sp.symbols("x y")
+    assignments, skipped = extract_assignments(
+        "value = TrigReduce[Sin[x] Sin[y]]"
+    )
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == (
+        sp.cos(x - y) / 2 - sp.cos(x + y) / 2
+    )
+
+    assignments, skipped = extract_assignments("value = TrigReduce[Cos[x]^2]")
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == (
+        sp.cos(2 * x) / 2 + sp.Rational(1, 2)
+    )
+
+
 def test_fold_list_returns_prefix_sums_including_the_initial_value():
     assignments, skipped = extract_assignments(
         "value = FoldList[Plus, 1, Drop[{1, 2, 3, 4}, 1]]"

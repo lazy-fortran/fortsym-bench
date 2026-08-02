@@ -158,7 +158,7 @@ a warm audit in 1.24 seconds
 at 456 MiB RSS, with no backend subprocesses started. The
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
-The SymPy cache is now version 22: Unicode `λ` is protected while parsing
+The SymPy cache is now version 23: Unicode `λ` is protected while parsing
 function arguments, quoted string literals use the same collision-resistant
 comparison atom as the native backend, `Coefficient`/`CoefficientList` are
 lowered through SymPy, single-variable `Solve` results are serialized as
@@ -173,8 +173,8 @@ including list-valued `Equal`. Its compatibility transition reused unaffected
 older rows and refreshed only the 16 affected rows; the direct version-chain
 compatibility avoids repeating a broad oracle refresh on the next translator
 change. Version 20 also lowers bounded positive `Map` levels, version 21
-lowers numeric `Boole` conditions, and version 22 lowers numeric `Which`
-branches. A current
+lowers numeric `Boole` conditions, version 22 lowers numeric `Which` branches,
+and version 23 lowers bounded `TrigReduce` forms. A current
 one-worker audit of the 16-script `Thread` slice, using the
 rebuilt native runner, took 17.43 seconds at 508 MiB RSS and reported 249
 agreements, 58 differences, 1 unavailable oracle row, 1 timeout, 5 errors,
@@ -196,6 +196,10 @@ The v23 native `Which` transition then served a five-script warm slice in 0.71
 second at 404 MiB RSS: 60 agreements, 16 differences, 1 timeout, 1
 unavailable oracle row, 3 oracle disagreements, and 73 oracle-missing
 bindings. Its cached timeout/unavailable outcomes were not rerun.
+The v24 native `TrigReduce` transition then served a six-script warm slice in
+0.72 second at 404 MiB RSS: 101 agreements, 48 differences, 3 unavailable
+oracle rows, 1 timeout, and 103 oracle-missing bindings. Its cached timeout
+was not rerun.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change

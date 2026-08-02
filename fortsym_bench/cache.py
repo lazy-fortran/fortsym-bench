@@ -334,7 +334,8 @@ class ReferenceCache:
         version 17 adds bounded polynomial heads, version 18 lets serialized
         Solve rules feed ReplaceAll, version 19 lowers bounded Thread, and
         version 20 lowers bounded positive Map levels, version 21 lowers
-        numeric Boole conditions, and version 22 lowers numeric Which branches.
+        numeric Boole conditions, version 22 lowers numeric Which branches, and
+        version 23 lowers bounded TrigReduce forms.
         Older rows remain exact for
         sources unaffected by the
         corresponding change, which prevents a translator fix from forcing a
@@ -458,14 +459,16 @@ class ReferenceCache:
                 return False
         if (
             backend.name == "sympy"
-            and backend.cache_version in (21, 22)
-            and version in (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21)
+            and backend.cache_version in (21, 22, 23)
+            and version in (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
         ):
             source = entry.get("source")
             if not isinstance(source, str):
                 return False
             try:
                 text = Path(source).read_text()
+                if backend.cache_version == 23 and "TrigReduce[" in text:
+                    return False
                 if backend.cache_version == 22 and "Which[" in text:
                     return False
                 if "Boole[" in text:

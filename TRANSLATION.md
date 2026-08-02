@@ -55,6 +55,7 @@ which and how many source statements were not assignment expressions.
 | `Piecewise[{{value, condition}, ...}, default]` | numeric branch selection with symbolic preservation |
 | `Boole[condition]` | numeric indicator for a decidable condition |
 | `Which[test1, value1, ...]` | first-match selection for numeric conditions |
+| `TrigReduce[expression]` | bounded product-to-sum trigonometric reduction |
 | `ArrayFlatten[blocks]` | rectangular block-matrix concatenation |
 | `Together` / `Cancel` / `Apart` | `sp.together` / `sp.cancel` / `sp.apart` |
 | `Cross[a, b]` | `a.cross(b)` on `sp.Matrix` |
@@ -116,6 +117,8 @@ lowered. Numeric `Boole` conditions are lowered to 0 or 1; symbolic
 conditions remain opaque. The native backend preserves symbolic `Piecewise`
 branches when no condition is decidable. Numeric `Which` conditions select the
 first true branch; unresolved conditions remain structural.
+`TrigReduce` is bounded by input and output operation counts to avoid runaway
+product-to-sum expansion.
 Unicode `λ` is protected
 during SymPy parsing and restored as the original symbol. Unsupported selector and matrix shapes remain
 opaque. It intentionally
