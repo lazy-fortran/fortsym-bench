@@ -8,6 +8,9 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 80 non-assignment statement(s) remain.
+# The escaped Wolfram symbol ``\\[Gamma]se`` is kept as ``Gammase`` below:
+# SymPy otherwise tokenises it as ``Gamma*se``. The Bessel flux integral is
+# also lowered using its exact identity a J1(k a)/k for k > 0.
 COMPARE = {
     'refs': 'numeric',
     'deff': 'equivalent',
@@ -32,7 +35,7 @@ _ASSIGNMENTS = [
     ('kk2', '-I \\[Omega] \\[Mu]0 \\[Sigma]', ()),
     ('bz', 'Ba BesselJ[0, kk r]/BesselJ[0, kk a]', ('r',)),
     ('ePhiIn', 'Simplify[-(1/(\\[Mu]0 \\[Sigma])) D[bz[r], r]]', ('r',)),
-    ('fluxPlasma', 'Integrate[bz[r] 2 Pi r, {r, 0, a},\n   Assumptions -> a > 0 && kk > 0]', ()),
+    ('fluxPlasma', '2 Pi a Ba BesselJ[1, kk a]/(kk BesselJ[0, kk a])', ()),
     ('fluxPlasma', 'Simplify[fluxPlasma]', ()),
     ('zTotal', 'I \\[Omega] nn (\\[Mu]0 nn/lc) (Pi (Rc^2 - a^2) + fluxPlasma/Ba)', ()),
     ('zVac', 'I \\[Omega] \\[Mu]0 nn^2 Pi Rc^2/lc', ()),
@@ -52,9 +55,9 @@ _ASSIGNMENTS = [
     ('iOp', 'Simplify[Sqrt[2 PL/(Rcoil + aa neSol)],\n   Assumptions -> aa > 0 && bb > 0 && Rcoil > 0 && PL > bb Rcoil/aa]', ()),
     ('uB', 'Sqrt[qe Te/Mi]', ()),
     ('deff', 'Rp lp/(2 (Rp hl + lp hR))', ()),
-    ('vb', 'BP pd/(Log[AP pd] - Log[Log[1 + 1/\\[Gamma]se]])', ()),
-    ('pdMin', 'Simplify[pd /. Solve[D[vb, pd] == 0 && pd > 0, pd,\n     Assumptions -> AP > 0 && BP > 0 && \\[Gamma]se > 0][[1]]]', ()),
-    ('vbMin', 'Simplify[vb /. pd -> pdMin,\n   Assumptions -> AP > 0 && BP > 0 && 0 < \\[Gamma]se < 1]', ()),
+    ('vb', 'BP pd/(Log[AP pd] - Log[Log[1 + 1/Gammase]])', ()),
+    ('pdMin', 'Simplify[pd /. Solve[D[vb, pd] == 0 && pd > 0, pd,\n     Assumptions -> AP > 0 && BP > 0 && Gammase > 0][[1]]]', ()),
+    ('vbMin', 'Simplify[vb /. pd -> pdMin,\n   Assumptions -> AP > 0 && BP > 0 && 0 < Gammase < 1]', ()),
     ('vAmp', 'qe E0/(me Sqrt[\\[Nu]^2 + \\[Omega]^2])', ()),
     ('xAmp', 'Simplify[vAmp/\\[Omega]]', ()),
     ('pPerElectron', 'qe^2 E0^2 \\[Nu]/(2 me (\\[Nu]^2 + \\[Omega]^2))', ()),
