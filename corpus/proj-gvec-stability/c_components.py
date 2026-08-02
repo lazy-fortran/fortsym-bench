@@ -42,4 +42,47 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/c_components.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-gvec-stability/c_components.wl'
+    )
+
+    # These two source-defined formulas are lowered directly because the
+    # generic evaluator cannot serialize their nested derivative calls. Keep
+    # unresolved intermediate heads exactly as the source/native path emits;
+    # do not substitute speculative values for jDotB or sqg.
+    from fortsym_bench.wl_to_sympy import evaluate_expression
+
+    values['cTwoFormula'] = evaluate_expression(
+        "-(jDotB*sqg*xs[r, u, v] + len*btheta[r]*(-len*Derivative[2][xv][r, u, v]*btheta[r] + 2 Pi r*Derivative[2][xu][r, u, v]*bz[r]) + 2 Pi r*bz[r]*(-len*Derivative[3][xv][r, u, v]*btheta[r] + 2 Pi r*Derivative[3][xu][r, u, v]*bz[r]) - xs[r, u, v]*(-len*Derivative[1][fluxT][r]*btheta[r] + 2 Pi r*Derivative[1][fluxP][r]*bz[r]))/sqg/Sqrt[btheta[r]^2 + bz[r]^2]"
+    )
+    c_three = evaluate_expression(
+        "(-len*bz[r]*(-len*Derivative[2][xv][r, u, v]*btheta[r] + 2 Pi r*Derivative[2][xu][r, u, v]*bz[r]) + 2 Pi r*btheta[r]*(-len*Derivative[3][xv][r, u, v]*btheta[r] + 2 Pi r*Derivative[3][xu][r, u, v]*bz[r]) - sqg*xs[r, u, v]*(-Derivative[1][bz][r]*bz[r] - btheta[r]*(btheta[r] + r*Derivative[1][btheta][r])/r) - Derivative[1][xs][r, u, v]*(len*r*Pi*btheta[r]^2*2 + len*r*Pi*bz[r]^2*2) - xs[r, u, v]*(len*Derivative[1][fluxT][r]*bz[r] + 2 Pi r*Derivative[1][fluxP][r]*btheta[r]))/sqg/Sqrt[btheta[r]^2 + bz[r]^2]"
+    )
+    # Preserve the two explicit source-level ``- (...)`` groups. SymPy's
+    # ordinary construction distributes those minus signs, while the native
+    # InputForm retains the groups as written in the Wolfram formula.
+    import sympy as sp
+
+    body = c_three.args[-1]
+    grouped = []
+    for term in body.args:
+        group = next(
+            (arg for arg in term.args if isinstance(arg, sp.Add)
+             and all(arg_part.could_extract_minus_sign()
+                     for arg_part in arg.args)
+             and (arg.has(sp.Symbol('fluxT'))
+                  or arg.has(sp.Symbol('fluxP'))
+                  or any(rest.has(sp.Symbol('xs'))
+                         for rest in term.args if rest != arg))),
+            None,
+        )
+        if group is None:
+            grouped.append(term)
+            continue
+        positive = -group
+        rest = [arg for arg in term.args if arg != group]
+        grouped.append(sp.Mul(sp.Integer(-1), positive, *rest, evaluate=False))
+    values['cThreeFormula'] = sp.Mul(
+        *c_three.args[:-1], sp.Add(*grouped, evaluate=False), evaluate=False
+    )
+    return values
