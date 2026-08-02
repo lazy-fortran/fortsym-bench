@@ -38,7 +38,7 @@ def test_force_balance_and_pressure_slope_follow_the_source_rule():
     ) == 0
 
 
-def test_vector_products_remain_symbolic_dot_heads():
+def test_bounded_vector_products_contract_and_unbounded_products_stay_opaque():
     path = (
         Path(__file__).parents[1]
         / 'corpus/proj-gvec-stability/cylinder_compressional_spectrum.py'
@@ -49,8 +49,16 @@ def test_vector_products_remain_symbolic_dot_heads():
     spec.loader.exec_module(module)
     values = module.results()
 
+    r, mu0 = sp.symbols('r mu0')
+    btheta = sp.Function('btheta')
+    bz = sp.Function('bz')
+    expected_jdotb = mu0 * (
+        -btheta(r) * sp.diff(bz(r), r) / mu0
+        + (r * sp.diff(btheta(r), r) + btheta(r)) * bz(r) / (mu0 * r)
+    )
+    assert sp.simplify(values['jDotB'] - expected_jdotb) == 0
+
     dot = sp.Function('Dot')
-    assert values['jDotB'].has(dot)
     vector = sp.Tuple(sp.Symbol('xv'), sp.Symbol('xd'))
     expected = dot(dot(vector, sp.Symbol('schurPhysical')), vector)
     assert values['lagPhysicalRed'] == expected
