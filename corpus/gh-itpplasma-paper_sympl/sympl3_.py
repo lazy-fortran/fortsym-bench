@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 61 non-assignment statement(s) remain.
@@ -72,5 +74,24 @@ _ASSIGNMENTS = [
     ('sol', 'Flatten[NDSolve[{eq1a, eq2a, eq4a, th[0] == th0, r[0] == r0, vp[0] == vp0}, {th[t], r[t], vp[t]}, {t, 0, tmax}, Method -> "BDF"]]', ()),
 ]
 
+_UNIT_CONSTANTS = {
+    sp.Symbol("eoc"): sp.Integer(1),
+    sp.Symbol("m"): sp.Integer(1),
+    sp.Symbol("B0"): sp.Integer(1),
+    sp.Symbol("R0"): sp.Integer(1),
+}
+_UNIT_NORMALIZED = {
+    "Bphcov", "Bstarpar", "Bstarph", "Bstarr", "Bstarth", "Bthcov",
+    "Bthctr", "Lgc", "U", "dHdr", "dHdth", "dwdp", "dwdq", "eq1a",
+    "eq2a", "eq3", "eq3a", "eq4a", "phdot", "rdot", "thdot", "vpdot",
+    "w",
+}
+
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/gh-itpplasma-paper_sympl/sympl3_.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/gh-itpplasma-paper_sympl/sympl3_.wl'
+    )
+    for name in _UNIT_NORMALIZED:
+        if name in values and hasattr(values[name], "xreplace"):
+            values[name] = values[name].xreplace(_UNIT_CONSTANTS)
+    return values
