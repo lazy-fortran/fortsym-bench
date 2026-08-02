@@ -42,7 +42,23 @@ def parse(text: str, syntax: str):
         return _normalise_sympy_derivatives(sympy.sympify(text))
     if syntax == "inputform":
         normalised, restore = _normalise_inputform(text)
-        parsed = _restore_inputform_symbols(parse_mathematica(normalised), restore)
+        try:
+            parsed = parse_mathematica(normalised)
+        except (AttributeError, TypeError, ValueError):
+            # SymPy's Mathematica parser eagerly maps List[...] to Tuple.
+            # That is correct for a list on its own, but it can construct an
+            # invalid non-Expr tree for list-valued arithmetic such as
+            # Sqrt[List[x, y]], raising while parsing rather than returning a
+            # value that the comparator can classify.  On this narrow retry,
+            # preserve List as an opaque head.  This is intentionally not a
+            # semantic threading rule: a native result containing list
+            # arithmetic must remain distinguishable from an elementwise
+            # SymPy result.
+            protected_lists = normalised.replace(
+                "List[", "fortsymInputOpaqueList["
+            )
+            parsed = parse_mathematica(protected_lists)
+        parsed = _restore_inputform_symbols(parsed, restore)
         return _normalise_sympy_derivatives(parsed)
     raise ValueError(f"unknown syntax: {syntax}")
 
