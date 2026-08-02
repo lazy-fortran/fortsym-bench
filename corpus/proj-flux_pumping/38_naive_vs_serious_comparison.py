@@ -64,4 +64,75 @@ def results():
     values['meanCurrent'] = dd * sp.cos(al) / (2 * rr) * (
         radial_current + rr * radial_derivative
     )
+
+    # The bounded assignment evaluator deliberately leaves the derivative
+    # bookkeeping chain opaque.  These are all direct source expressions,
+    # with no assumptions or numerical guesses, so preserve the seven native
+    # bindings that the evaluator cannot serialize on its own.
+    capR, cl, bb = sp.symbols('capR cl bb')
+    dio0, bphi0, ds, io0, iom = sp.symbols(
+        'dio0 bphi0 ds io0 iom'
+    )
+    mm, nn, kz = sp.symbols('mm nn kz')
+    bphm = sp.Function('bphm')
+    dbthF = sp.Function('dbthF')
+    dbphF = sp.Function('dbphF')
+    ireg = sp.Function('ireg')
+    kdec = sp.Function('kdec')
+    current = sp.Function('current')
+    kappa = sp.Symbol('kappa')
+    derivative1 = sp.Function('Derivative1')
+    bphm_prime = derivative1(sp.Symbol('bphm'), 1, rr)
+    dbth_prime = derivative1(sp.Symbol('dbthF'), 1, rr)
+    dbph_prime = derivative1(sp.Symbol('dbphF'), 1, rr)
+    ireg_prime = derivative1(sp.Symbol('ireg'), 1, rr)
+    kdec_prime = derivative1(sp.Symbol('kdec'), 1, rr)
+
+    full_derivative = (
+        mm * capR**2 * bphm_prime / (nn * rr**2)
+        - 2 * mm * capR**2 * bphm(rr) / (nn * rr**3)
+        - io0 * bphm_prime
+    )
+    values['fullDerivative'] = full_derivative
+    values['keptDerivative'] = (
+        ds * (dbth_prime - io0 * dbph_prime) / (bphi0 * rr)
+    )
+    values['keptPart'] = sp.cancel(
+        full_derivative + 2 * mm * capR**2 * bphm(rr) / (nn * rr**3)
+    )
+    values['printedLocresp'] = (
+        ds * (dbth_prime - io0 * dbph_prime)
+        / (bphi0 * rr)
+    )
+    values['printedStep1'] = -capR**2 * bphm_prime * (
+        1 + rr**2 * io0 * iom / capR**2
+    ) / (iom * rr**2)
+    values['printedLocal'] = -rr**2 * current(rr) * (
+        ireg(rr) * kdec_prime - kdec(rr) * ireg_prime
+    ) / kappa
+
+    # Keep the Wolfram delayed rules observable as an opaque but structured
+    # SymPy value, following the established corpus representation.
+    pattern = sp.Function('Pattern')
+    blank = sp.Function('Blank')
+    rule_delayed = sp.Function('RuleDelayed')
+    lowerI = sp.Function('lowerI')
+    upperK = sp.Function('upperK')
+    r = sp.Symbol('r')
+    values['momentDerivativeRules'] = sp.Tuple(
+        rule_delayed(
+            derivative1(sp.Symbol('lowerI'), 1, pattern(r, blank())),
+            r**2 * derivative1(sp.Symbol('ireg'), 1, r)
+            * current(r) / kappa,
+        ),
+        rule_delayed(
+            derivative1(sp.Symbol('upperK'), 1, pattern(r, blank())),
+            -r**2 * derivative1(sp.Symbol('kdec'), 1, r)
+            * current(r) / kappa,
+        ),
+    )
+    values['localPart'] = (
+        derivative1(sp.Symbol('lowerI'), 1, rr) * kdec(rr)
+        + derivative1(sp.Symbol('upperK'), 1, rr) * ireg(rr)
+    )
     return values
