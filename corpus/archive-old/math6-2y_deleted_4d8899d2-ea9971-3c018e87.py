@@ -216,4 +216,33 @@ def results():
         sp.Tuple(u, 0, 2 * sp.pi),
         sp.Function('Rule')(sp.Symbol('PlotPoints'), 200),
     )
+    # The source clears x and y before the Jacobi-CN example; Clear statements
+    # are intentionally absent from the assignment-only translation stream.
+    x, y, mu = sp.symbols('x y μ')
+    values['cna'] = sp.Function('Abs')(
+        sp.Function('JacobiCN')(x + sp.I * y, sp.Float('0.8') ** 2)
+    )
+    fu = (
+        -sp.Rational(1, 2) * (x**2 + y**2)
+        - mu / sp.sqrt(y**2 + (-1 + x + mu) ** 2)
+        + (mu - 1) / sp.sqrt(y**2 + (x + mu) ** 2)
+    )
+    values['fu'] = fu
+    first = sp.sqrt(y**2 + (x + mu - 1) ** 2)
+    second = sp.sqrt(y**2 + (x + mu) ** 2)
+    values['fx'] = -(
+        -x + mu * (x + mu - 1) / first**3
+        - (x + mu) * (mu - 1) / second**3
+    )
+    values['fy'] = -sp.diff(fu, y)
+    values['um'] = fu.subs(mu, sp.Rational(1, 4))
+    point = sp.Function('Point')
+    values['pm'] = sp.Tuple(
+        point(sp.Tuple(-sp.Rational(1, 4), 0)),
+        point(sp.Tuple(sp.Rational(3, 4), 0)),
+    )
+    values['pms'] = sp.Tuple(
+        sp.Tuple(-sp.Rational(1, 4), sp.Float('0.15')),
+        sp.Tuple(sp.Rational(3, 4), sp.Float('0.15')),
+    )
     return values
