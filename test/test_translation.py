@@ -124,6 +124,15 @@ def test_list_selectors_preserve_wolfram_item_order():
     assert values["head"] == sp.Tuple(a, b)
 
 
+def test_diagonal_extracts_the_shorter_dimension_of_a_matrix():
+    assignments, skipped = extract_assignments(
+        "value = Diagonal[{{1, 2, 3}, {a, 5, 6}}]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Tuple(1, 5)
+
+
 def test_derivative_of_a_list_is_componentwise():
     assignments, skipped = extract_assignments(
         "value = D[{x^2, Sin[x]}, x]"
