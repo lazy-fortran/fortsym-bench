@@ -10,6 +10,7 @@ restore while leaving all ordinary assignments untouched.
 from mathics.core.definitions import Definitions
 from mathics.core.list import ListExpression
 from mathics.core.symbols import BooleanType
+from mathics.builtin.numbers.calculus import Derivative
 
 
 _set_ownvalue = Definitions.set_ownvalue
@@ -37,3 +38,29 @@ def _boolean_assumptions(self, head, **kwargs):
 
 
 BooleanType.flatten_with_respect_to_head = _boolean_assumptions
+
+
+_derivative_to_sympy = Derivative.to_sympy
+
+
+def _safe_derivative_to_sympy(self, expr, **kwargs):
+    """Leave derivatives of non-symbolic heads unevaluated for SymPy."""
+    inner = expr
+    exprs = [inner]
+    try:
+        while True:
+            inner = inner.head
+            exprs.append(inner)
+    except AttributeError:
+        pass
+    if len(exprs) != 4 or not all(
+        hasattr(item, "elements") and len(item.elements) >= 1
+        for item in exprs[:3]
+    ):
+        return None
+    if not hasattr(exprs[1].elements[0], "name"):
+        return None
+    return _derivative_to_sympy(self, expr, **kwargs)
+
+
+Derivative.to_sympy = _safe_derivative_to_sympy

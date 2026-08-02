@@ -12,6 +12,7 @@ COMPARE = {
     'Jred': 'numeric',
     'SqcAt': 'numeric',
     'hessFull': 'numeric',
+    'sgS': 'equivalent',
     'slowThird': 'numeric',
 }
 _ASSIGNMENTS = [
