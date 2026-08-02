@@ -211,6 +211,15 @@ def test_solve_wraps_single_variable_roots_in_wolfram_rules():
     )
 
 
+def test_fold_list_returns_prefix_sums_including_the_initial_value():
+    assignments, skipped = extract_assignments(
+        "value = FoldList[Plus, 1, Drop[{1, 2, 3, 4}, 1]]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Tuple(1, 3, 6, 10)
+
+
 def test_unicode_lambda_is_safe_inside_sympy_function_calls():
     assignments, skipped = extract_assignments(
         "value = CharacteristicPolynomial[{{1, 2}, {3, 4}}, λ]"

@@ -318,6 +318,8 @@ def _lower(expression, environment: dict[str, object]):
         return _take(arguments)
     if name == "Drop":
         return _drop(arguments)
+    if name == "FoldList":
+        return _fold_list(arguments)
     if name == "Total":
         return sp.Add(*_sequence_items(arguments[0]))
     if name == "Tr":
@@ -666,6 +668,24 @@ def _drop(arguments: tuple[object, ...]):
         stop = _selector_index(stop, len(items))
         selected = items[: start - 1] + items[stop:] if start <= stop else items
     return sp.Tuple(*selected)
+
+
+def _fold_list(arguments: tuple[object, ...]):
+    """Evaluate the bounded Wolfram ``FoldList[Plus, init, list]`` form."""
+
+    if len(arguments) != 3:
+        raise NotImplementedError("FoldList needs an operation, initial value, and list")
+    operation, accumulator, sequence = arguments
+    items = _sequence_items(sequence)
+    if items is None:
+        raise NotImplementedError("FoldList needs an explicit list")
+    if not isinstance(operation, sp.Symbol) or str(operation) != "Plus":
+        raise NotImplementedError("FoldList supports Plus only")
+    values = [accumulator]
+    for item in items:
+        accumulator = accumulator + item
+        values.append(accumulator)
+    return sp.Tuple(*values)
 
 
 def _selector_index(value: int, length: int) -> int:

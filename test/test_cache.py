@@ -203,6 +203,46 @@ def test_sympy_cache_upgrade_reruns_sources_with_solve(tmp_path):
     assert cache.get(current, source, 300.0) is None
 
 
+def test_sympy_cache_upgrade_reuses_sources_without_fold_list(tmp_path):
+    source = tmp_path / "case.py"
+    source.write_text("value = x + 1\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("sympy", ".py", "srepr", cache_version=10)
+    current = Backend("sympy", ".py", "srepr", cache_version=14)
+
+    cache.put_result(old, source, 5.0, {"value": "Add(Symbol('x'), Integer(1))"})
+
+    cached = cache.get(current, source, 300.0)
+
+    assert cached is not None
+
+
+def test_sympy_cache_upgrade_reuses_version_13_solve_rows(tmp_path):
+    source = tmp_path / "case.py"
+    source.write_text("value = Solve[x + a == 0, x]\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("sympy", ".py", "srepr", cache_version=13)
+    current = Backend("sympy", ".py", "srepr", cache_version=14)
+
+    cache.put_result(old, source, 5.0, {"value": "Function('Rule')()"})
+
+    cached = cache.get(current, source, 300.0)
+
+    assert cached is not None
+
+
+def test_sympy_cache_upgrade_reruns_sources_with_fold_list(tmp_path):
+    source = tmp_path / "case.py"
+    source.write_text("value = FoldList[Plus, 1, {2, 3}]\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("sympy", ".py", "srepr", cache_version=13)
+    current = Backend("sympy", ".py", "srepr", cache_version=14)
+
+    cache.put_result(old, source, 5.0, {"value": "Function('FoldList')()"})
+
+    assert cache.get(current, source, 300.0) is None
+
+
 def test_refresh_prunes_superseded_rows_for_the_same_source(tmp_path):
     source = tmp_path / "case.py"
     source.write_text("answer = 2\n")
