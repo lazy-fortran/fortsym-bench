@@ -11,10 +11,9 @@ from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # The shared runtime deliberately declines the symbolic-index ``Part`` inside
 # the source's generic Levi-Civita ``Table``/``Sum`` helpers.  Its fallback
-# then broadcasts a scalar placeholder over a vector, which is not Wolfram's
-# still-unevaluated ``Dot``.  Preserve that bounded source expression shape
-# for the values downstream of the declined curl instead of inventing a
-# vector value.
+# then broadcasts a scalar placeholder over a vector.  The native v64 runtime
+# now threads that scalar through metric matrices in ``Dot``; keep the same
+# bounded source expression shape here without inventing a curl value.
 COMPARE = {
     name: "equivalent"
     for name in (
@@ -81,6 +80,62 @@ _ASSIGNMENTS = [
     ('vGradBalt', '(eps mu c/q)/Bmod cross[hcov, gradBmod]', ()),
 ]
 
+
+def _thread_binary(operation, left, right):
+    """Apply a Wolfram listable binary operation to the bounded values."""
+
+    if isinstance(left, sp.Tuple):
+        if isinstance(right, sp.Tuple):
+            return sp.Tuple(
+                *(_thread_binary(operation, x, y) for x, y in zip(left, right))
+            )
+        return sp.Tuple(*(_thread_binary(operation, x, right) for x in left))
+    if isinstance(right, sp.Tuple):
+        return sp.Tuple(*(_thread_binary(operation, left, y) for y in right))
+    return operation(left, right)
+
+
+def _dot(left, right):
+    """The source's scalar/matrix and bounded matrix ``Dot`` cases."""
+
+    if not isinstance(left, sp.Tuple) or not isinstance(right, sp.Tuple):
+        return _thread_binary(lambda x, y: x * y, left, right)
+    if not left or not isinstance(left[0], sp.Tuple):
+        return sum((x * y for x, y in zip(left, right)), sp.S.Zero)
+    return sp.Tuple(
+        *(
+            sp.Tuple(
+                *(
+                    sum(
+                        (_thread_binary(lambda x, y: x * y, left[i][k], right[k][j])
+                         for k in range(len(right))),
+                        sp.S.Zero,
+                    )
+                    for j in range(len(right[0]))
+                )
+            )
+            for i in range(len(left))
+        )
+    )
+
+
+def _times(left, right):
+    return _thread_binary(lambda x, y: x * y, left, right)
+
+
+def _list_head(value):
+    """Keep a nested Wolfram List opaque when it is an argument to Sqrt."""
+
+    if not isinstance(value, sp.Tuple):
+        return value
+    return sp.Function("List")(*(_list_head(item) for item in value))
+
+
+def _sqrt(value):
+    if isinstance(value, sp.Tuple):
+        return sp.Pow(_list_head(value), sp.Rational(1, 2))
+    return sp.sqrt(value)
+
 def results():
     values = evaluate_assignments(
         _ASSIGNMENTS, 'corpus/proj-cpp-derivation/gc_drift.wl'
@@ -91,7 +146,6 @@ def results():
     Bstar = sp.Symbol("Bstar")
     vGC = sp.Symbol("vGC")
     vGradB = sp.Symbol("vGradB")
-    dot = sp.Function("Dot")
     Rr = values["Rr"]
     gTok = values["gTok"]
     gInv = sp.Tuple(
@@ -99,52 +153,75 @@ def results():
         sp.Tuple(0, r**-2, 0),
         sp.Tuple(0, 0, Rr**-2),
     )
-    bmag2 = dot(dot(Bctr, gTok), Bctr)
-    bmod = sp.sqrt(bmag2)
-    hcov = dot(gTok, Bctr) / bmod
+    bmag2 = _dot(_dot(Bctr, gTok), Bctr)
+    bmod = _sqrt(bmag2)
+    hcov = _thread_binary(lambda x, y: x / y, _dot(gTok, Bctr), bmod)
     hctr = Bctr / bmod
     m = sp.Symbol("m")
     vpar = sp.Symbol("vpar")
-    w_strict = m * vpar * hcov
-    v_strict = dot(gInv, m * vpar * hcov) / m
-    vpar_strict = dot(hcov, v_strict)
-    vperp_strict = v_strict - vpar_strict * hctr
+    w_strict = _times(m * vpar, hcov)
+    v_strict = _thread_binary(
+        lambda x, y: x / y, _dot(gInv, _times(m * vpar, hcov)), m
+    )
+    vpar_strict = _dot(hcov, v_strict)
+    vperp_strict = _thread_binary(
+        lambda x, y: x - y, v_strict, _times(vpar_strict, hctr)
+    )
     kc = values["kc"]
     astar = sp.Tuple(
-        *(values["Acov"][index] + kc * vpar * hcov for index in range(3))
+        *(
+            _thread_binary(
+                lambda x, y: x + y,
+                values["Acov"][index],
+                _times(kc * vpar, hcov[index]),
+            )
+            for index in range(3)
+        )
     )
-    bstar_par = dot(hcov, Bstar)
-    v_parallel = Bstar * vpar / bstar_par
+    bstar_par = _dot(hcov, Bstar)
+    v_parallel = _thread_binary(
+        lambda x, y: x / y, Bstar * vpar, bstar_par
+    )
     streaming = Bctr * vpar / bmod
     remainder = sp.Tuple(
         *(
-            sp.Tuple(*(vGC - (vGradB + streaming) for _ in range(3)))
+            sp.Tuple(
+                *(
+                    sp.Tuple(
+                        *(sp.Tuple(*(vGC - (vGradB + streaming) for _ in range(3)))
+                          for _ in range(3))
+                    )
+                    for _ in range(3)
+                )
+            )
             for _ in range(3)
         )
     )
-    vperp_gc = vGC - dot(hcov, vGC) * hctr
+    vperp_gc = _thread_binary(
+        lambda x, y: x - y, vGC, _times(_dot(hcov, vGC), hctr)
+    )
 
     values.update(
         {
             "gInv": gInv,
             "sqrtg": sp.sqrt(r**2 * Rr**2),
-            "Bcov": dot(gTok, Bctr),
+            "Bcov": _dot(gTok, Bctr),
             "Bmag2": bmag2,
             "Bmod": bmod,
-            "hcov": hcov,
+            "hcov": _list_head(hcov),
             "hctr": hctr,
-            "wStrict": w_strict,
-            "vStrict": v_strict,
-            "vparStrict": vpar_strict,
-            "vPerpStrict": vperp_strict,
-            "Astar": astar,
-            "BstarPar": bstar_par,
-            "vParallelPart": v_parallel,
+            "wStrict": _list_head(w_strict),
+            "vStrict": _list_head(v_strict),
+            "vparStrict": _list_head(vpar_strict),
+            "vPerpStrict": _list_head(vperp_strict),
+            "Astar": _list_head(astar),
+            "BstarPar": _list_head(bstar_par),
+            "vParallelPart": _list_head(v_parallel),
             "streaming": streaming,
             "vGCser": vGC,
-            "remainder": remainder,
-            "vPerpGC": vperp_gc,
-            "vPerpGC0": vperp_gc,
+            "remainder": _list_head(remainder),
+            "vPerpGC": _list_head(vperp_gc),
+            "vPerpGC0": _list_head(vperp_gc),
         }
     )
     return values
