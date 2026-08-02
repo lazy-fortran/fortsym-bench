@@ -108,6 +108,17 @@ def test_inputform_higher_order_heads_do_not_execute_during_parsing():
     assert result.outcome == AGREE
 
 
+def test_inputform_unavoidable_higher_order_evaluation_stays_opaque():
+    result = compare_text(
+        "Select[$Failed, StringMatchQ(Part(Slot(1), 1), NumberString)&]",
+        "Take[modeRows, 6]",
+        "inputform",
+        "structural",
+    )
+
+    assert result.outcome == DIFFER
+
+
 def test_numeric_policy_accepts_guard_digit_rounding_at_requested_precision():
     result = compare_cross_text(
         "3.14159265358979323846264",

@@ -57,7 +57,22 @@ def parse(text: str, syntax: str):
             protected_lists = normalised.replace(
                 "List[", "fortsymInputOpaqueList["
             )
-            parsed = parse_mathematica(protected_lists)
+            try:
+                parsed = parse_mathematica(protected_lists)
+            except (AttributeError, TypeError, ValueError):
+                if not any(
+                    f"fortsymInputOpaque{name}" in normalised
+                    for name in _OPAQUE_INPUTFORM_HEADS
+                ):
+                    raise
+                # Higher-order and rendering heads may force SymPy's parser
+                # to execute a predicate or option expression even after the
+                # head itself is protected. Keep the complete Wolfram form
+                # opaque in that bounded case. A digest atom can only compare
+                # equal to the same normalized text; it never invents a
+                # semantic equivalence.
+                digest = hashlib.sha256(normalised.encode("utf-8")).hexdigest()
+                return sympy.Symbol("fortsymInputOpaqueExpression" + digest)
         parsed = _restore_inputform_symbols(parsed, restore)
         return _normalise_sympy_derivatives(parsed)
     raise ValueError(f"unknown syntax: {syntax}")
@@ -88,6 +103,11 @@ def _normalise_inputform(text: str) -> tuple[str, dict[str, str]]:
     # nested forms before protecting those heads.
     text = re.sub(r"\bSlot\s*\(([^()]*)\)", r"Slot[\1]", text)
     text = re.sub(r"\bPart\s*\(([^()]*)\)", r"Part[\1]", text)
+    text = re.sub(
+        r"\bStringMatchQ\s*\(([^()]*)\)",
+        r"StringMatchQ[\1]",
+        text,
+    )
     text = _protect_inputform_opaque_heads(text)
     # SymPy's Mathematica parser cannot build an AST for the Wolfram empty
     # list spelling. Use the same collision-resistant atom as the empty-call
@@ -145,7 +165,7 @@ def _protect_inputform_greek_symbols(text: str) -> tuple[str, dict[str, str]]:
     protected = {}
     pieces = []
     start = 0
-    for match in re.finditer(r"[α-ωΑ-Ωϕ]|%[0-9]*", text):
+    for match in re.finditer(r"[α-ωΑ-Ωϕϑ]|%[0-9]*", text):
         replacement = f"fortsymInputSymbol{len(protected)}"
         protected[replacement] = match.group(0)
         pieces.append(text[start:match.start()])
