@@ -45,3 +45,20 @@ def test_mathics_leaves_invalid_curl_unevaluated_without_sympy_api_crash(
     assert results["invalid"] == "Curl[a]"
     assert results["valid"] == "-2"
     assert seconds < 15.0
+
+
+@pytest.mark.skipif(shutil.which("mathics") is None, reason="Mathics3 is optional")
+def test_mathics_leaves_derivative_of_relational_unevaluated(tmp_path: Path):
+    """A relational derivative must not enter SymPy's invalid derivative path."""
+    source = tmp_path / "relational_derivative.wl"
+    source.write_text(
+        "answer = Simplify[D[x > 0, x]]\n",
+        encoding="utf-8",
+    )
+
+    results, seconds = run(BACKENDS["mathics"], source, 15.0)
+
+    # Independent Mathics evaluation of D[x > 0, x] is
+    # Derivative[1, 0][Greater][x, 0]; Simplify must preserve that result.
+    assert results["answer"] == "Derivative[1, 0][Greater][x, 0]"
+    assert seconds < 15.0
