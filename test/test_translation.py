@@ -295,6 +295,14 @@ def test_boole_returns_numeric_indicator_for_decidable_conditions():
     assert evaluate_assignments(assignments)["value"] == sp.Integer(0)
 
 
+def test_which_selects_the_first_true_numeric_branch():
+    assignments, skipped = extract_assignments(
+        "value = Which[1 > 2, 10, 2 < 3, 20, True, 30]"
+    )
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Integer(20)
+
+
 def test_fold_list_returns_prefix_sums_including_the_initial_value():
     assignments, skipped = extract_assignments(
         "value = FoldList[Plus, 1, Drop[{1, 2, 3, 4}, 1]]"
