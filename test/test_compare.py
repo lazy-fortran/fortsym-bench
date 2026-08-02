@@ -207,6 +207,23 @@ def test_malformed_sympy_expression_is_an_error_not_a_benchmark_crash():
     assert result.outcome == ERROR
 
 
+def test_non_expr_equivalence_is_a_declared_difference_not_a_crash():
+    result = compare((1, 2), sp.Integer(0), "equivalent")
+
+    assert result.outcome == DIFFER
+
+
+def test_equivalent_tuple_entries_are_compared_without_tuple_arithmetic():
+    x = sp.Symbol("x")
+    result = compare(
+        sp.Tuple(x + 1, 2),
+        sp.Tuple(1 + x, 2),
+        "equivalent",
+    )
+
+    assert result.outcome == AGREE
+
+
 def test_cross_oracle_booleans_are_not_treated_as_sympy_expressions():
     assert check_oracles(True, True, "structural") is None
 

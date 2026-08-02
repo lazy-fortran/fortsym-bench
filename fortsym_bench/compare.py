@@ -332,7 +332,7 @@ def compare(candidate, reference, strictness: str) -> Comparison:
 
     if strictness == "structural":
         try:
-            equal = candidate == reference
+            equal = bool(candidate == reference)
         except Exception as exc:
             return Comparison(ERROR, f"comparison failed: {type(exc).__name__}: {exc}")
         if equal:
@@ -457,8 +457,16 @@ def compare_cross_text(
 def _equivalent(a, b) -> bool:
     import sympy
 
+    if isinstance(a, sympy.Tuple) or isinstance(b, sympy.Tuple):
+        if not isinstance(a, sympy.Tuple) or not isinstance(b, sympy.Tuple):
+            return False
+        return len(a) == len(b) and all(
+            _equivalent(left, right) for left, right in zip(a, b)
+        )
+    if not isinstance(a, sympy.Basic) or not isinstance(b, sympy.Basic):
+        return False
     try:
-        return sympy.simplify(a - b) == 0
+        return bool(sympy.simplify(a - b) == 0)
     except Exception:
         # The comparison oracle failing to decide is not evidence of agreement.
         return False
