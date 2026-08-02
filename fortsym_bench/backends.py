@@ -99,6 +99,15 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
         argv, protocol = _wolfram_argv(backend, script)
 
     env = dict(os.environ, PYTHONHASHSEED="0")
+    if backend.name == "mathics":
+        # Mathics 10.0.1 has a narrow $Assumptions restoration bug.  Load the
+        # compatibility shim only in this subprocess; keeping it out of the
+        # benchmark's own interpreter preserves the independence of the
+        # Python oracle and avoids requiring Mathics as a project dependency.
+        runner_path = str(RUNNERS.resolve())
+        env["PYTHONPATH"] = os.pathsep.join(
+            part for part in (runner_path, env.get("PYTHONPATH", "")) if part
+        )
     try:
         # A throwaway working directory per run. The corpus is real research
         # code: it calls Export, Put and Save, and those write to the current

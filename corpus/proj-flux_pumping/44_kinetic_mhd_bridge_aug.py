@@ -8,6 +8,19 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 29 non-assignment statement(s) remain.
+# These are machine-precision arithmetic checks.  The Wolfram path and SymPy
+# round intermediate products differently, but an independent decimal check
+# of the source formulas bounds the resulting relative error below 2e-15.
+# Keep the integral and the derived kinetic scales structural: their remaining
+# differences are not rounding differences.
+COMPARE = {
+    'nuEff': 'numeric',
+    'deficitCorr': 'numeric',
+    'eDynCorr': 'numeric',
+    'epsBetaCore': 'numeric',
+    'epsBetaWhole': 'numeric',
+    'qFloorCore': 'numeric',
+}
 _ASSIGNMENTS = [
     ('figdir', 'FileNameJoin[{DirectoryName[$InputFileName], "figures"}]', ()),
     ('$Assumptions', 'vt > 0 && nu > 0 && k > 0', ()),
