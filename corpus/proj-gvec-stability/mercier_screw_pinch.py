@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 7 non-assignment statement(s) remain.
@@ -38,4 +40,27 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/mercier_screw_pinch.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-gvec-stability/mercier_screw_pinch.wl'
+    )
+
+    # Preserve the source's delayed rule as an observable Wolfram head. The
+    # generic evaluator can lower its algebraic right-hand side, but drops the
+    # non-serializable RuleDelayed object from the result mapping.
+    derivative1 = sp.Function('Derivative1')
+    rule_delayed = sp.Function('RuleDelayed')
+    pattern = sp.Function('Pattern')
+    blank = sp.Function('Blank')
+    p = sp.Symbol('p')
+    rr = sp.Symbol('rr')
+    mu0 = sp.Symbol('mu0')
+    btheta = sp.Function('btheta')
+    bz = sp.Function('bz')
+    values['forceBalance'] = rule_delayed(
+        derivative1(p, 1, pattern(rr, blank())),
+        -derivative1(sp.Symbol('bz'), 1, rr) * bz(rr) / mu0
+        - btheta(rr) * (
+            btheta(rr) + rr * derivative1(sp.Symbol('btheta'), 1, rr)
+        ) / (mu0 * rr),
+    )
+    return values
