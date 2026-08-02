@@ -80,6 +80,15 @@ def test_a_script_with_only_function_definitions_returns_an_empty_result_set():
     assert evaluate_assignments(assignments) == {}
 
 
+def test_multiple_integrate_ranges_keep_the_first_range_outermost():
+    assignments, skipped = extract_assignments(
+        "value = Integrate[x + y, {x, 0, 1}, {y, 0, x}]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Rational(1, 2)
+
+
 def test_leading_continuation_operators_stay_in_the_same_assignment():
     assignments, skipped = extract_assignments(
         "value = a\n"
