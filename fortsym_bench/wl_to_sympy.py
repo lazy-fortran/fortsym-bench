@@ -283,6 +283,8 @@ def _lower(expression, environment: dict[str, object]):
 
     if name == "D":
         return _differentiate(arguments)
+    if name == "DSolve":
+        return _dsolve(arguments)
     if name in ("Simplify", "FullSimplify"):
         return sp.simplify(arguments[0])
     if name in ("Expand", "ExpandAll"):
@@ -482,6 +484,28 @@ def _differentiate(arguments: tuple[object, ...]):
         else:
             result = _differentiate_value(result, specification, 1)
     return result
+
+
+def _dsolve(arguments: tuple[object, ...]):
+    """Lower the bounded scalar first-order ODE form used by the corpus."""
+
+    if len(arguments) < 2 or not isinstance(arguments[0], sp.Equality):
+        raise NotImplementedError("DSolve needs one scalar differential equation")
+    equation = arguments[0]
+    function = arguments[1]
+    if isinstance(function, sp.Basic) and function.is_Function:
+        function = function.func
+    elif not isinstance(function, sp.FunctionClass):
+        raise NotImplementedError("DSolve needs a callable dependent variable")
+    variable = arguments[2] if len(arguments) > 2 else None
+    if variable is None or not isinstance(variable, sp.Symbol):
+        raise NotImplementedError("DSolve needs one independent variable")
+    trial = function(variable)
+    if not equation.has(trial) and not equation.has(sp.Derivative(trial, variable)):
+        raise NotImplementedError("DSolve equation does not contain the requested function")
+    solution = sp.dsolve(equation, trial)
+    rule = sp.Function("Rule")(trial, solution.rhs)
+    return sp.Tuple(sp.Tuple(rule))
 
 
 def _differentiate_value(value, variable, order: int):
@@ -1672,6 +1696,8 @@ def _normalise_named_characters(text: str) -> str:
 # expressions, but parse the affected identifier as an ordinary ASCII symbol.
 _GREEK_PARSE_NAMES = {
     "λ": "fortsymGreekLambda",
+    "α": "fortsymGreekAlpha",
+    "β": "fortsymGreekBeta",
 }
 
 
