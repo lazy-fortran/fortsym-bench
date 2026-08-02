@@ -41,6 +41,10 @@ which and how many source statements were not assignment expressions.
 | `Solve[eq == 0, x]` | `sp.solve(sp.Eq(eq, 0), x)` |
 | `Coefficient[f, x, n]` | `f.coeff(x, n)` |
 | `CoefficientList[f, x]` | coefficients from constant term upward |
+| `Exponent[f, x]` | `sp.degree(sp.expand(f), x)` |
+| `PolynomialGCD[f, g]` | `sp.gcd(f, g)` |
+| `PolynomialQuotient[f, g, x]` / `PolynomialRemainder[f, g, x]` | `sp.div` over the explicit variable |
+| `Numerator[f]` / `Denominator[f]` | `sp.fraction(sp.cancel(f))` |
 | `Total[list]` | bounded explicit-list sum, including componentwise list sums |
 | `PseudoInverse[m]` | bounded full-rank numeric Moore–Penrose inverse |
 | `SingularValueList[m]` | diagonal/zero numeric singular values, sorted descending |
@@ -94,7 +98,9 @@ non-negative `MatrixPower`, `Coefficient`/`CoefficientList`, single-variable
 `Solve` rule-list normalization, bounded `FoldList[Plus, init, list]`,
 bounded explicit-list `Total`, bounded full-rank numeric `PseudoInverse`,
 diagonal/zero numeric `SingularValueList`, numeric `Max`/`Min`, rectangular
-`ArrayFlatten`, quoted string literals mapped to the native
+`ArrayFlatten`, bounded polynomial heads (`Exponent`, `PolynomialGCD`,
+`PolynomialQuotient`, `PolynomialRemainder`, `Numerator`, and `Denominator`),
+quoted string literals mapped to the native
 comparison atom, and a
 Wolfram matrix-product dot continued across a line break. Unicode `λ` is protected
 during SymPy parsing and restored as the original symbol. Unsupported selector and matrix shapes remain

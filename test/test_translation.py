@@ -188,6 +188,28 @@ def test_coefficient_and_coefficient_list_reconstruct_a_polynomial():
     assert sp.expand(reconstructed - values["value"]) == 0
 
 
+def test_polynomial_heads_have_independent_division_and_content_identities():
+    assignments, skipped = extract_assignments(
+        "value = (x - y)*(x + 2*y); "
+        "degree = Exponent[value, x]; "
+        "gcd = PolynomialGCD[value, (x - y)*(x + 3*y)]; "
+        "quotient = PolynomialQuotient[value, x - y, x]; "
+        "remainder = PolynomialRemainder[value, x - y, x]; "
+        "numerator = Numerator[(x + 1)/(y + 2)]; "
+        "denominator = Denominator[(x + 1)/(y + 2)]"
+    )
+
+    assert skipped == []
+    values = evaluate_assignments(assignments)
+    x, y = sp.symbols("x y")
+    assert values["degree"] == 2
+    assert sp.expand(values["gcd"] - (x - y)) == 0
+    assert sp.expand(values["quotient"] - (x + 2 * y)) == 0
+    assert values["remainder"] == 0
+    assert values["numerator"] == x + 1
+    assert values["denominator"] == y + 2
+
+
 def test_multivariate_coefficient_list_keeps_variable_order():
     assignments, skipped = extract_assignments(
         "value = 1 + 2*x + 3*y + 4*x*y; "
