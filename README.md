@@ -230,6 +230,12 @@ semantics after `DSolve`, including Wolfram `C[1]` normalization; the full
 suite now passes 96 tests. The refreshed 384-source cache contains 374
 successful SymPy rows, 5 unsupported rows, and 5 timeouts, plus 214 successful
 Mathics rows, 104 errors, and 66 timeouts; all rows are reusable at timeout 15.
+The subsequent slices protect ordinary `zeta` coordinates from SymPy's
+built-in Zeta parser, lower bounded `Position`/`Union`, classify list-valued
+InputForm arithmetic without comparator crashes, and normalize the `sympl3_`
+unit constants. The current cache-only three-backend score is 3,287
+agreements, 684 differences, 7 unsupported outcomes, 73 timeouts, 119 errors,
+191 oracle disagreements, and 764 oracle-missing bindings.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
