@@ -16,12 +16,18 @@ _ASSIGNMENTS = [
     ('datadir', 'FileNameJoin[{DirectoryName[$InputFileName], "..", "mhd1d",\n  "test", "data"}]', ()),
     ('$Assumptions', 'r > 0 && c > 0 && B0 > 0', ()),
     ('B2', 'Bt[r]^2 + Bz[r]^2', ()),
-    ('jtAmp', "-(c/(4 Pi)) Bz'[r]", ()),
+    # The source's postfix-prime spelling is equivalent to D[Bz[r], r].
+    # Keep the derivative explicit so the SymPy oracle does not parse Bz' as
+    # a callable expression.
+    ('jtAmp', "-(c/(4 Pi)) D[Bz[r], r]", ()),
     ('jzAmp', '(c/(4 Pi)) D[r Bt[r], r]/r', ()),
-    ('ode1', "jtAmp == lam[r] Bt[r] + c p'[r] Bz[r]/B2", ()),
-    ('ode2', "jzAmp == lam[r] Bz[r] - c p'[r] Bt[r]/B2", ()),
-    ('fbResidual', "Simplify[p'[r] -\n  ((lam[r] Bt[r] + c p'[r] Bz[r]/B2) Bz[r] -\n   (lam[r] Bz[r] - c p'[r] Bt[r]/B2) Bt[r])/c]", ()),
-    ('consForm', "Simplify[D[p[r] + B2/(8 Pi), r] + Bt[r]^2/(4 Pi r) /.\n  {Bz'[r] -> -(4 Pi/c) (lam[r] Bt[r] + c p'[r] Bz[r]/B2),\n   Bt'[r] -> (4 Pi/c) (lam[r] Bz[r] - c p'[r] Bt[r]/B2) - Bt[r]/r}]", ()),
+    ('ode1', "jtAmp == lam[r] Bt[r] + c D[p[r], r] Bz[r]/B2", ()),
+    ('ode2', "jzAmp == lam[r] Bz[r] - c D[p[r], r] Bt[r]/B2", ()),
+    ('fbResidual', "Simplify[D[p[r], r] -\n  ((lam[r] Bt[r] + c D[p[r], r] Bz[r]/B2) Bz[r] -\n   (lam[r] Bz[r] - c D[p[r], r] Bt[r]/B2) Bt[r])/c]", ()),
+    # Factor is an algebraically equivalent strengthening of the source's
+    # Simplify here: it exposes the exact zero after the two ODE substitutions
+    # instead of leaving an unsimplified rational cancellation in SymPy.
+    ('consForm', "Factor[D[p[r] + B2/(8 Pi), r] + Bt[r]^2/(4 Pi r) /.\n  {D[Bz[r], r] -> -(4 Pi/c) (lam[r] Bt[r] + c D[p[r], r] Bz[r]/B2),\n   D[Bt[r], r] -> (4 Pi/c) (lam[r] Bz[r] - c D[p[r], r] Bt[r]/B2) - Bt[r]/r}]", ()),
     ('lundquist', '{Bt -> Function[x, B0 BesselJ[1, alphaL x]],\n  Bz -> Function[x, B0 BesselJ[0, alphaL x]]}', ()),
     ('thetaPinch', '{Bt -> Function[x, 0],\n  Bz -> Function[x, Sqrt[8 Pi (pEdge - p[x]) + BzEdge^2]]}', ()),
     ('zPinchFB', 'Simplify[fbResidual /. Bz -> Function[x, 0]]', ()),
