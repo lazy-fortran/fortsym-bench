@@ -77,6 +77,17 @@ def test_numeric_power_normalization_preserves_function_application():
     }
 
 
+def test_replace_all_evaluates_derivative_at_the_replacement_point():
+    assignments, skipped = extract_assignments(
+        "value = D[f[x], x] /. x -> y"
+    )
+
+    assert skipped == []
+    x, y = sp.symbols("x y")
+    f = sp.Function("f")
+    assert evaluate_assignments(assignments)["value"] == sp.Derivative(f(y), y)
+
+
 def test_len_coordinate_is_not_parsed_as_python_builtin():
     value = evaluate_assignments(extract_assignments("value = len + 1")[0])
     assert value["value"] == sp.Symbol("len") + 1
