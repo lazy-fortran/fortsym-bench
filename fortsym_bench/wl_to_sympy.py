@@ -256,6 +256,7 @@ def evaluate_expression(text: str, environment: dict[str, object] | None = None)
 
     environment = {} if environment is None else environment
     normalised = _normalise_expression_layout(_normalise_named_characters(text))
+    normalised = _normalise_numeric_powers(normalised)
     normalised = _normalise_prefix_calls(normalised)
     normalised = _protect_thread_equal(normalised)
     # SymPy's Mathematica parser eagerly constructs Max/Min and rejects a
@@ -1986,3 +1987,51 @@ def _normalise_prefix_calls(text: str) -> str:
         operand = text[match.start(2) : closing + 1]
         text = text[: match.start(1)] + match.group(1) + "[" + operand + "]" + text[closing + 1 :]
     return text
+
+
+def _normalise_numeric_powers(text: str) -> str:
+    """Parenthesize numeric powers before SymPy parses implicit products.
+
+    Wolfram input commonly writes constants such as ``4 Pi 10^-7``.  The
+    Mathematica parser in SymPy gives the exponent tighter binding than the
+    implicit multiplication in that spelling, effectively reading it as
+    ``(4 Pi 10)^-7``.  Parenthesizing only a numeric base and numeric exponent
+    preserves Wolfram precedence without rewriting identifiers or calls such
+    as ``f[10^-7]``.
+    """
+
+    power = re.compile(
+        r"(?<![A-Za-z0-9_.$])"
+        r"(?:\d+(?:\.\d*)?|\.\d+)"
+        r"\s*\^\s*[+-]?\d+"
+    )
+    pieces: list[str] = []
+    start = 0
+    index = 0
+    in_string = False
+    escaped = False
+    while index < len(text):
+        char = text[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            index += 1
+            continue
+        if char == '"':
+            in_string = True
+            index += 1
+            continue
+        match = power.match(text, index)
+        if match is None:
+            index += 1
+            continue
+        pieces.append(text[start:index])
+        pieces.append("(" + match.group(0) + ")")
+        index = match.end()
+        start = index
+    pieces.append(text[start:])
+    return "".join(pieces)
