@@ -345,6 +345,8 @@ def _lower(expression, environment: dict[str, object]):
     if name == "MatrixExp":
         return _matrix_to_tuple(_matrix(arguments[0]).exp())
     if name == "Diagonal":
+        if len(arguments) != 1 or not _is_nested_sequence(arguments[0]):
+            return sp.Function("Diagonal")(*arguments)
         matrix = _matrix(arguments[0])
         return sp.Tuple(*(matrix[i, i] for i in range(min(matrix.rows, matrix.cols))))
     if name == "Rule":
