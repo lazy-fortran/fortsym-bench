@@ -354,6 +354,8 @@ def _lower(expression, environment: dict[str, object]):
         return WolframPureFunction(tuple(parameters), expression.args[1], environment)
     if name == "Module":
         return _module(expression.args, environment)
+    if name == "With":
+        return _with(expression.args, environment)
     if name == "Map":
         return _map(expression.args, environment)
     if name == "Select":
@@ -656,6 +658,31 @@ def _module(arguments: tuple[object, ...], environment: dict[str, object]):
     for name, initializer in initializers:
         local[name] = _lower(initializer, local)
     return _lower_module_body(arguments[1], local)
+
+
+def _with(arguments: tuple[object, ...], environment: dict[str, object]):
+    """Lower the bounded lexical ``With`` form used by the corpus.
+
+    Wolfram evaluates all local initializers in the surrounding environment,
+    then substitutes those values into the body. Keeping that two-phase order
+    matters for sibling bindings such as ``{a = 1, b = a + 1}``.
+    """
+
+    if len(arguments) != 2:
+        raise NotImplementedError("With needs local declarations and a body")
+    declarations = _sequence_items(arguments[0])
+    if declarations is None:
+        raise NotImplementedError("With declarations must be a list")
+
+    local = dict(environment)
+    for declaration in declarations:
+        if _head_name(declaration) != "Set" or len(declaration.args) != 2:
+            raise NotImplementedError("With declarations need symbol initializers")
+        target, initializer = declaration.args
+        if not isinstance(target, sp.Symbol):
+            raise NotImplementedError("With declarations need symbol names")
+        local[str(target)] = _lower(initializer, environment)
+    return _lower(arguments[1], local)
 
 
 def _lower_module_body(expression, environment: dict[str, object]):
