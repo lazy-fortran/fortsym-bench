@@ -221,6 +221,12 @@ _ASSIGNMENTS = [
 def results():
     values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math11y.wl')
 
+    # The two unconverted notebook cells leave these symbols as their only
+    # observable values in the Mathics reference run.  Preserve that
+    # source-level result instead of silently dropping the bindings.
+    values['d'] = sp.Symbol('d')
+    values['f'] = sp.Symbol('f')
+
     # These two source cells index lists produced earlier in the notebook.
     # Build their already-expanded equations explicitly so the final values
     # do not accidentally capture later notebook rebindings (notably m = 1).
