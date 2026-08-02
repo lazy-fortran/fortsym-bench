@@ -143,10 +143,10 @@ their syntaxes, the strictness policy, and the comparator version. On the
 2026-08-01 corpus, measured again on 2026-08-02, the earlier full refresh after
 the translator change took 4:54 with four workers. The latest bounded
 CharacteristicPolynomial/LegendreP/Diagonal/list-selector/Coefficient/Solve/
-FoldList/ArrayFlatten/Total audit refreshed 380 native rows in 1:11.83 with
-two workers and a 3.04 GiB peak RSS. The quoted-string translator refresh then
+FoldList/ArrayFlatten/Total/PseudoInverse audit refreshed 380 native rows in
+1:13.38 with two workers and a 3.04 GiB peak RSS. The quoted-string translator refresh then
 updated 175 SymPy rows in 2:00.16 with a 543 MiB peak RSS. The 155 MB
-raw-result cache then served an identical warm audit in 1.11 seconds at 418
+raw-result cache then served an identical warm audit in 1.03 seconds at 423
 MiB RSS, with no backend subprocesses started. The
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
@@ -240,9 +240,9 @@ runner error, and explicitly refused 2 unsupported constructs; it had no native
 crashes. The same compact cache contains 359 completed SymPy rows (332
 non-empty, 27 empty, 7 timeouts, 18 refusals) and 235 completed Mathics rows
 (208 non-empty, 27 empty, 107 errors, 30 timeouts, 12 unavailable). The final
-binding-level audit has 3,209 agreements, 727 declared differences, 20
+binding-level audit has 3,211 agreements, 725 declared differences, 20
 unsupported outcomes, 38 timeouts, 122 errors, 192 oracle disagreements, and
-797 oracle-missing bindings. Its warm run takes 1.11 seconds at 418 MiB RSS.
+797 oracle-missing bindings. Its warm run takes 1.03 seconds at 423 MiB RSS.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
@@ -288,7 +288,7 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The latest full run produced 3,209 agreements, 727 declared
+place. The latest full run produced 3,211 agreements, 725 declared
 differences, 20 unsupported outcomes, 38 timeouts, 122 errors, 192 oracle
 disagreements, and 797 oracle-missing bindings. Translation quality and the
 remaining backend parity work stay measured by the independent oracle report;
