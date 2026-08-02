@@ -23,3 +23,33 @@ def test_cheap_math10y_late_bindings_are_source_formulas():
         sp.sin(a * x + b * x) - sp.sin(a * x - b * x)
     ) / 2
 
+
+def test_math10y_literal_rule_assignments_preserve_source_values():
+    values = math10y.results()
+    rule = sp.Function('Rule')
+    phi = sp.Symbol('phi')
+    y, x = sp.symbols('y x')
+
+    assert values['sy'] == rule(
+        y, sp.Symbol('b') * sp.sqrt(1 - x**2 / sp.Symbol('a')**2) * sp.sin(phi)
+    )
+    assert values['sua'] == rule(sp.Symbol('a'), 1)
+    assert values['sa'] == sp.Tuple(rule(sp.Symbol('a'), 1))
+    assert values['su'] == sp.Tuple(
+        rule(sp.Symbol('a'), sp.Float('0.37')),
+        rule(sp.Symbol('b'), sp.Float('1.23')),
+        rule(sp.Symbol('c'), sp.Float('0.79')),
+        rule(sp.Symbol('d'), sp.Float('3.21')),
+    )
+    assert values['svd'] == sp.Tuple(
+        rule(sp.Symbol('V0'), 10),
+        rule(sp.Symbol('R'), 22),
+        rule(sp.Symbol('L'), 110),
+        rule(sp.Symbol('C'), 1),
+    )
+    assert values['svs'] == sp.Tuple(
+        rule(sp.Symbol('V0'), 10),
+        rule(sp.Symbol('R'), 22),
+        rule(sp.Symbol('L'), 110),
+        rule(sp.Symbol('C'), 19),
+    )
