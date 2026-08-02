@@ -8,6 +8,15 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 import sympy as sp
 
+
+# The native Wolfram runner preserves Dot and the delayed derivative head when
+# Bvec is still an opaque source-level binding.  Keep these forms opaque too;
+# expanding them would invent semantics for an untranslated replacement rule.
+COMPARE = {
+    'BtS': 'equivalent',
+    'tangency': 'equivalent',
+}
+
 # NOT TRANSLATED: 38 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('figdir', 'FileNameJoin[{DirectoryName[$InputFileName], "figures"}]', ()),
@@ -117,4 +126,24 @@ def results():
         rule(th, chi / m),
         rule(z, 0),
     )
+
+    bvec = sp.Symbol('Bvec')
+    dot = sp.Function('Dot')
+    b2 = dot(bvec, bvec)
+    values['B2On'] = b2
+    values['Bmag'] = sp.sqrt(b2)
+    values['lhsId'] = sp.Function('divCyl')(
+        sp.Function('g')(r, th, z) * bvec / sp.sqrt(b2), r, th, z
+    )
+    values['ratioOn'] = b2 / sp.Symbol('BzOn')
+
+    derivative1 = sp.Function('Derivative1')
+    g = sp.Symbol('g')
+    gradient = sp.Tuple(
+        derivative1(g, 1, r, th, z) / sp.sqrt(b2),
+        derivative1(g, 2, r, th, z) / (r * sp.sqrt(b2)),
+        derivative1(g, 3, r, th, z) / sp.sqrt(b2),
+    )
+    values['rhsId'] = sp.sqrt(b2) * dot(bvec / sp.sqrt(b2), gradient)
+
     return values
