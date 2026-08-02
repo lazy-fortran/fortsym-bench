@@ -192,6 +192,7 @@ def test_polynomial_heads_have_independent_division_and_content_identities():
     assignments, skipped = extract_assignments(
         "value = (x - y)*(x + 2*y); "
         "degree = Exponent[value, x]; "
+        "fractional = Exponent[(u - v)*x^(2/5), x]; "
         "gcd = PolynomialGCD[value, (x - y)*(x + 3*y)]; "
         "quotient = PolynomialQuotient[value, x - y, x]; "
         "remainder = PolynomialRemainder[value, x - y, x]; "
@@ -203,6 +204,7 @@ def test_polynomial_heads_have_independent_division_and_content_identities():
     values = evaluate_assignments(assignments)
     x, y = sp.symbols("x y")
     assert values["degree"] == 2
+    assert values["fractional"] == sp.Rational(2, 5)
     assert sp.expand(values["gcd"] - (x - y)) == 0
     assert sp.expand(values["quotient"] - (x + 2 * y)) == 0
     assert values["remainder"] == 0
@@ -231,6 +233,15 @@ def test_solve_wraps_single_variable_roots_in_wolfram_rules():
     assert evaluate_assignments(assignments)["value"] == sp.Tuple(
         sp.Tuple(sp.Function("Rule")(x, -a))
     )
+
+
+def test_solve_rules_can_feed_replace_all():
+    assignments, skipped = extract_assignments(
+        "value = r /. First[Solve[2*r == (1-r)/2, r]]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Rational(1, 5)
 
 
 def test_fold_list_returns_prefix_sums_including_the_initial_value():

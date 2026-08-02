@@ -331,7 +331,8 @@ class ReferenceCache:
         version 14 adds the bounded FoldList form, version 15 aligns protected
         string literals with the native comparison protocol, version 16 lowers
         the bounded diagonal SingularValueList and numeric extrema forms, and
-        version 17 adds bounded polynomial heads. Older rows remain exact for
+        version 17 adds bounded polynomial heads, and version 18 lets
+        serialized Solve rules feed ReplaceAll. Older rows remain exact for
         sources unaffected by the
         corresponding change, which prevents a translator fix from forcing a
         multi-gigabyte full oracle refresh.
@@ -471,6 +472,51 @@ class ReferenceCache:
                     "Denominator[",
                 )
                 if any(head in text for head in polynomial_heads):
+                    return False
+                if version < 16 and any(
+                    head in text for head in ("SingularValueList[", "Max[", "Min[")
+                ):
+                    return False
+                if version <= 14:
+                    if version == 9 and "λ" in text:
+                        return False
+                    if version <= 10 and "Coefficient" in text:
+                        return False
+                    if version < 13 and "Solve" in text:
+                        return False
+                    if version < 14 and "FoldList" in text:
+                        return False
+                    assignments = text.split("_ASSIGNMENTS = [", 1)
+                    if len(assignments) == 2:
+                        body = assignments[1].split("]\n\ndef results", 1)[0]
+                        return '"' not in body
+                    return '"' not in text
+                return True
+            except (OSError, UnicodeError):
+                return False
+        if (
+            backend.name == "sympy"
+            and backend.cache_version == 18
+            and version in (9, 10, 11, 12, 13, 14, 15, 16, 17)
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                text = Path(source).read_text()
+                if "First[Solve[" in text and "/." in text:
+                    return False
+                if version < 18 and any(
+                    head in text
+                    for head in (
+                        "Exponent[",
+                        "PolynomialGCD[",
+                        "PolynomialQuotient[",
+                        "PolynomialRemainder[",
+                        "Numerator[",
+                        "Denominator[",
+                    )
+                ):
                     return False
                 if version < 16 and any(
                     head in text for head in ("SingularValueList[", "Max[", "Min[")
