@@ -182,6 +182,10 @@ positive-level `Map` slice took 1.00 second at 404 MiB RSS; its selected rows
 were dominated by plotting/file-I/O or Mathics failures and did not change the
 scored native tally. These focused results are not a replacement for a new
 whole-corpus baseline.
+The v21 native `Piecewise` transition then ran the same six-script focused
+slice in 0.85 second at 403 MiB RSS and preserved 21 agreements, 6
+differences, 3 unavailable oracle rows, 2 oracle disagreements, and 3
+oracle-missing bindings, with no scored native tally change.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
