@@ -201,8 +201,8 @@ class ReferenceCache:
                 json.dump(
                     {"version": CACHE_VERSION, "entries": self._entries},
                     stream,
-                    indent=1,
-                    sort_keys=True,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
                 )
                 stream.write("\n")
             os.replace(temporary, self.path)
@@ -893,8 +893,8 @@ class ComparisonCache:
                 json.dump(
                     {"version": COMPARISON_CACHE_VERSION, "entries": self._entries},
                     stream,
-                    indent=1,
-                    sort_keys=True,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
                 )
                 stream.write("\n")
             os.replace(temporary, self.path)
