@@ -285,6 +285,16 @@ def test_piecewise_selects_numeric_branches_and_default():
     assert evaluate_assignments(assignments)["value"] == sp.Integer(7)
 
 
+def test_boole_returns_numeric_indicator_for_decidable_conditions():
+    assignments, skipped = extract_assignments("value = Boole[1 < 2]")
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Integer(1)
+
+    assignments, skipped = extract_assignments("value = Boole[1 > 2]")
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Integer(0)
+
+
 def test_fold_list_returns_prefix_sums_including_the_initial_value():
     assignments, skipped = extract_assignments(
         "value = FoldList[Plus, 1, Drop[{1, 2, 3, 4}, 1]]"

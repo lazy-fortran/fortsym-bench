@@ -333,7 +333,8 @@ class ReferenceCache:
         the bounded diagonal SingularValueList and numeric extrema forms, and
         version 17 adds bounded polynomial heads, version 18 lets serialized
         Solve rules feed ReplaceAll, version 19 lowers bounded Thread, and
-        version 20 lowers bounded positive Map levels. Older rows remain exact for
+        version 20 lowers bounded positive Map levels, and version 21 lowers
+        numeric Boole conditions. Older rows remain exact for
         sources unaffected by the
         corresponding change, which prevents a translator fix from forcing a
         multi-gigabyte full oracle refresh.
@@ -452,6 +453,65 @@ class ReferenceCache:
                     body = assignments[1].split("]\n\ndef results", 1)[0]
                     return '"' not in body
                 return '"' not in text
+            except (OSError, UnicodeError):
+                return False
+        if (
+            backend.name == "sympy"
+            and backend.cache_version == 21
+            and version in (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                text = Path(source).read_text()
+                if "Boole[" in text:
+                    return False
+                if version >= 18:
+                    if version <= 19 and "Map[" in text and any(
+                        f"{{{level}}}" in text for level in (2, 3, 4)
+                    ):
+                        return False
+                    return version > 18 or "Thread[" not in text
+                if "Thread[" in text:
+                    return False
+                if "Map[" in text and any(
+                    f"{{{level}}}" in text for level in (2, 3, 4)
+                ):
+                    return False
+                if "First[Solve[" in text and "/." in text:
+                    return False
+                if any(
+                    head in text
+                    for head in (
+                        "Exponent[",
+                        "PolynomialGCD[",
+                        "PolynomialQuotient[",
+                        "PolynomialRemainder[",
+                        "Numerator[",
+                        "Denominator[",
+                    )
+                ):
+                    return False
+                if version < 16 and any(
+                    head in text for head in ("SingularValueList[", "Max[", "Min[")
+                ):
+                    return False
+                if version <= 14:
+                    if version == 9 and "λ" in text:
+                        return False
+                    if version <= 10 and "Coefficient" in text:
+                        return False
+                    if version < 13 and "Solve" in text:
+                        return False
+                    if version < 14 and "FoldList" in text:
+                        return False
+                    assignments = text.split("_ASSIGNMENTS = [", 1)
+                    if len(assignments) == 2:
+                        body = assignments[1].split("]\n\ndef results", 1)[0]
+                        return '"' not in body
+                    return '"' not in text
+                return True
             except (OSError, UnicodeError):
                 return False
         if (

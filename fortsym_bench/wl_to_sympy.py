@@ -427,6 +427,8 @@ def _lower(expression, environment: dict[str, object]):
         return _matrix_to_tuple(_matrix(arguments[0]).inv())
     if name == "Piecewise":
         return _piecewise(arguments)
+    if name == "Boole":
+        return _boole(arguments)
     if name == "Add":
         return _elementwise_add(arguments)
     if name == "Mul":
@@ -1462,6 +1464,17 @@ def _piecewise(arguments: tuple[object, ...]):
     if len(arguments) > 1:
         return sp.Piecewise(*pairs, (arguments[1], True))
     return sp.Piecewise(*pairs)
+
+
+def _boole(arguments: tuple[object, ...]):
+    if len(arguments) != 1:
+        raise NotImplementedError("Boole needs one condition")
+    condition = arguments[0]
+    if condition is sp.true:
+        return sp.Integer(1)
+    if condition is sp.false:
+        return sp.Integer(0)
+    return sp.Function("Boole")(condition)
 
 
 def _as_assignment(item) -> Assignment:

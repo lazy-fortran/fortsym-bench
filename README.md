@@ -158,7 +158,7 @@ a warm audit in 1.24 seconds
 at 456 MiB RSS, with no backend subprocesses started. The
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
-The SymPy cache is now version 20: Unicode `λ` is protected while parsing
+The SymPy cache is now version 21: Unicode `λ` is protected while parsing
 function arguments, quoted string literals use the same collision-resistant
 comparison atom as the native backend, `Coefficient`/`CoefficientList` are
 lowered through SymPy, single-variable `Solve` results are serialized as
@@ -172,7 +172,8 @@ heads from `Solve` feed `ReplaceAll` and preserves exact fractional-monomial
 including list-valued `Equal`. Its compatibility transition reused unaffected
 older rows and refreshed only the 16 affected rows; the direct version-chain
 compatibility avoids repeating a broad oracle refresh on the next translator
-change. Version 20 also lowers bounded positive `Map` levels. A current
+change. Version 20 also lowers bounded positive `Map` levels, and version 21
+lowers numeric `Boole` conditions. A current
 one-worker audit of the 16-script `Thread` slice, using the
 rebuilt native runner, took 17.43 seconds at 508 MiB RSS and reported 249
 agreements, 58 differences, 1 unavailable oracle row, 1 timeout, 5 errors,
@@ -186,6 +187,10 @@ The v21 native `Piecewise` transition then ran the same six-script focused
 slice in 0.85 second at 403 MiB RSS and preserved 21 agreements, 6
 differences, 3 unavailable oracle rows, 2 oracle disagreements, and 3
 oracle-missing bindings, with no scored native tally change.
+The v22 native `Boole` transition refreshed three SymPy rows in 2.91 seconds
+at 404 MiB RSS and preserved 21 agreements, 7 differences, 1 unavailable
+oracle row, 1 oracle disagreement, and 1 oracle-missing binding, with no
+scored native tally change.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
@@ -271,7 +276,7 @@ latest committed full binding-level audit has 3,219 agreements, 716 declared
 differences, 20
 unsupported outcomes, 38 timeouts, 117 errors, 192 oracle disagreements, and
 798 oracle-missing bindings. Its warm run takes 1.24 seconds at 456 MiB RSS;
-the current v20 focused slice is documented above.
+the current v22 focused slice is documented above.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
