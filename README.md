@@ -142,10 +142,11 @@ comparison verdicts are cached separately in
 their syntaxes, the strictness policy, and the comparator version. On the
 2026-08-01 corpus, measured again on 2026-08-02, the earlier full refresh after
 the translator change took 4:54 with four workers. The latest bounded
-list-selector audit took 83.6 seconds with two workers and a 0.79 GiB peak RSS:
+Diagonal/list-selector audit took 83.0 seconds with two workers and a 0.79 GiB
+peak RSS:
 380 native rows were fresh while all compatible SymPy and Mathics rows were
 reused. The 155 MB raw-result cache then served an identical warm audit in
-1.01 seconds at 419 MiB RSS, with no backend subprocesses started.
+1.05 seconds at 421 MiB RSS, with no backend subprocesses started.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
@@ -227,9 +228,9 @@ runner error, and explicitly refused 2 unsupported constructs; it had no native
 crashes. The same compact cache contains 359 completed SymPy rows (332
 non-empty, 27 empty, 7 timeouts, 18 refusals) and 235 completed Mathics rows
 (208 non-empty, 27 empty, 107 errors, 30 timeouts, 12 unavailable). The final
-binding-level audit has 3,138 agreements, 790 declared differences, 20
-unsupported outcomes, 38 timeouts, 122 errors, 200 oracle disagreements, and
-798 oracle-missing bindings. Its warm run takes 1.01 seconds at 419 MiB RSS.
+binding-level audit has 3,139 agreements, 788 declared differences, 20
+unsupported outcomes, 38 timeouts, 122 errors, 199 oracle disagreements, and
+799 oracle-missing bindings. Its warm run takes 1.05 seconds at 421 MiB RSS.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
