@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 179 non-assignment statement(s) remain.
 COMPARE = {
@@ -212,7 +213,29 @@ _ASSIGNMENTS = [
     ('so', 'DSolve[deq, u[x, t], {x, t}]', ()),
     ('deq', 'D[u[r, ϕ], {r, 2}] + (1/r)*D[u[r, ϕ], r] + (1/r^2)*D[u[r, ϕ], {ϕ, 2}] == 0', ()),
     ('so', 'DSolve[deq, u[r, ϕ], {r, ϕ}]', ()),
+    # SymPy's parser rejects the Unicode phi spelling in the final source
+    # cell. phi is the parser-safe spelling of the same Wolfram symbol.
+    ('deq', 'D[u[r, phi], {r, 2}] + (1/r)*D[u[r, phi], r] + (1/r^2)*D[u[r, phi], {phi, 2}] == 0', ()),
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math11y.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math11y.wl')
+
+    # These two source cells index lists produced earlier in the notebook.
+    # Build their already-expanded equations explicitly so the final values
+    # do not accidentally capture later notebook rebindings (notably m = 1).
+    t = sp.Symbol('t')
+    x, y, z = (sp.Function(name) for name in ('x', 'y', 'z'))
+    m, q, B0, E0 = sp.symbols('m q B0 E0')
+    values['eq'] = sp.Tuple(
+        sp.Eq(B0*q*sp.diff(y(t), t), m*sp.diff(x(t), t, 2)),
+        sp.Eq(-B0*q*sp.diff(x(t), t) + E0*q, m*sp.diff(y(t), t, 2)),
+        sp.Eq(0, m*sp.diff(z(t), t, 2)),
+    )
+    speed = sp.sqrt(sp.diff(x(t), t)**2 + sp.diff(y(t), t)**2)
+    damping = sp.Float('0.3')
+    values['sysa'] = sp.Tuple(
+        sp.Eq(sp.diff(x(t), t, 2), -damping*sp.diff(x(t), t)*speed),
+        sp.Eq(sp.diff(y(t), t, 2), -damping*sp.diff(y(t), t)*speed - 10),
+    )
+    return values
