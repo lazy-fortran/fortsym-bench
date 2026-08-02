@@ -88,7 +88,8 @@ and rectangular-matrix `Diagonal` extraction, bounded exact
 `CharacteristicPolynomial` for explicit square matrices, plus a Wolfram
 non-negative `MatrixPower`, `Coefficient`/`CoefficientList`, single-variable
 `Solve` rule-list normalization, bounded `FoldList[Plus, init, list]`,
-rectangular `ArrayFlatten`, and a
+rectangular `ArrayFlatten`, quoted string literals mapped to the native
+comparison atom, and a
 Wolfram matrix-product dot continued across a line break. Unicode `λ` is protected
 during SymPy parsing and restored as the original symbol. Unsupported selector and matrix shapes remain
 opaque. It intentionally

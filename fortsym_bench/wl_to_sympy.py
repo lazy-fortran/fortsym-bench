@@ -10,6 +10,7 @@ in the generated file's manifest instead of being replaced by a guessed value.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 from itertools import combinations, product
 import re
 from typing import Iterable
@@ -251,6 +252,13 @@ def _lower(expression, environment: dict[str, object]):
     bound = environment.get(name)
     if isinstance(bound, WolframFunction):
         return bound.call(arguments)
+
+    if name == "_Str" and len(arguments) == 1:
+        # The comparison parser protects native InputForm strings with the
+        # same collision-resistant atom. Keep both oracle protocols aligned.
+        literal = f'"{arguments[0]}"'
+        digest = hashlib.sha256(literal.encode("utf-8")).hexdigest()
+        return sp.Symbol("fortsymString" + digest)
 
     if name == "D":
         return _differentiate(arguments)
