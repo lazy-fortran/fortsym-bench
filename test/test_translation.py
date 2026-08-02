@@ -260,6 +260,17 @@ def test_thread_expands_equal_lists_with_an_independent_shape_check():
     assert values["bound"] == values["value"]
 
 
+def test_map_supports_a_bounded_nested_level():
+    assignments, skipped = extract_assignments(
+        "value = Map[#^2 &, {{1, 2}, {3, 4}}, {2}]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Tuple(
+        sp.Tuple(1, 4), sp.Tuple(9, 16)
+    )
+
+
 def test_fold_list_returns_prefix_sums_including_the_initial_value():
     assignments, skipped = extract_assignments(
         "value = FoldList[Plus, 1, Drop[{1, 2, 3, 4}, 1]]"

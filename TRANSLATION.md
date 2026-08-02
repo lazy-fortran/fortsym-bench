@@ -51,6 +51,7 @@ which and how many source statements were not assignment expressions.
 | `Max[list]` / `Min[list]` | numeric extrema of an explicit list |
 | `FoldList[Plus, init, list]` | explicit prefix sums including `init` |
 | `Thread[Equal[{a, b}, {c, d}]]` | tuple of elementwise equalities |
+| `Map[f, nested, {level}]` | bounded positive-level nested mapping |
 | `ArrayFlatten[blocks]` | rectangular block-matrix concatenation |
 | `Together` / `Cancel` / `Apart` | `sp.together` / `sp.cancel` / `sp.apart` |
 | `Cross[a, b]` | `a.cross(b)` on `sp.Matrix` |
@@ -106,7 +107,8 @@ fractional monomials, `PolynomialGCD`,
 quoted string literals mapped to the native
 comparison atom, and a
 Wolfram matrix-product dot continued across a line break. Bounded one-level
-`Thread` over explicit lists, including list-valued `Equal`, is also lowered.
+`Thread` over explicit lists, including list-valued `Equal`, and bounded
+positive-level `Map` are also lowered.
 Unicode `λ` is protected
 during SymPy parsing and restored as the original symbol. Unsupported selector and matrix shapes remain
 opaque. It intentionally

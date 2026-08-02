@@ -332,8 +332,8 @@ class ReferenceCache:
         string literals with the native comparison protocol, version 16 lowers
         the bounded diagonal SingularValueList and numeric extrema forms, and
         version 17 adds bounded polynomial heads, version 18 lets serialized
-        Solve rules feed ReplaceAll, and version 19 lowers bounded Thread.
-        Older rows remain exact for
+        Solve rules feed ReplaceAll, version 19 lowers bounded Thread, and
+        version 20 lowers bounded positive Map levels. Older rows remain exact for
         sources unaffected by the
         corresponding change, which prevents a translator fix from forcing a
         multi-gigabyte full oracle refresh.
@@ -497,7 +497,23 @@ class ReferenceCache:
                 return False
         if (
             backend.name == "sympy"
-            and backend.cache_version == 19
+            and backend.cache_version == 20
+            and version in (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19)
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                text = Path(source).read_text()
+                return not (
+                    "Map[" in text
+                    and any(f"{{{level}}}" in text for level in (2, 3, 4))
+                )
+            except (OSError, UnicodeError):
+                return False
+        if (
+            backend.name == "sympy"
+            and backend.cache_version in (19, 20)
             and version in (9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
         ):
             source = entry.get("source")
@@ -509,7 +525,7 @@ class ReferenceCache:
                 return False
         if (
             backend.name == "sympy"
-            and backend.cache_version in (18, 19)
+            and backend.cache_version in (18, 19, 20)
             and version in (9, 10, 11, 12, 13, 14, 15, 16, 17)
         ):
             source = entry.get("source")
