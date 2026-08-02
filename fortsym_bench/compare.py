@@ -82,6 +82,13 @@ def _normalise_inputform(text: str) -> tuple[str, dict[str, str]]:
     )
     text = _protect_inputform_strings(text)
     text = _normalise_derivative_calls(text)
+    # Mathics sometimes prints higher-order heads with round delimiters
+    # (``Part(Slot(1), 1)``), while the Mathematica parser's opaque fallback
+    # is reliable for square-delimited applications. Normalize the bounded
+    # nested forms before protecting those heads.
+    text = re.sub(r"\bSlot\s*\(([^()]*)\)", r"Slot[\1]", text)
+    text = re.sub(r"\bPart\s*\(([^()]*)\)", r"Part[\1]", text)
+    text = _protect_inputform_opaque_heads(text)
     # SymPy's Mathematica parser cannot build an AST for the Wolfram empty
     # list spelling. Use the same collision-resistant atom as the empty-call
     # bridge below, then restore it to an actual empty Tuple after parsing.
@@ -109,6 +116,29 @@ def _normalise_inputform(text: str) -> tuple[str, dict[str, str]]:
     )
     text, protected = _protect_inputform_greek_symbols(text)
     return _protect_inputform_builtin_symbols(text, protected)
+
+
+_OPAQUE_INPUTFORM_HEADS = (
+    # These heads are either option-heavy rendering forms or higher-order
+    # constructs that SymPy's Mathematica parser tries to evaluate while
+    # parsing. Preserve their Wolfram tree shape so a cross-backend mismatch
+    # is reported as a difference, not as a parser error.
+    "Subscript", "Slot", "Part", "Select", "Take", "StringMatchQ",
+    "StringReplace", "ToExpression", "FileNameJoin", "LogPlot", "Plot",
+    "ContourPlot", "Plot3D", "ParametricPlot", "ParametricPlot3D",
+    "PolarPlot", "Graphics", "Graphics3D", "Show", "Manipulate",
+    "ColorData", "LineLegend", "BarLegend", "Placed", "Legended",
+)
+
+
+def _protect_inputform_opaque_heads(text: str) -> str:
+    for name in _OPAQUE_INPUTFORM_HEADS:
+        text = re.sub(
+            rf"(?<![A-Za-z0-9$]){name}\s*([\[\(])",
+            lambda match: f"fortsymInputOpaque{name}{match.group(1)}",
+            text,
+        )
+    return text
 
 
 def _protect_inputform_greek_symbols(text: str) -> tuple[str, dict[str, str]]:
@@ -185,6 +215,11 @@ def _restore_inputform_symbols(expression, protected: dict[str, str]):
     except TypeError:
         return expression
     restored = tuple(_restore_inputform_symbols(argument, protected) for argument in arguments)
+    function_name = getattr(getattr(expression, "func", None), "__name__", "")
+    if function_name.startswith("fortsymInputOpaque"):
+        return sympy.Function(function_name.removeprefix("fortsymInputOpaque"))(
+            *restored
+        )
     if restored == arguments:
         return expression
     try:
