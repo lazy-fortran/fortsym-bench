@@ -18,7 +18,7 @@ The corpus holds 384 Wolfram-language derivation scripts. Every one now has a
 Python companion: 382 are generated from the assignment stream by the bounded
 translator in `fortsym_bench/wl_to_sympy.py`, one Association fixture is hand
 expanded, and one original hand translation is preserved. The companions cover
-9,051 assignments. 11,538 non-assignment statements still need manual
+9,051 assignments. 11,503 non-assignment statements still need manual
 translation, and `translation-manifest.json` records them explicitly. Control
 flow and side effects are not silently replaced with invented mathematics.
 
@@ -103,11 +103,14 @@ fortsymBenchResults = <|
 Declare per-result strictness when structural equality is not the right bar:
 
 ```python
-COMPARE = {"derivative": "equivalent"}   # default: "structural"
+COMPARE = {"derivative": "equivalent", "value": "numeric"}
 ```
 
 - `structural` — the backends must produce the same expression tree.
 - `equivalent` — `simplify(a - b) == 0` under the comparison oracle.
+- `numeric` — preserve the same expression shape and compare numeric leaves
+  using a tolerance derived from the lower reported precision, with two guard
+  digits. Use this for translated `N[expr, p]` or `SetPrecision` results.
 
 Both are legitimate. Conflating them silently is not: a result declared
 `structural` that only achieves `equivalent` has found a real difference, and
@@ -138,11 +141,11 @@ comparison verdicts are cached separately in
 `.cache/reference-results.comparisons.json`, keyed by both serialized operands,
 their syntaxes, the strictness policy, and the comparator version. On the
 2026-08-01 corpus, measured again on 2026-08-02, the earlier full refresh after
-the translator change took 4:54 with four workers. The latest native-only
-refresh took about 59 seconds
-with the available SymPy and Mathics rows cached. The compact 155 MB cache then
-served an identical warm audit in about 1.0 seconds, with no backend subprocesses
-started.
+the translator change took 4:54 with four workers. The latest dot-parser audit
+took 152.5 seconds with two workers and a 4.31 GiB peak RSS: 379 native rows
+and 26 changed SymPy rows were fresh, while Mathics and unaffected rows were
+reused. The 155 MB raw-result cache then served an identical warm audit in
+1.15 seconds at 413 MiB RSS, with no backend subprocesses started.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
@@ -182,7 +185,7 @@ Every (script, result, backend) lands in exactly one class:
   of the corpus today; the count going down is the measurement.
 - `untranslated` — the corpus entry has no source file for that backend. The
   current inventory has a Python companion for every `.wl` source, so this
-  class is zero. It remains separate from the 11,538 statements recorded as
+  class is zero. It remains separate from the 11,503 statements recorded as
   skipped inside those companions.
 - `unavailable` — the backend is not installed. Never folded into a scored
   class: an absent oracle that shrinks the denominator overstates every rate.
