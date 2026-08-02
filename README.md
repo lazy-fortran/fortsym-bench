@@ -227,15 +227,17 @@ The v30 extraction slice also recovers assignments hidden in notebook-export
 93 focused/full tests pass after that change.
 The v31 callable-definition slice adds bounded scalar `Set`/`SetDelayed`
 semantics after `DSolve`, including Wolfram `C[1]` normalization; the full
-suite now passes 96 tests. The refreshed 384-source cache contains 374
-successful SymPy rows, 5 unsupported rows, and 5 timeouts, plus 214 successful
-Mathics rows, 104 errors, and 66 timeouts; all rows are reusable at timeout 15.
+suite now passes 108 tests. The refreshed 384-source cache contains 373
+successful SymPy rows, 5 unsupported rows, and 6 timeouts, plus 232 successful
+Mathics rows, 86 errors, and 66 timeouts; all rows are reusable at timeout 15.
 The subsequent slices protect ordinary `zeta` coordinates from SymPy's
 built-in Zeta parser, lower bounded `Position`/`Union`, classify list-valued
 InputForm arithmetic without comparator crashes, and normalize the `sympl3_`
-unit constants. The current cache-only three-backend score is 3,287
-agreements, 684 differences, 7 unsupported outcomes, 73 timeouts, 119 errors,
-191 oracle disagreements, and 764 oracle-missing bindings.
+unit constants. The current cache-only three-backend score is 3,288
+agreements, 680 differences, 7 unsupported outcomes, 73 timeouts, 101 errors,
+200 oracle disagreements, and 743 oracle-missing bindings. The Mathics wrapper
+also neutralizes `Quit` so those scripts retain the result protocol; current
+Mathics inventory is 232 successful rows, 86 errors, and 66 timeouts.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
