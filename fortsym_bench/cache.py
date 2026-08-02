@@ -350,6 +350,9 @@ class ReferenceCache:
         sees an expression.  Only sources containing that symbol need a
         fresh oracle result; retaining unaffected version-24 rows avoids a
         corpus-wide SymPy refresh.
+        Version 26 adds bounded ``With`` and ``Do`` lowering.  Sources
+        containing ``CC``, ``With``, or ``Do`` need a fresh result; unaffected
+        version-24/25 rows remain reusable.
         Older rows remain exact for
         sources unaffected by the
         corresponding change, which prevents a translator fix from forcing a
@@ -358,6 +361,19 @@ class ReferenceCache:
         version = entry.get("cache_version", 1)
         if version == backend.cache_version:
             return True
+        if (
+            backend.name == "sympy"
+            and backend.cache_version == 26
+            and version in (24, 25)
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                text = Path(source).read_text()
+                return not any(token in text for token in ("CC", "With", "Do"))
+            except (OSError, UnicodeError):
+                return False
         if (
             backend.name == "sympy"
             and backend.cache_version == 25
