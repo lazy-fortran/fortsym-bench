@@ -91,6 +91,15 @@ def _normalise_inputform(text: str) -> tuple[str, dict[str, str]]:
         r"\1*10^(\2)",
         text,
     )
+    # SymPy's Mathematica parser gives a bare numeric power the wrong
+    # precedence when it follows an adjacent factor: ``4 Pi 10^-7`` becomes
+    # ``4 Pi^(10^-7)``.  Parenthesize only numeric-base integer powers; this
+    # preserves ordinary symbol products and function/application syntax.
+    text = re.sub(
+        r"(?<![A-Za-z0-9_$.)])((?:\d+(?:\.\d*)?|\.\d+))\s*\^\s*([+-]?\d+)",
+        r"(\1^\2)",
+        text,
+    )
     text = re.sub(r"([eE][+-]?)0+(\d+)", r"\1\2", text)
     text = re.sub(r"\\\[([A-Za-z][A-Za-z0-9]*)\]", r"\1", text)
     text = re.sub(

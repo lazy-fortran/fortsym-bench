@@ -300,6 +300,30 @@ def test_inputform_wolfram_numeric_and_named_character_spellings_parse():
     assert result.outcome == AGREE
 
 
+def test_inputform_numeric_adjacency_keeps_power_factor_grouped():
+    result = compare_cross_text(
+        "4 Pi 10^-7",
+        "inputform",
+        "Mul(Integer(4), pi, Pow(Integer(10), Integer(-7)))",
+        "srepr",
+        "structural",
+    )
+
+    assert result.outcome == AGREE
+
+
+def test_inputform_numeric_power_fix_preserves_function_application():
+    result = compare_cross_text(
+        "2 Sin[x] + f[x]",
+        "inputform",
+        "Add(Mul(Integer(2), sin(Symbol('x'))), Function('f')(Symbol('x')))",
+        "srepr",
+        "structural",
+    )
+
+    assert result.outcome == AGREE
+
+
 def test_inputform_empty_applications_are_bounded_opaque_values():
     result = compare_text(
         "Directory[]",
