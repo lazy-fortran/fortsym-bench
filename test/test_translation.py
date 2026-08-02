@@ -229,6 +229,31 @@ def test_setdelayed_callable_reads_the_current_scalar_environment():
     assert evaluate_assignments(assignments)["result"] == 12
 
 
+def test_module_uses_lexical_locals_and_sequential_assignments():
+    assignments, skipped = extract_assignments(
+        "offset = 100; "
+        "value = Module[{x = 2, y}, y = x + 3; y^2 + offset]; "
+        "unchanged = offset"
+    )
+
+    assert skipped == []
+    values = evaluate_assignments(assignments)
+    # Independent oracle: the local calculation is (2 + 3)^2 and the outer
+    # binding remains 100 after Module returns.
+    assert values["value"] == sp.Integer(125)
+    assert values["unchanged"] == sp.Integer(100)
+
+
+def test_nested_modules_shadow_their_own_local_symbols():
+    assignments, skipped = extract_assignments(
+        "value = Module[{x = 1}, Module[{x = 2}, x] + x]"
+    )
+
+    assert skipped == []
+    # Independent oracle: inner x contributes 2 and outer x contributes 1.
+    assert evaluate_assignments(assignments)["value"] == sp.Integer(3)
+
+
 def test_immediate_scalar_definition_can_rebind_an_earlier_callable():
     assignments, skipped = extract_assignments(
         "f[x_] := x + 1; f[x_] = f[x] + 2; result = f[3]"
