@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 20 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
@@ -43,4 +44,25 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/code-integrator-benchmark/tdrk_guiding_center_G.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/code-integrator-benchmark/tdrk_guiding_center_G.wl',
+    )
+    rule = sp.Function('Rule')
+    values.update({
+        'd2Index': sp.Tuple(
+            *(rule(sp.Tuple(i, j), value) for (i, j), value in (
+                ((1, 1), 1), ((1, 2), 2), ((1, 3), 3),
+                ((2, 2), 4), ((2, 3), 5), ((3, 3), 6),
+                ((1, 4), 7), ((2, 4), 8), ((3, 4), 9),
+                ((4, 4), 10),
+            ))
+        ),
+        'pt': sp.Tuple(
+            rule(sp.Symbol('r'), sp.Rational(37, 100)),
+            rule(sp.Symbol('th'), sp.Rational(61, 100)),
+            rule(sp.Symbol('ph'), sp.Rational(117, 100)),
+            rule(sp.Symbol('pph'), sp.Rational(43, 100)),
+        ),
+    })
+    return values
