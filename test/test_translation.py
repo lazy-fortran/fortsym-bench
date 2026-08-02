@@ -51,6 +51,32 @@ def test_zeta_coordinate_is_not_parsed_as_sympy_zeta_function():
     assert evaluate_assignments(assignments)["rs"] == expected
 
 
+def test_numeric_adjacency_keeps_wolfram_power_precedence():
+    assignments, skipped = extract_assignments(
+        "mu0 = 4 Pi 10^-7; doubled = 2 mu0"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments) == {
+        "mu0": sp.pi / 2_500_000,
+        "doubled": sp.pi / 1_250_000,
+    }
+
+
+def test_numeric_power_normalization_preserves_function_application():
+    assignments, skipped = extract_assignments(
+        "value = 2 Sin[x] + f[x]; sampled = f[10^-7]"
+    )
+
+    assert skipped == []
+    x = sp.Symbol("x")
+    f = sp.Function("f")
+    assert evaluate_assignments(assignments) == {
+        "value": 2 * sp.sin(x) + f(x),
+        "sampled": f(sp.Rational(1, 10_000_000)),
+    }
+
+
 def test_cross_product_has_the_independent_three_vector_formula():
     assignments, skipped = extract_assignments(
         "value = Cross[{a, b, c}, {d, e, f}]"
