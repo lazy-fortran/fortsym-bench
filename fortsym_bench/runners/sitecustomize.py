@@ -72,7 +72,19 @@ def _safe_derivative_to_sympy(self, expr, **kwargs):
         for item in exprs[:3]
     ):
         return None
-    if not hasattr(exprs[1].elements[0], "name"):
+    function = exprs[1].elements[0]
+    if not hasattr(function, "name"):
+        return None
+    # SymPy 1.14 cannot construct a derivative of a relational expression;
+    # Mathics's native result is the unevaluated Derivative instead.
+    if function.name.rsplit("`", 1)[-1] in {
+        "Equal",
+        "Unequal",
+        "Greater",
+        "GreaterEqual",
+        "Less",
+        "LessEqual",
+    }:
         return None
     return _derivative_to_sympy(self, expr, **kwargs)
 
