@@ -118,5 +118,28 @@ def results():
         'corpus/proj-gvec-stability/cartesian_primitive_geometry.wl',
     )
     s = sp.Symbol('s')
-    values['phiPrime'] = sp.diff(sp.Function('phiProfile')(s), s)
+    jacobian = values['jacobian']
+    periods = sp.Symbol('periods')
+    phi_profile = sp.Function('phiProfile')(s)
+    chi_profile = sp.Function('chiProfile')(s)
+    values['phiPrime'] = sp.diff(phi_profile, s)
+    values['chiPrime'] = sp.diff(chi_profile, s)
+    values['phiSecond'] = sp.diff(phi_profile, s, 2)
+    values['chiSecond'] = sp.diff(chi_profile, s, 2)
+
+    # The sequential parser cannot feed the explicit prime bindings back into
+    # the later flux assignments.  Rebuild those source-defined expressions
+    # after evaluation so the generated companion has the same dependency
+    # graph as the Wolfram script.
+    values['bt'] = -values['chiPrime'] / (periods * jacobian)
+    values['bz'] = -values['phiPrime'] / jacobian
+    jacobian_radial = sp.diff(jacobian, s)
+    values['btRadial'] = (
+        -values['chiSecond'] / (periods * jacobian)
+        - values['bt'] * jacobian_radial / jacobian
+    )
+    values['bzRadial'] = (
+        -values['phiSecond'] / jacobian
+        - values['bz'] * jacobian_radial / jacobian
+    )
     return values
