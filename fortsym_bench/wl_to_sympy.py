@@ -323,6 +323,8 @@ def _lower(expression, environment: dict[str, object]):
         if parameters is None:
             parameters = (expression.args[0],)
         return WolframPureFunction(tuple(parameters), expression.args[1], environment)
+    if name == "Module":
+        return _module(expression.args, environment)
     if name == "Map":
         return _map(expression.args, environment)
     if name == "MapThread":
@@ -556,6 +558,73 @@ def _differentiate(arguments: tuple[object, ...]):
         else:
             result = _differentiate_value(result, specification, 1)
     return result
+
+
+def _module(arguments: tuple[object, ...], environment: dict[str, object]):
+    """Lower the bounded lexical ``Module`` form used by the corpus.
+
+    This deliberately covers local symbol declarations, initializer values,
+    and sequential ``Set`` statements in the body.  Wolfram's full Module
+    semantics include generated names, local function definitions, and
+    scoping of many procedural constructs; those remain outside this small
+    deterministic translator rather than being guessed here.
+    """
+
+    if len(arguments) != 2:
+        raise NotImplementedError("Module needs local declarations and a body")
+    declarations = _sequence_items(arguments[0])
+    if declarations is None:
+        raise NotImplementedError("Module declarations must be a list")
+
+    local = dict(environment)
+    names: dict[str, sp.Symbol] = {}
+    initializers: list[tuple[str, object]] = []
+    for declaration in declarations:
+        head = _head_name(declaration)
+        if head == "Set" and len(declaration.args) == 2:
+            target = declaration.args[0]
+            if not isinstance(target, sp.Symbol):
+                raise NotImplementedError("Module initializers need symbol names")
+            name = str(target)
+            initializers.append((name, declaration.args[1]))
+        elif isinstance(declaration, sp.Symbol):
+            name = str(declaration)
+        else:
+            raise NotImplementedError("Module declarations need symbols or Set initializers")
+        # Fresh symbols keep nested Modules lexically distinct when an
+        # uninitialized local survives into the returned expression.
+        names.setdefault(name, sp.Dummy(name))
+
+    local.update(names)
+    for name, initializer in initializers:
+        local[name] = _lower(initializer, local)
+    return _lower_module_body(arguments[1], local)
+
+
+def _lower_module_body(expression, environment: dict[str, object]):
+    """Evaluate the sequential statement subset accepted inside Module."""
+
+    if _head_name(expression) == "CompoundExpression":
+        if not expression.args:
+            raise NotImplementedError("empty Module body")
+        result = None
+        for statement in expression.args:
+            result = _lower_module_statement(statement, environment)
+        return result
+    return _lower_module_statement(expression, environment)
+
+
+def _lower_module_statement(expression, environment: dict[str, object]):
+    if _head_name(expression) == "Set" and len(expression.args) == 2:
+        target, value = expression.args
+        if not isinstance(target, sp.Symbol):
+            raise NotImplementedError("Module assignments need symbol targets")
+        lowered = _lower(value, environment)
+        environment[str(target)] = lowered
+        return lowered
+    if _head_name(expression) == "SetDelayed":
+        raise NotImplementedError("Module local function definitions are not translated")
+    return _lower(expression, environment)
 
 
 def _dsolve(arguments: tuple[object, ...]):
