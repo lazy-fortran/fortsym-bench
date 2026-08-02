@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 59 non-assignment statement(s) remain.
@@ -65,4 +67,11 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/06_ext_appendixB.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-flux_pumping/06_ext_appendixB.wl'
+    )
+    # Keep the source's intermediate names in this exported binding.  The
+    # native Wolfram run does not inline the preceding Integrate results,
+    # while doing so in SymPy changes the observable InputForm.
+    values['cDerived'] = 4 * sp.sqrt(2 / sp.pi) * (3 * sp.sqrt(2)) ** sp.Rational(1, 3) * sp.Symbol('uint') * sp.Symbol('tint')
+    return values

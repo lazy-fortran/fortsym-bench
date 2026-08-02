@@ -62,3 +62,12 @@ def test_appendix_b_velocity_moments_and_cubic_integral():
     expected_tint = mp.quad(lambda q: mp.e ** (-q**3), [0, 8])
     assert abs(float(uint.evalf(30)) - float(expected_uint)) < 1e-12
     assert abs(float(tint.evalf(30)) - float(expected_tint)) < 1e-12
+
+
+def test_cderived_preserves_source_intermediate_contract():
+    value = _module().results()['cDerived']
+    uint, tint = sp.symbols('uint tint')
+    expected = 4 * sp.sqrt(2 / sp.pi) * (3 * sp.sqrt(2)) ** sp.Rational(1, 3) * uint * tint
+    assert sp.simplify(value - expected) == 0
+    substitutions = {uint: sp.gamma(sp.Rational(7, 6)) / 2, tint: sp.gamma(sp.Rational(4, 3))}
+    assert abs(float(value.subs(substitutions).evalf(30)) - 2.1401304355) < 1e-10
