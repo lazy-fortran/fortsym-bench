@@ -145,7 +145,7 @@ the translator change took 4:54 with four workers. The latest bounded
 CharacteristicPolynomial/LegendreP/Diagonal/list-selector/Coefficient/Solve/
 FoldList/ArrayFlatten audit refreshed 380 native rows in 1:13.38 with two
 workers and a 1.54 GiB peak RSS. The 155 MB raw-result cache then served an
-identical warm audit in 1.12 seconds at 420 MiB
+identical warm audit in 1.15 seconds at 417 MiB
 RSS, with no backend subprocesses started. The
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
@@ -240,7 +240,7 @@ non-empty, 27 empty, 7 timeouts, 18 refusals) and 235 completed Mathics rows
 (208 non-empty, 27 empty, 107 errors, 30 timeouts, 12 unavailable). The final
 binding-level audit has 3,155 agreements, 776 declared differences, 20
 unsupported outcomes, 38 timeouts, 122 errors, 198 oracle disagreements, and
-797 oracle-missing bindings. Its warm run takes 1.12 seconds at 420 MiB RSS.
+797 oracle-missing bindings. Its warm run takes 1.15 seconds at 417 MiB RSS.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
