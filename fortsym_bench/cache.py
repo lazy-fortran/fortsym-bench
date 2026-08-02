@@ -396,7 +396,7 @@ class ReferenceCache:
         if (
             backend.name == "mathics"
             and backend.cache_version == 6
-            and version == 5
+            and version in (4, 5)
         ):
             source = entry.get("source")
             if not isinstance(source, str):
