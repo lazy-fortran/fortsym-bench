@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import itertools
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 import sympy as sp
 
@@ -157,20 +159,51 @@ _ASSIGNMENTS = [
     ('pso', 'pia . mb', ()),
 ]
 
+
+def _recovered_minors(order):
+    """Evaluate the source's ``Minors[Array[a, {3, 4}], order]`` binding."""
+    subscript = sp.Function('Subscript')
+    matrix = [[subscript(sp.Symbol('a'), i, j) for j in range(1, 5)]
+              for i in range(1, 4)]
+    return tuple(
+        tuple(sp.det(sp.Matrix([[matrix[i][j] for j in cols]
+                                for i in rows]))
+              for cols in itertools.combinations(range(4), order))
+        for rows in itertools.combinations(range(3), order)
+    )
+
+
 def results():
     values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math8y.wl')
 
-    # These are the final named values of the original notebook, not guesses
-    # about the skipped display/plot statements.  The generated assignment
-    # stream cannot express the three-argument Subscript definition or the
-    # later Point mapping, and it loses the final NullSpace binding after the
-    # unsupported part assignments.  Keep Det[AM] opaque: at this point the
-    # source's x is still a four-vector, so evaluating it as a characteristic
-    # polynomial would change the Wolfram evaluation state.
+    # These are source bindings that the assignment stream cannot preserve
+    # after the notebook's list-valued ``x`` and matrix state changes.  Keep
+    # Det[AM] opaque: at this point the source's x is still a four-vector, so
+    # evaluating it as a characteristic polynomial would change the state.
+    a = sp.Function('a')
     values['aa'] = sp.Tuple(*(
-        sp.Tuple(*(sp.Symbol(f'a{i}{j}') for j in range(1, 5)))
+        sp.Tuple(*(a(i, j) for j in range(1, 5)))
         for i in range(1, 4)
     ))
+    x = sp.symbols('x1:5')
+    y = sp.Symbol('y')
+    vector = lambda terms: sp.Tuple(*terms)
+    values['g1'] = sp.Eq(vector(xi - 2*y for xi in x), -1,
+                         evaluate=False)
+    values['g2'] = sp.Eq(vector(xi - 2*y for xi in x), -3.95,
+                         evaluate=False)
+    values['g3'] = sp.Eq(vector(xi - 2*y for xi in x), -2.1,
+                         evaluate=False)
+    values['eq'] = sp.Tuple(
+        sp.Eq(vector(xi - 2*y for xi in x), -1, evaluate=False),
+        sp.Eq(vector(xi - 2*y for xi in x), -3.95, evaluate=False),
+        sp.Eq(vector(xi + y for xi in x), 5, evaluate=False),
+    )
+    values['mi2'] = _recovered_minors(2)
+    values['mi3'] = _recovered_minors(3)
+    values['rg'] = sp.Integer(3)
+    values['rh'] = sp.Integer(2)
+    values['sa'] = sp.Tuple(sp.Function('Rule')(sp.Symbol('a'), 19))
     values['ceq'] = sp.Function('Det')(sp.Symbol('AM'))
     point = sp.Function('Point')
     values['cp'] = sp.Tuple(
