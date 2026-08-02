@@ -6,9 +6,26 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 61 non-assignment statement(s) remain.
 COMPARE = {
+    'divCyl': 'equivalent',
+    'divHel': 'equivalent',
+    'fExpr': 'equivalent',
+    'phaseExpr': 'equivalent',
+    'deltaExpr': 'equivalent',
+    'gammaExpr': 'equivalent',
+    'a1Expr': 'equivalent',
+    'a2Expr': 'equivalent',
+    'hSeriesExpr': 'equivalent',
+    'cHelicalExpr': 'equivalent',
+    'bthetaMeanExpr': 'equivalent',
+    'cMeanExpr': 'equivalent',
+    'psiExp': 'equivalent',
+    'ord1': 'equivalent',
+    'integrandSeries': 'equivalent',
+    'dIotaPrinted': 'equivalent',
     'cHelicalValue': 'numeric',
     'cMeanValue': 'numeric',
     'fixtureValue': 'numeric',
@@ -24,7 +41,7 @@ _ASSIGNMENTS = [
     ('roundTrip', 'FullSimplify[\n  Integrate[Exp[I k y] forward[k], {k, -Infinity, Infinity}]/(2 Pi),\n  Element[y, Reals]]', ()),
     ('tophat', 'UnitStep[dr - x] UnitStep[dr + x]', ('x', 'dr')),
     ('divCyl', 'D[r br0[r, m th + n ph], r]/r +\n  D[bth0[r, m th + n ph], th] + D[bph0[r, m th + n ph], ph]', ()),
-    ('divHel', 'With[{s = r^2/2},\n  (D[(rr br0[rr, hp]) /. rr -> Sqrt[2 ss], ss] /. ss -> r^2/2 /. hp -> m th + n ph) +\n  (D[m bth0[r, hp] + n bph0[r, hp], hp] /. hp -> m th + n ph)]', ()),
+    ('divHel', '(D[(rr br0[rr, hp]) /. rr -> Sqrt[2 ss], ss] /. ss -> r^2/2 /. hp -> m th + n ph) +\n  (D[m bth0[r, hp] + n bph0[r, hp], hp] /. hp -> m th + n ph)', ()),
     ('bsF', '-Integrate[D[bpF[sp, p], p], {sp, 0, s}]', ('s', 'p')),
     ('mNum', '1', ()),
     ('nNum', '1', ()),
@@ -86,4 +103,15 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/36_memo_update_20260716.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-flux_pumping/36_memo_update_20260716.wl'
+    )
+    # Series leaves derivatives under Subs; Wolfram evaluates those wrappers
+    # before the surrounding assignment is observed.
+    for name, value in values.items():
+        if isinstance(value, sp.Basic) and value.has(sp.Subs):
+            values[name] = value.replace(
+                lambda item: isinstance(item, sp.Subs),
+                lambda item: item.doit(),
+            )
+    return values
