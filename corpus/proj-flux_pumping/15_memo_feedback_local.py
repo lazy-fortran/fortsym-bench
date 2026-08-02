@@ -8,6 +8,14 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 39 non-assignment statement(s) remain.
+COMPARE = {
+    # The native and SymPy forms simplify to the same response functions;
+    # retain structural comparison for the remaining geometry bindings.
+    'jparBoltz': 'equivalent',
+    'jphAsymp': 'equivalent',
+    'jphExpl': 'equivalent',
+    'rhomBoltz': 'equivalent',
+}
 _ASSIGNMENTS = [
     ('figdir', 'FileNameJoin[{DirectoryName[$InputFileName], "figures"}]', ()),
     ('$Assumptions', '{r > 0, R > 0, B0 > 0, Bph > 0, cl > 0, kpar != 0,\n    Element[m, Integers], Element[n, Integers], m != 0, m iota + n != 0}', ()),

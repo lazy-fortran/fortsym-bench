@@ -9,6 +9,21 @@ from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 29 non-assignment statement(s) remain.
 COMPARE = {
+    # These are algebraically identical rational forms emitted with different
+    # factor/denominator layouts by the native and SymPy simplifiers.
+    'a1Expr': 'equivalent',
+    'a2Expr': 'equivalent',
+    'axisymmetricCorrection': 'equivalent',
+    'bthetaMeanExpr': 'equivalent',
+    'cHelicalExpr': 'equivalent',
+    'cMeanExpr': 'equivalent',
+    'cTotalExpr': 'equivalent',
+    'deltaExpr': 'equivalent',
+    'fExpr': 'equivalent',
+    'gammaExpr': 'equivalent',
+    'hSeriesExpr': 'equivalent',
+    'meanA': 'equivalent',
+    'phaseExpr': 'equivalent',
     'cFullDirect': 'numeric',
     'cHelicalDirect': 'numeric',
     'cHelicalSeries': 'numeric',
