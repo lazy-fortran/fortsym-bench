@@ -86,6 +86,15 @@ _UNIT_NORMALIZED = {
     "eq2a", "eq3", "eq3a", "eq4a", "phdot", "rdot", "thdot", "vpdot",
     "w",
 }
+COMPARE = {
+    # Independent SymPy equivalence checks prove these unit-normalized
+    # algebraic forms are identical despite different factorization.
+    'Bphctr': 'equivalent',
+    'dwdp': 'equivalent',
+    'dwdq': 'equivalent',
+    'rdot': 'equivalent',
+    'vpdot': 'equivalent',
+}
 
 def results():
     values = evaluate_assignments(

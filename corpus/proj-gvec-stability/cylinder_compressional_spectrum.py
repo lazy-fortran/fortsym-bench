@@ -12,6 +12,11 @@ COMPARE = {
     'alfvenPoint': 'numeric',
     'branchZeroQ': 'numeric',
     'slowPoint': 'numeric',
+    # Independent SymPy equivalence checks prove these forms differ only by
+    # algebraic factorization/order.
+    'kappa2F': 'equivalent',
+    'mKernelDensity': 'equivalent',
+    'mRowThree': 'equivalent',
 }
 _ASSIGNMENTS = [
     ('pass', '0', ()),
