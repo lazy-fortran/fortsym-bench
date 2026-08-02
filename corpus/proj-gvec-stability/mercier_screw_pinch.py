@@ -63,4 +63,58 @@ def results():
             btheta(rr) + rr * derivative1(sp.Symbol('btheta'), 1, rr)
         ) / (mu0 * rr),
     )
+
+    # The shared evaluator intentionally leaves Wolfram's derivative heads
+    # inert.  Preserve the source's observable derivative form for the
+    # remaining screw-pinch reductions instead of dropping these bindings
+    # when a derivative head is called as a Python function.
+    r = sp.Symbol('r')
+    rzero = sp.Symbol('rzero')
+    mu0 = sp.Symbol('mu0')
+    pi = sp.pi
+    btheta = sp.Function('btheta')
+    bz = sp.Function('bz')
+    p = sp.Symbol('p')
+    B2 = btheta(r) ** 2 + bz(r) ** 2
+    dbtheta = derivative1(sp.Symbol('btheta'), 1, r)
+    dbz = derivative1(sp.Symbol('bz'), 1, r)
+    current_derivative = derivative1(sp.Symbol('currentI'), 1, r)
+    iota_derivative = derivative1(sp.Symbol('iota'), 1, r)
+    mu_j_dot_b = (
+        -dbz * btheta(r)
+        + bz(r) * (btheta(r) + r * dbtheta) / r
+    )
+    values['muJdotB'] = mu_j_dot_b
+    values['xiDotB'] = (
+        -dbz * btheta(r)
+        - current_derivative * B2 / (r * bz(r))
+        + bz(r) * (btheta(r) + r * dbtheta) / r
+    )
+    values['dShear'] = iota_derivative ** 2 / (16 * r ** 2 * pi ** 2 * bz(r) ** 2)
+    values['dCurrent'] = (
+        -rzero * iota_derivative * values['xiDotB']
+        / (4 * r ** 3 * pi ** 2 * bz(r) ** 4)
+    )
+    volume_derivative = derivative1(sp.Symbol('volume'), 1, r)
+    volume_second = derivative1(sp.Symbol('volume'), 2, r)
+    psi_r_derivative = derivative1(sp.Symbol('psiR'), 1, r)
+    d2_volume = (
+        r * volume_second * bz(r) - psi_r_derivative * volume_derivative
+    ) / (r ** 3 * bz(r) ** 3)
+    values['d2VdPsi2'] = d2_volume
+    dp = derivative1(p, 1, r)
+    dpd_psi = mu0 * dp / (r * bz(r))
+    values['dWell'] = (
+        mu0 * rzero * dp * B2
+        * (d2_volume - 4 * pi ** 2 * mu0 * rzero * dp
+           / (r * bz(r) ** 2 * B2))
+        / (16 * r ** 3 * pi ** 4 * bz(r) ** 4)
+    )
+    values['dMercier'] = values['dShear'] + values['dCurrent'] + values['dWell']
+    safety_derivative = derivative1(sp.Symbol('safety'), 1, r)
+    values['shearRatio'] = rzero * safety_derivative * btheta(r) / (r * bz(r))
+    values['suydamRatio'] = (
+        1 + 8 * mu0 * r * dp
+        / (rzero ** 2 * safety_derivative ** 2 * btheta(r) ** 2)
+    )
     return values
