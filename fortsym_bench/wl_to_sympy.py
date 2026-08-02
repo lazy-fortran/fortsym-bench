@@ -2315,11 +2315,12 @@ _GREEK_PARSE_NAMES = {
     "ϑ": "fortsymGreekTheta",
 }
 
-# SymPy's Mathematica parser resolves ``zeta`` as its built-in Zeta function,
-# while Wolfram scripts routinely use it as an ordinary coordinate symbol.
-# Protect only this known parser collision; other built-in heads must retain
-# their normal parsing semantics.
-_PARSER_RESERVED_NAMES = ("len", "zeta")
+# SymPy's Mathematica parser resolves these names as parser/domain objects,
+# while Wolfram scripts may use them as ordinary symbols.  In particular,
+# ``CC`` is SymPy's complex domain, not a Wolfram built-in.  Protect only
+# these known collisions; other built-in heads must retain their normal
+# parsing semantics.
+_PARSER_RESERVED_NAMES = ("CC", "len", "zeta")
 
 
 _DERIVATIVE_CALL = re.compile(
