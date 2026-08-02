@@ -239,7 +239,7 @@ The v31 callable-definition slice adds bounded scalar `Set`/`SetDelayed`
 semantics after `DSolve`, including Wolfram `C[1]` normalization; the v32
 slice adds bounded lexical `Module` locals with sequential assignments and
 nested shadowing, and v33 normalizes derivative `Subs` wrappers after
-replacement. The full suite now passes 167 tests. The refreshed 384-source
+replacement. The full suite now passes 169 tests. The refreshed 384-source
 cache contains 374 successful SymPy rows, 5 unsupported rows, and 5 timeouts,
 plus 255 successful Mathics rows, 60 errors, and 69 timeouts; all rows are
 reusable at timeout 15. The native cache contains 379 successful rows, 3
@@ -270,10 +270,11 @@ disagreement. The v43 parity batch adds source-faithful ECNL equation strings,
 numeric validity estimates, Maxwell/flux-pumping companions, math10y and
 Suydam recoveries, a large-step LTE reconstruction, and Sympl3 field forms;
 it adds 12 independent tests. The v44 normal-stability numeric policy adds one
-more independently tested agreement. The current cache-only score is 3,662
-agreements, 507 differences, 7 unsupported outcomes, 74 timeouts, 61 errors,
-2 unavailable oracle rows, 194 oracle disagreements, and 463 oracle-missing
-bindings. The Mathics wrapper
+more independently tested agreement. The v45 math3y and Cartesian-primitive
+recoveries add two agreements and remove one oracle-missing binding. The
+current cache-only score is 3,664 agreements, 506 differences, 7 unsupported
+outcomes, 74 timeouts, 61 errors, 2 unavailable oracle rows, 194 oracle
+disagreements, and 462 oracle-missing bindings. The Mathics wrapper
 also neutralizes `Quit`, isolates per-run protocol symbols, and restores
 `$Assumptions` safely after local integrals; current Mathics inventory is 255
 successful rows, 60 errors, and 69 timeouts.
@@ -356,10 +357,10 @@ native cache contains 379 successful script rows, 3 explicit unsupported
 rows, 1 timeout, and 1 runner error, with no native crashes. The SymPy cache
 contains 376 successful rows, 4 unsupported rows, and 4 timeouts; the Mathics
 cache contains 255 successful rows, 60 errors, and 69 timeouts. The latest
-committed full binding-level audit has 3,662 agreements, 507 declared
+committed full binding-level audit has 3,664 agreements, 506 declared
 differences, 7 unsupported outcomes, 74 timeouts, 61 errors, 194 oracle
-disagreements, and 463 oracle-missing bindings. Its warm run takes 0.56
-seconds at 344 MiB RSS; the current v44 parity batch is documented above.
+disagreements, and 462 oracle-missing bindings. Its warm run remains 0.56
+seconds at 344 MiB RSS; the current v45 parity batch is documented above.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
@@ -405,9 +406,9 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The latest full run produced 3,662 agreements, 507 declared
+place. The latest full run produced 3,664 agreements, 506 declared
 differences, 7 unsupported outcomes, 74 timeouts, 61 errors, 194 oracle
-disagreements, and 463 oracle-missing bindings. The v43/v44 batches add 13
+disagreements, and 462 oracle-missing bindings. The v43-v45 batches add 15
 independent behavioral tests covering new source-faithful Python companions.
 Translation quality and the remaining backend parity work stay measured by
 the independent oracle report; the report is the source of truth for current
