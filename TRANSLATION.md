@@ -53,6 +53,7 @@ which and how many source statements were not assignment expressions.
 | `Thread[Equal[{a, b}, {c, d}]]` | tuple of elementwise equalities |
 | `Map[f, nested, {level}]` | bounded positive-level nested mapping |
 | `Piecewise[{{value, condition}, ...}, default]` | numeric branch selection with symbolic preservation |
+| `Boole[condition]` | numeric indicator for a decidable condition |
 | `ArrayFlatten[blocks]` | rectangular block-matrix concatenation |
 | `Together` / `Cancel` / `Apart` | `sp.together` / `sp.cancel` / `sp.apart` |
 | `Cross[a, b]` | `a.cross(b)` on `sp.Matrix` |
@@ -110,8 +111,9 @@ comparison atom, and a
 Wolfram matrix-product dot continued across a line break. Bounded one-level
 `Thread` over explicit lists, including list-valued `Equal`, bounded
 positive-level `Map`, and numeric `Piecewise` branch selection are also
-lowered. The native backend preserves symbolic `Piecewise` branches when no
-condition is decidable.
+lowered. Numeric `Boole` conditions are lowered to 0 or 1; symbolic
+conditions remain opaque. The native backend preserves symbolic `Piecewise`
+branches when no condition is decidable.
 Unicode `λ` is protected
 during SymPy parsing and restored as the original symbol. Unsupported selector and matrix shapes remain
 opaque. It intentionally
