@@ -89,6 +89,19 @@ def test_multiple_integrate_ranges_keep_the_first_range_outermost():
     assert evaluate_assignments(assignments)["value"] == sp.Rational(1, 2)
 
 
+def test_bounded_dsolve_lowers_callable_ode_rules_with_unicode_parameters():
+    assignments, skipped = extract_assignments(
+        "dgl1 = D[v[tau1], tau1] == α*v[tau1] + β; "
+        "solution = v[tau1] /. DSolve[dgl1, v[tau1], tau1][[1]]"
+    )
+
+    assert skipped == []
+    tau1, alpha, beta, c1 = sp.symbols("tau1 α β C1")
+    assert evaluate_assignments(assignments)["solution"] == (
+        c1 * sp.exp(alpha * tau1) - beta / alpha
+    )
+
+
 def test_leading_continuation_operators_stay_in_the_same_assignment():
     assignments, skipped = extract_assignments(
         "value = a\n"
