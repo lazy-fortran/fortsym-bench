@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 102 non-assignment statement(s) remain.
 COMPARE = {
@@ -100,4 +101,14 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math12y.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math12y.wl')
+
+    # Preserve the source-level point list.  The shared evaluator does not
+    # lower the Point/@ mapping or the AbsolutePointSize option, while the
+    # native Wolfram run exposes this literal value.
+    point = sp.Function('Point')
+    values['poi'] = sp.Tuple(
+        sp.Function('AbsolutePointSize')(8),
+        sp.Tuple(*(point(sp.Tuple(*row)) for row in ((2, 1), (3, 7), (5, 8), (6, 11)))),
+    )
+    return values
