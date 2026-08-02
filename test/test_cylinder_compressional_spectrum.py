@@ -36,3 +36,22 @@ def test_force_balance_and_pressure_slope_follow_the_source_rule():
     assert sp.simplify(
         rule.args[1].subs({sp.Symbol('rr'): r}) - expected / mu0
     ) == 0
+
+
+def test_vector_products_remain_symbolic_dot_heads():
+    path = (
+        Path(__file__).parents[1]
+        / 'corpus/proj-gvec-stability/cylinder_compressional_spectrum.py'
+    )
+    spec = importlib.util.spec_from_file_location('cylinder_spectrum_dot', path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    values = module.results()
+
+    dot = sp.Function('Dot')
+    assert values['jDotB'].has(dot)
+    vector = sp.Tuple(sp.Symbol('xv'), sp.Symbol('xd'))
+    expected = dot(dot(vector, sp.Symbol('schurPhysical')), vector)
+    assert values['lagPhysicalRed'] == expected
+    assert values['lagTP'] == expected
