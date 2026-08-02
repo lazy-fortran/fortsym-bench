@@ -411,6 +411,16 @@ def _lower(expression, environment: dict[str, object]):
         return _string_replace(arguments)
     if name == "fortsymToExpression":
         return _to_expression(arguments)
+    if name == "Abs":
+        if len(arguments) != 1:
+            raise NotImplementedError("Abs needs one argument")
+        # Wolfram evaluates numeric absolute values eagerly.  Keep symbolic
+        # and opaque values as an explicit Wolfram head rather than assuming
+        # SymPy's stronger assumptions about their domain.
+        value = arguments[0]
+        if getattr(value, "is_number", False):
+            return sp.Abs(value)
+        return sp.Function("Abs")(*arguments)
 
     if name == "D":
         return _differentiate(arguments)
