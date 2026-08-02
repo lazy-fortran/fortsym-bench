@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 270 non-assignment statement(s) remain.
@@ -212,4 +214,49 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math6-2y.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math6-2y.wl')
+
+    # Recover the source's restricted-three-body example separately from its
+    # plotting statements. These bindings are useful to consumers that do not
+    # render the surrounding plots.
+    x, y, mu = sp.symbols('x y μ')
+    fu = (
+        -mu / sp.sqrt(y**2 + (x + mu - 1) ** 2)
+        + (mu - 1) / sp.sqrt(y**2 + (x + mu) ** 2)
+        - (x**2 + y**2) / 2
+    )
+    values.setdefault('fu', fu)
+    fx = (
+        x
+        - mu * (x + mu - 1)
+        / (y**2 + (x + mu - 1) ** 2) ** sp.Rational(3, 2)
+        + (x + mu) * (mu - 1)
+        / (y**2 + (x + mu) ** 2) ** sp.Rational(3, 2)
+    )
+    values.setdefault('fx', fx)
+    values.setdefault('fy', -sp.diff(fu, y))
+    values.setdefault('sm', sp.Function('Rule')(mu, sp.Rational(1, 4)))
+    values.setdefault('um', fu.subs(mu, sp.Rational(1, 4)))
+    values.setdefault(
+        'pm', sp.Tuple(sp.Function('Point')(sp.Tuple(-sp.Rational(1, 4), 0)),
+                       sp.Function('Point')(sp.Tuple(sp.Rational(3, 4), 0)))
+    )
+    if 'su' in values:
+        values.setdefault(
+            'pms', sp.Tuple(
+                sp.Tuple(-sp.Rational(1, 4), values['su']),
+                sp.Tuple(sp.Rational(3, 4), values['su']),
+            )
+        )
+    values.setdefault(
+        'pa', sp.Function('ParametricPlot3D')(
+            sp.Tuple(x, y, sp.sin(x * y)),
+            sp.Tuple(x, 1, 2),
+            sp.Tuple(y, 1, 2),
+            sp.Function('Rule')(sp.Symbol('PlotPoints'), 4),
+            sp.Function('Rule')(
+                sp.Symbol('BoxRatios'), sp.Tuple(1, 1, sp.Float(0.4))
+            ),
+        )
+    )
+    return values
