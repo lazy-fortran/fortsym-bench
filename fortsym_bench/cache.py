@@ -327,7 +327,8 @@ class ReferenceCache:
         """Accept cache rows whose semantic change does not affect the source.
 
         Version 3 changed only the parser's treatment of a valid ``T`` line
-        with no ``R`` lines. Successful older Mathics answers and named old
+        with no ``R`` lines. Version 4 isolates the wrapper's protocol marker
+        and harness symbols. Successful older Mathics answers and named old
         failures remain valid; the old ``no results parsed`` failures are the
         one class that must be rerun because they may actually be empty result
         sets under the new protocol.
