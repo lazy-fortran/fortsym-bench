@@ -276,6 +276,7 @@ def evaluate_expression(text: str, environment: dict[str, object] | None = None)
     normalised = _protect_string_literals(normalised)
     normalised = _normalise_numeric_powers(normalised)
     normalised = _normalise_prefix_calls(normalised)
+    normalised = _normalise_derivative_calls(normalised)
     normalised = _protect_thread_equal(normalised)
     normalised = _wrap_string_predicates(normalised)
     for original, alias in _PARSER_HEAD_ALIASES.items():
@@ -1687,6 +1688,59 @@ def _rules(value):
     return []
 
 
+def _pattern_binding(value):
+    """Return the variable from the parser's ``Pattern(x, Blank())`` AST."""
+
+    if (
+        isinstance(value, sp.Basic)
+        and _head_name(value) == "Pattern"
+        and len(value.args) == 2
+        and isinstance(value.args[0], sp.Symbol)
+        and _head_name(value.args[1]) == "Blank"
+        and not value.args[1].args
+    ):
+        return value.args[0]
+    return None
+
+
+def _contains_pattern(value) -> bool:
+    if not isinstance(value, sp.Basic):
+        return False
+    if _head_name(value) in ("Pattern", "Blank", "BlankSequence", "BlankNullSequence"):
+        return True
+    return any(_contains_pattern(argument) for argument in value.args)
+
+
+def _derivative_pattern(value):
+    """Recognise one-argument ``Derivative[n][f][x_]`` patterns only."""
+
+    if not isinstance(value, sp.Basic) or _head_name(value) != "Derivative1":
+        return None
+    if len(value.args) != 3 or not isinstance(value.args[0], sp.Symbol):
+        return None
+    variable = _pattern_binding(value.args[2])
+    if variable is None or not _is_integer(value.args[1]):
+        return None
+    return value.args[0], value.args[1], variable
+
+
+def _replace_derivative_pattern(value, rule, pattern):
+    function, order, variable = pattern
+
+    def matches(candidate):
+        return (
+            isinstance(candidate, sp.Basic)
+            and _head_name(candidate) == "Derivative1"
+            and len(candidate.args) == 3
+            and candidate.args[:2] == (function, order)
+        )
+
+    return value.replace(
+        matches,
+        lambda candidate: _substitute(rule.right, variable, candidate.args[2]),
+    )
+
+
 def _sequence_items(value):
     if isinstance(value, sp.MatrixBase):
         return tuple(value)
@@ -1960,7 +2014,25 @@ def _replace_all(arguments: tuple[object, ...]):
     if not rules:
         raise NotImplementedError("ReplaceAll needs at least one rule")
     value = arguments[0]
+    patterned = []
+    for rule in rules:
+        if not _contains_pattern(rule.left):
+            continue
+        pattern = _derivative_pattern(rule.left)
+        if pattern is None:
+            raise NotImplementedError(
+                "only one-argument derivative Pattern/Blank rules are supported"
+            )
+        patterned.append((rule, pattern))
     if hasattr(value, "subs"):
+        if patterned:
+            if len(patterned) != len(rules):
+                raise NotImplementedError(
+                    "patterned and ordinary replacement rules cannot be mixed"
+                )
+            for rule, pattern in patterned:
+                value = _replace_derivative_pattern(value, rule, pattern)
+            return value
         result = value.subs(
             [(rule.left, rule.right) for rule in rules], simultaneous=True
         )
@@ -2248,6 +2320,24 @@ _GREEK_PARSE_NAMES = {
 # Protect only this known parser collision; other built-in heads must retain
 # their normal parsing semantics.
 _PARSER_RESERVED_NAMES = ("len", "zeta")
+
+
+_DERIVATIVE_CALL = re.compile(
+    r"Derivative\[([0-9]+)\]"
+    r"\[([A-Za-z$][A-Za-z0-9$]*)\]"
+    r"\[([^\[\]]*)\]"
+)
+
+
+def _normalise_derivative_calls(text: str) -> str:
+    """Protect one-argument Wolfram derivatives from eager SymPy parsing."""
+
+    return _DERIVATIVE_CALL.sub(
+        lambda match: (
+            f"Derivative1[{match.group(2)}, {match.group(1)}, {match.group(3)}]"
+        ),
+        text,
+    )
 
 
 def _normalise_expression_layout(text: str) -> str:
