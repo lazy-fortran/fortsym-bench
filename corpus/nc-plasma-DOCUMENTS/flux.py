@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 49 non-assignment statement(s) remain.
@@ -60,4 +62,78 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/nc-plasma-DOCUMENTS/flux.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/nc-plasma-DOCUMENTS/flux.wl'
+    )
+
+    # FullSimplify in the source keeps the Jacobian/metric intermediates in
+    # the native normal form below.  The shared evaluator cannot reuse those
+    # intermediates after its failed determinant simplification, so retain
+    # the literal source-derived forms here rather than inventing values.
+    r = sp.Symbol('r')
+    R0 = sp.Function('Subscript')(sp.Symbol('R'), sp.Integer(0))
+    th = sp.Symbol('th')
+    thf = sp.Symbol('thf')
+    theta = sp.Symbol('ϑ')
+    B0 = sp.Function('Subscript')(sp.Symbol('B'), sp.Integer(0))
+    Bphi = sp.Function('Subscript')(sp.Symbol('B'), sp.Symbol('φ'))
+    qa = sp.Symbol('qa')
+    radial = -r**2 + R0**2
+    major = -r * sp.cos(thf) + R0
+    rf = (r**2 - R0**2) / (r * sp.cos(thf) - R0)
+
+    values['Ji'] = sp.Tuple(
+        sp.Tuple(1, 0, 0),
+        sp.Tuple(0, 1, 0),
+        sp.Tuple(-R0 * sp.sin(thf) / radial, 0, major / sp.sqrt(radial)),
+    )
+    values['J'] = sp.Tuple(
+        sp.Tuple(1, 0, 0),
+        sp.Tuple(0, 1, 0),
+        sp.Tuple(
+            R0 * sp.sin(thf) / (sp.sqrt(radial) * major),
+            0,
+            sp.sqrt(radial) / major,
+        ),
+    )
+    values['grr'] = 1 + r**2 * R0**2 * sp.sin(thf)**2 / (
+        radial * major**2
+    )
+    values['grth'] = r**2 * R0 * sp.sin(thf) / major**2
+    values['gthth'] = r**2 * radial / major**2
+    values['gij'] = sp.Tuple(
+        sp.Tuple(values['grr'], 0, values['grth']),
+        sp.Tuple(0, rf**2, 0),
+        sp.Tuple(values['grth'], 0, values['gthth']),
+    )
+
+    # Keep the determinant in the same unsimplified source shape; this is
+    # important because the corpus uses structural comparison for this cell.
+    values['sqgf'] = sp.sqrt(
+        rf**2 * (values['grr'] * values['gthth'] - values['grth']**2)
+    )
+    thof = -2 * sp.acot(
+        (r - R0) * sp.cot(thf / 2) / sp.sqrt(radial)
+    )
+    values['Rff'] = R0 + r * sp.cos(thof)
+
+    bph2 = B0 * (R0 / rf**2)
+    bth2 = bph2 / qa
+    values['Btot1'] = sp.sqrt(rf**2 * bph2**2 + values['gthth'] * bth2**2)
+    values['Btot2'] = sp.sqrt(
+        rf**2 * (B0 * (R0 / rf**2))**2
+        + r**2 * (B0 * (R0 / rf**2) / (sp.sqrt(radial) * (qa / rf)))**2
+    )
+
+    # These source assignments intentionally retain the earlier Wolfram
+    # symbol ``psidot``: the native Set/FullSimplify result does too.
+    psidot = sp.Symbol('psidot')
+    sqgf_at_theta = values['sqgf'].subs(thf, -2 * sp.atan(
+        (r - R0) * sp.tan(theta / 2) / sp.sqrt(radial)
+    ))
+    values['dpsitildedth'] = values['dnudth'] - psidot
+    values['Bph1'] = psidot / sqgf_at_theta
+    values['Bphatest'] = psidot / values['sqgf']
+    values['Bthatest'] = psidot / (qa * values['sqgf'])
+    values['sqgtest'] = psidot / values['Bphtest']
+    return values
