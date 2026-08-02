@@ -21,7 +21,9 @@ from threading import RLock
 from .backends import Backend, RunFailure
 
 CACHE_VERSION = 1
-COMPARISON_CACHE_VERSION = 11
+# Bump when comparison parsing/equivalence semantics change; raw backend rows
+# remain reusable while verdicts are recomputed from their cached operands.
+COMPARISON_CACHE_VERSION = 12
 
 
 @dataclass(frozen=True)
