@@ -38,10 +38,10 @@ which and how many source statements were not assignment expressions.
 | `Series[f, {x, 0, n}]` + `Normal` | `sp.series(f, x, 0, n+1).removeO()` — see below |
 | `Integrate[f, x]` | `sp.integrate(f, x)` |
 | `Limit[f, x -> a]` | `sp.limit(f, x, a)` |
-| `Solve[eq == 0, x]` | `sp.solve(sp.Eq(eq, 0), x)` |
+| `Solve[eq == 0, x]` | `sp.solve(sp.Eq(eq, 0), x)`, normalized to Wolfram rule heads |
 | `Coefficient[f, x, n]` | `f.coeff(x, n)` |
 | `CoefficientList[f, x]` | coefficients from constant term upward |
-| `Exponent[f, x]` | `sp.degree(sp.expand(f), x)` |
+| `Exponent[f, x]` | `sp.degree(sp.expand(f), x)`, with an exact fractional-monomial fallback |
 | `PolynomialGCD[f, g]` | `sp.gcd(f, g)` |
 | `PolynomialQuotient[f, g, x]` / `PolynomialRemainder[f, g, x]` | `sp.div` over the explicit variable |
 | `Numerator[f]` / `Denominator[f]` | `sp.fraction(sp.cancel(f))` |
@@ -95,10 +95,12 @@ bounded `First`, `Last`, `Rest`, `Most`, `Reverse`, `Take`, and `Drop` selectors
 and rectangular-matrix `Diagonal` extraction, bounded exact
 `CharacteristicPolynomial` for explicit square matrices, plus a Wolfram
 non-negative `MatrixPower`, `Coefficient`/`CoefficientList`, single-variable
-`Solve` rule-list normalization, bounded `FoldList[Plus, init, list]`,
+`Solve` rule-list normalization (including rules fed to `ReplaceAll`), bounded
+`FoldList[Plus, init, list]`,
 bounded explicit-list `Total`, bounded full-rank numeric `PseudoInverse`,
 diagonal/zero numeric `SingularValueList`, numeric `Max`/`Min`, rectangular
-`ArrayFlatten`, bounded polynomial heads (`Exponent`, `PolynomialGCD`,
+`ArrayFlatten`, bounded polynomial heads (`Exponent`, including exact
+fractional monomials, `PolynomialGCD`,
 `PolynomialQuotient`, `PolynomialRemainder`, `Numerator`, and `Denominator`),
 quoted string literals mapped to the native
 comparison atom, and a
