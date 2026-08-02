@@ -194,6 +194,18 @@ def _recovered_bindings():
     phi = sp.Symbol("phi")
     r = sp.sqrt(x**2 + y**2 + z**2)
     rr = sp.sqrt(x**2 + y**2)
+    r331 = sp.sqrt(x**2 + y**2 + sp.Float("3.31") ** 2)
+    g331 = (
+        x * y * r331 / 6
+        + sp.Float("3.31") ** 3
+        * sp.atan(x * y / (sp.Float("3.31") * r331))
+        / 3
+        + x**3 * sp.log(y + r331) / 3
+        - (y**3 + 3 * y * sp.Float("3.31") ** 2)
+        * sp.log(x + r331)
+        / 6
+    )
+    dy = b * sp.sqrt(1 - x**2 / a**2) * sp.cos(phi)
     unit = sp.Function("UnitStep")
     rule = sp.Function("Rule")
     rules = sp.Tuple
@@ -226,6 +238,12 @@ def _recovered_bindings():
         "irf": sp.Integer(0),
         "r": r,
         "rr": rr,
+        "dy": dy,
+        "gn": g331,
+        "g11": sp.N(g331.subs({x: sp.Float("0.9"), y: sp.Float("0.7")}), 16),
+        "g01": sp.N(g331.subs({x: sp.Float("0.2"), y: sp.Float("0.7")}), 16),
+        "g10": sp.N(g331.subs({x: sp.Float("0.9"), y: sp.Float("0.1")}), 16),
+        "g00": sp.N(g331.subs({x: sp.Float("0.2"), y: sp.Float("0.1")}), 16),
         "fss": unit(a + t) + unit(a - t) - 1,
         "fst": unit(t) + unit(a - t) - 1,
         "ft": 1 / (t**2 + a**2),
