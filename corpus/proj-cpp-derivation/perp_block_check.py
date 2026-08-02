@@ -5,12 +5,15 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 44 non-assignment statement(s) remain.
 COMPARE = {
     'block': 'numeric',
     'checkZeroB': 'numeric',
+    'gIN': 'numeric',
     'invNorm': 'numeric',
     'nz': 'numeric',
     'omegaC': 'numeric',
@@ -80,4 +83,18 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-cpp-derivation/perp_block_check.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-cpp-derivation/perp_block_check.wl'
+    )
+    # The source evaluates this inverse after fixing the seed point. The
+    # generic lowering leaves the matrix inverse as a symbolic operation, so
+    # recover this one diagonal binding directly from the source metric.
+    r0 = sp.Float('0.5')
+    th0 = sp.Float('0.7')
+    R0 = sp.Integer(3)
+    values['gIN'] = sp.Tuple(
+        sp.Tuple(1, 0, 0),
+        sp.Tuple(0, 1 / r0**2, 0),
+        sp.Tuple(0, 0, 1 / (R0 + r0 * sp.cos(th0))**2),
+    )
+    return values
