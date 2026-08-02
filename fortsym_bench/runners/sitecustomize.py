@@ -11,6 +11,7 @@ from mathics.core.definitions import Definitions
 from mathics.core.list import ListExpression
 from mathics.core.symbols import BooleanType
 from mathics.builtin.numbers.calculus import Derivative
+from mathics.builtin.vectors.math_ops import Curl
 import sympy
 
 
@@ -25,6 +26,19 @@ if not hasattr(sympy, "curl"):
         return sympy.Function("Curl")(*args)
 
     sympy.curl = _unevaluated_curl
+
+
+# Mathics implements Cartesian Curl but does not include Wolfram's explicit
+# cylindrical-coordinate three-argument form.  Add that bounded identity to
+# the existing rule table so the independent oracle evaluates the same
+# physical components as the native and SymPy paths.
+Curl.rules[
+    'Curl[{fr_, ftheta_, fz_}, {r_, theta_, z_}, "Cylindrical"]'
+] = """{
+    (D[fz, theta] - D[r ftheta, z]) / r,
+    D[fr, z] - D[fz, r],
+    (D[r ftheta, r] - D[fr, theta]) / r
+}"""
 
 
 _set_ownvalue = Definitions.set_ownvalue

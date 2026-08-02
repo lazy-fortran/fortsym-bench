@@ -48,6 +48,24 @@ def test_mathics_leaves_invalid_curl_unevaluated_without_sympy_api_crash(
 
 
 @pytest.mark.skipif(shutil.which("mathics") is None, reason="Mathics3 is optional")
+def test_mathics_evaluates_bounded_cylindrical_curl(tmp_path: Path):
+    """The explicit cylindrical Curl rule has the hand-derived components."""
+    source = tmp_path / "cylindrical_curl.wl"
+    source.write_text(
+        'value = Curl[{r^2, r*z, r*theta}, {r, theta, z}, "Cylindrical"] '
+        '/. {r -> 2, theta -> 3, z -> 5}\n',
+        encoding="utf-8",
+    )
+
+    results, seconds = run(BACKENDS["mathics"], source, 15.0)
+
+    # (d_theta A_z - d_z(r A_theta))/r, d_z A_r - d_r A_z,
+    # (d_r(r A_theta) - d_theta A_r)/r = (-1, -3, 10).
+    assert results["value"] == "{-1, -3, 10}"
+    assert seconds < 15.0
+
+
+@pytest.mark.skipif(shutil.which("mathics") is None, reason="Mathics3 is optional")
 def test_mathics_leaves_derivative_of_relational_unevaluated(tmp_path: Path):
     """A relational derivative must not enter SymPy's invalid derivative path."""
     source = tmp_path / "relational_derivative.wl"

@@ -178,6 +178,35 @@ def test_mathics_curl_compatibility_reuses_unrelated_failures(tmp_path):
     assert cache.get(current, source, 5.0) is not None
 
 
+def test_mathics_cylindrical_curl_upgrade_reruns_old_results(tmp_path):
+    source = tmp_path / "case.wl"
+    source.write_text(
+        'answer = Curl[{r^2, r*z, r*theta}, {r, theta, z}, "Cylindrical"]\n'
+    )
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("mathics", ".wl", "inputform", cache_version=5)
+    current = Backend("mathics", ".wl", "inputform", cache_version=6)
+
+    cache.put_result(old, source, 5.0, {"answer": "Curl[...]"})
+
+    assert cache.get(current, source, 5.0) is None
+
+
+def test_mathics_cylindrical_curl_upgrade_reuses_unrelated_results(tmp_path):
+    source = tmp_path / "case.wl"
+    source.write_text("answer = 1\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("mathics", ".wl", "inputform", cache_version=5)
+    current = Backend("mathics", ".wl", "inputform", cache_version=6)
+
+    cache.put_result(old, source, 5.0, {"answer": "1"})
+
+    cached = cache.get(current, source, 5.0)
+
+    assert cached is not None
+    assert cached.results == {"answer": "1"}
+
+
 def test_native_runner_version_invalidates_old_results(tmp_path):
     source = tmp_path / "case.wl"
     source.write_text("answer = 2\n")
