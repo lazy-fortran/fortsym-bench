@@ -227,6 +227,27 @@ def results():
     values['d'] = sp.Symbol('d')
     values['f'] = sp.Symbol('f')
 
+    # These option assignments are literal rules in the source.  The shared
+    # evaluator intentionally does not guess option semantics, so preserve
+    # their Wolfram values explicitly for the independent oracle.
+    Rule = sp.Function('Rule')
+    Dashing = sp.Function('Dashing')
+    values['dino'] = Rule(sp.Symbol('DisplayFunction'), sp.Symbol('Identity'))
+    values['dd'] = Rule(
+        sp.Symbol('PlotStyle'), Dashing(sp.Tuple(sp.Float('0.01')))
+    )
+    values['dt'] = Rule(
+        sp.Symbol('PlotStyle'),
+        Dashing(
+            sp.Tuple(
+                sp.Float('0.02'),
+                sp.Float('0.01'),
+                sp.Float('0.0025'),
+                sp.Float('0.01'),
+            )
+        ),
+    )
+
     # These two source cells index lists produced earlier in the notebook.
     # Build their already-expanded equations explicitly so the final values
     # do not accidentally capture later notebook rebindings (notably m = 1).
