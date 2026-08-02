@@ -290,6 +290,27 @@ def test_with_translation_matches_independent_mathics_oracle(tmp_path: Path):
     assert values["outer"] == parse(oracle["outer"], "inputform")
 
 
+@pytest.mark.skipif(shutil.which("mathics") is None, reason="Mathics3 is optional")
+def test_bounded_do_translation_matches_independent_mathics_oracle(tmp_path: Path):
+    source = tmp_path / "do.wl"
+    source.write_text(
+        "outer = 9; "
+        "answer = Module[{total = 0}, "
+        "Do[total = total + i^2, {i, 1, 4}]; total]; "
+        "nested = Module[{total = 0}, "
+        "Do[total = total + i*j, {i, 2}, {j, 3}]; total]; "
+        "outer"
+    , encoding="utf-8")
+
+    oracle, seconds = run(BACKENDS["mathics"], source, 15.0)
+    values = evaluate_assignments(extract_assignments(source.read_text())[0])
+
+    assert seconds < 15.0
+    assert values["answer"] == parse(oracle["answer"], "inputform")
+    assert values["nested"] == parse(oracle["nested"], "inputform")
+    assert values["outer"] == parse(oracle["outer"], "inputform")
+
+
 def test_immediate_scalar_definition_can_rebind_an_earlier_callable():
     assignments, skipped = extract_assignments(
         "f[x_] := x + 1; f[x_] = f[x] + 2; result = f[3]"

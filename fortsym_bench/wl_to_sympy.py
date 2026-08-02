@@ -356,6 +356,8 @@ def _lower(expression, environment: dict[str, object]):
         return _module(expression.args, environment)
     if name == "With":
         return _with(expression.args, environment)
+    if name == "Do":
+        return _do(expression.args, environment)
     if name == "Map":
         return _map(expression.args, environment)
     if name == "Select":
@@ -683,6 +685,48 @@ def _with(arguments: tuple[object, ...], environment: dict[str, object]):
             raise NotImplementedError("With declarations need symbol names")
         local[str(target)] = _lower(initializer, environment)
     return _lower(arguments[1], local)
+
+
+def _do(arguments: tuple[object, ...], environment: dict[str, object]):
+    """Lower bounded ``Do`` iterators while preserving sequential mutations.
+
+    The supported subset deliberately reuses ``Table``'s concrete iterator
+    ranges and ``Module``'s statement evaluator.  This covers the corpus's
+    finite numeric loops without pretending to implement Break, Continue,
+    Return, or symbolic/procedural iteration.
+    """
+
+    if len(arguments) < 2:
+        raise NotImplementedError("Do needs a body and at least one iterator")
+    body = arguments[0]
+    iterators = []
+    for specification in arguments[1:]:
+        variable, values = _table_range(specification)
+        if variable is None or not isinstance(variable, sp.Symbol):
+            raise NotImplementedError("Do needs named bounded iterators")
+        if values is None:
+            raise NotImplementedError("Do needs concrete iterator values")
+        iterators.append((str(variable), tuple(values)))
+
+    saved = {name: environment[name] for name, _ in iterators if name in environment}
+    missing = {name for name, _ in iterators if name not in environment}
+    try:
+        def visit(index: int):
+            if index == len(iterators):
+                return _lower_module_body(body, environment)
+            name, values = iterators[index]
+            result = sp.Symbol("Null")
+            for value in values:
+                environment[name] = value
+                result = visit(index + 1)
+            return result
+
+        visit(0)
+    finally:
+        for name in missing:
+            environment.pop(name, None)
+        environment.update(saved)
+    return sp.Symbol("Null")
 
 
 def _lower_module_body(expression, environment: dict[str, object]):
