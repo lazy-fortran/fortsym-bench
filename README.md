@@ -239,7 +239,7 @@ The v31 callable-definition slice adds bounded scalar `Set`/`SetDelayed`
 semantics after `DSolve`, including Wolfram `C[1]` normalization; the v32
 slice adds bounded lexical `Module` locals with sequential assignments and
 nested shadowing, and v33 normalizes derivative `Subs` wrappers after
-replacement. The full suite now passes 142 tests. The refreshed 384-source
+replacement. The full suite now passes 143 tests. The refreshed 384-source
 cache contains 374 successful SymPy rows, 5 unsupported rows, and 5 timeouts,
 plus 255 successful Mathics rows, 60 errors, and 69 timeouts; all rows are
 reusable at timeout 15. The native cache contains 379 successful rows, 3
