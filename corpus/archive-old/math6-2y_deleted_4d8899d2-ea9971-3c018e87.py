@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 247 non-assignment statement(s) remain.
@@ -199,4 +201,19 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math6-2y_deleted_4d8899d2-ea9971-3c018e87.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/archive-old/math6-2y_deleted_4d8899d2-ea9971-3c018e87.wl',
+    )
+
+    # The final source assignment is a plot with an option rule.  The shared
+    # evaluator intentionally keeps Rule objects opaque, so that assignment
+    # is otherwise dropped and the earlier ``p1`` survives in the result.
+    # Preserve the actual final source binding as an opaque plot expression.
+    u = sp.Symbol('u')
+    values['p1'] = sp.Function('ParametricPlot3D')(
+        sp.Tuple(sp.sin(8 * u) * sp.sin(u), sp.cos(8 * u) * sp.sin(u), sp.cos(u)),
+        sp.Tuple(u, 0, 2 * sp.pi),
+        sp.Function('Rule')(sp.Symbol('PlotPoints'), 200),
+    )
+    return values
