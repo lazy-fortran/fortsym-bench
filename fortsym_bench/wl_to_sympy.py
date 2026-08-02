@@ -272,11 +272,28 @@ def evaluate_expression(text: str, environment: dict[str, object] | None = None)
             normalised,
         )
         greek_restore[safe_name] = character
+    parser_restore = {}
+    for name in _PARSER_RESERVED_NAMES:
+        if re.search(
+            rf"(?<![A-Za-z0-9$]){re.escape(name)}(?![A-Za-z0-9$])",
+            normalised,
+        ):
+            safe_name = f"fortsymParserName{name.capitalize()}"
+            normalised = _replace_identifier(normalised, name, safe_name)
+            parser_restore[safe_name] = name
     protected, parse_environment, restore = _protect_bound_names(
         normalised, environment
     )
+    # A protected parser name still needs to lower to the original symbol in
+    # operator arguments.  Otherwise ``D[r, zeta]`` differentiates with
+    # respect to the temporary parser spelling while ``r`` contains the
+    # restored symbol.
+    parse_environment.update(
+        {safe: sp.Symbol(original) for safe, original in parser_restore.items()}
+    )
     parsed = parse_mathematica(protected)
     restore.update(greek_restore)
+    restore.update(parser_restore)
     return _restore_names(_lower(parsed, parse_environment), restore)
 
 
@@ -1805,6 +1822,12 @@ _GREEK_PARSE_NAMES = {
     "α": "fortsymGreekAlpha",
     "β": "fortsymGreekBeta",
 }
+
+# SymPy's Mathematica parser resolves ``zeta`` as its built-in Zeta function,
+# while Wolfram scripts routinely use it as an ordinary coordinate symbol.
+# Protect only this known parser collision; other built-in heads must retain
+# their normal parsing semantics.
+_PARSER_RESERVED_NAMES = ("zeta",)
 
 
 def _normalise_expression_layout(text: str) -> str:
