@@ -579,6 +579,8 @@ def _lower(expression, environment: dict[str, object]):
         return _dot(arguments)
     if name == "Cross":
         return _cross(arguments)
+    if name == "Curl":
+        return _curl(arguments)
     if name == "Det":
         return _matrix(arguments[0]).det()
     if name == "Inverse":
@@ -1488,6 +1490,53 @@ def _opaque_cross(arguments: tuple[object, ...]):
     """Keep an unsupported Cross expression visible to the comparator."""
 
     return sp.Function("Cross")(*arguments)
+
+
+def _curl(arguments: tuple[object, ...]):
+    """Lower the explicit cylindrical three-vector Curl form.
+
+    The corpus uses Wolfram's three-argument ``Curl[field, coordinates,
+    "Cylindrical"]`` form.  Keep other arities and coordinate systems opaque
+    so the translator never guesses a convention for an unsupported form.
+    """
+
+    if len(arguments) != 3:
+        return _opaque_curl(arguments)
+    field = _sequence_items(arguments[0])
+    coordinates = _sequence_items(arguments[1])
+    system = _string_literal(arguments[2])
+    if system is None and isinstance(arguments[2], sp.Symbol):
+        system = str(arguments[2])
+    if (
+        field is None
+        or coordinates is None
+        or len(field) != 3
+        or len(coordinates) != 3
+        or system != "Cylindrical"
+    ):
+        return _opaque_curl(arguments)
+    radius, angle, axial = coordinates
+    radial, azimuthal, longitudinal = field
+    try:
+        return sp.Tuple(
+            (
+                sp.diff(longitudinal, angle)
+                - sp.diff(radius * azimuthal, axial)
+            ) / radius,
+            sp.diff(radial, axial) - sp.diff(longitudinal, radius),
+            (
+                sp.diff(radius * azimuthal, radius)
+                - sp.diff(radial, angle)
+            ) / radius,
+        )
+    except Exception:
+        return _opaque_curl(arguments)
+
+
+def _opaque_curl(arguments: tuple[object, ...]):
+    """Keep unsupported Curl forms visible to the comparator."""
+
+    return sp.Function("Curl")(*arguments)
 
 
 def _dot_two(left, right):

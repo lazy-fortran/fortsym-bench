@@ -379,6 +379,21 @@ class ReferenceCache:
             except (OSError, UnicodeError):
                 return False
         if (
+            backend.name == "sympy"
+            and backend.cache_version == 27
+            and version in (24, 25, 26)
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                text = Path(source).read_text()
+                return not any(
+                    token in text for token in ("CC", "With", "Do", "Curl[")
+                )
+            except (OSError, UnicodeError):
+                return False
+        if (
             backend.name == "mathics"
             and backend.cache_version == 5
             and version == 4

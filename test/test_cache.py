@@ -271,6 +271,33 @@ def test_sympy_cache_upgrade_reuses_sources_without_do_or_with(tmp_path):
     assert cached.results == {"value": "Add(Symbol('x'), Integer(1))"}
 
 
+def test_sympy_cache_upgrade_reruns_sources_with_curl(tmp_path):
+    source = tmp_path / "case.py"
+    source.write_text('value = Curl[{r, theta, z}, {r, theta, z}, "Cylindrical"]\n')
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("sympy", ".py", "srepr", cache_version=26)
+    current = Backend("sympy", ".py", "srepr", cache_version=27)
+
+    cache.put_result(old, source, 5.0, {"value": "Function('Curl')()"})
+
+    assert cache.get(current, source, 300.0) is None
+
+
+def test_sympy_cache_upgrade_reuses_sources_without_curl(tmp_path):
+    source = tmp_path / "case.py"
+    source.write_text("value = x + 1\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("sympy", ".py", "srepr", cache_version=26)
+    current = Backend("sympy", ".py", "srepr", cache_version=27)
+
+    cache.put_result(old, source, 5.0, {"value": "Add(Symbol('x'), Integer(1))"})
+
+    cached = cache.get(current, source, 300.0)
+
+    assert cached is not None
+    assert cached.results == {"value": "Add(Symbol('x'), Integer(1))"}
+
+
 def test_sympy_cache_upgrade_reuses_sources_without_solve(tmp_path):
     source = tmp_path / "case.py"
     source.write_text("value = x + 1\n")
