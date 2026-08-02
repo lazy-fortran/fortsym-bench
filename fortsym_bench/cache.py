@@ -21,7 +21,7 @@ from threading import RLock
 from .backends import Backend, RunFailure
 
 CACHE_VERSION = 1
-COMPARISON_CACHE_VERSION = 9
+COMPARISON_CACHE_VERSION = 10
 
 
 @dataclass(frozen=True)

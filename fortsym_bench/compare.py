@@ -66,6 +66,10 @@ def _normalise_inputform(text: str) -> tuple[str, dict[str, str]]:
     )
     text = _protect_inputform_strings(text)
     text = _normalise_derivative_calls(text)
+    # SymPy's Mathematica parser cannot build an AST for the Wolfram empty
+    # list spelling. Use the same collision-resistant atom as the empty-call
+    # bridge below, then restore it to an actual empty Tuple after parsing.
+    text = text.replace("{}", "fortsymInputEmptyList")
     text = re.sub(
         r"(\d+(?:\.\d*)?|\.\d+)\*\^([+-]?\d+)",
         r"\1*10^(\2)",
@@ -143,10 +147,13 @@ def _protect_inputform_builtin_symbols(
 def _restore_inputform_symbols(expression, protected: dict[str, str]):
     import sympy
 
-    if not protected or not isinstance(expression, sympy.Basic):
+    if not isinstance(expression, sympy.Basic):
         return expression
     if isinstance(expression, sympy.Symbol):
-        name = protected.get(str(expression))
+        name = str(expression)
+        if name == "fortsymInputEmptyList":
+            return sympy.Tuple()
+        name = protected.get(name)
         return sympy.Symbol(name) if name is not None else expression
     try:
         arguments = tuple(expression.args)

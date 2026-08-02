@@ -234,6 +234,14 @@ def test_inputform_empty_applications_are_bounded_opaque_values():
     assert result.outcome == "differ"
 
 
+def test_inputform_empty_lists_match_the_sympy_empty_tuple():
+    native = compare_text("{}", "{}", "inputform", "structural")
+    internal = compare_text("List[]", "{}", "inputform", "structural")
+
+    assert native.outcome == AGREE
+    assert internal.outcome == AGREE
+
+
 def test_strings_and_first_derivatives_have_stable_comparison_atoms():
     string_result = compare_text(
         '"/tmp/native output"',
