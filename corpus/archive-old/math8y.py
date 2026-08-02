@@ -5,6 +5,10 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import itertools
+
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 280 non-assignment statement(s) remain.
@@ -141,5 +145,20 @@ _ASSIGNMENTS = [
     ('pso', 'pia . mb', ()),
 ]
 
+def _recovered_minors2():
+    """Evaluate the source's ``Minors[Array[a, {3, 4}], 2]`` binding."""
+    subscript = sp.Function('Subscript')
+    matrix = [[subscript(sp.Symbol('a'), i, j) for j in range(1, 5)]
+              for i in range(1, 4)]
+    return tuple(
+        tuple(sp.det(sp.Matrix([[matrix[i][j] for j in cols]
+                                for i in rows]))
+              for cols in itertools.combinations(range(4), 2))
+        for rows in itertools.combinations(range(3), 2)
+    )
+
+
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math8y.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math8y.wl')
+    values['mi2'] = _recovered_minors2()
+    return values
