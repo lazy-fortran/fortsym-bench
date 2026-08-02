@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 38 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
@@ -80,4 +81,40 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/39_corrugation_resistance.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-flux_pumping/39_corrugation_resistance.wl'
+    )
+
+    # These source-level rules are exact, but the generic lowering cannot
+    # serialize derivative syntax or Wolfram replacement rules. Preserve the
+    # bindings explicitly so downstream consumers retain the same ledger.
+    r, rho, th, z, chi = sp.symbols('r rho th z chi')
+    eps, m, k = sp.symbols('eps m k')
+    p = sp.Function('p')
+    t = sp.Function('t')
+    w = sp.Function('w')
+    derivative1 = sp.Function('Derivative1')
+    Delta = sp.Function('Delta')
+    rr2 = sp.Function('rr2')
+    rr2c = sp.Function('rr2c')
+    values['divConstraint'] = (
+        derivative1(sp.Symbol('p'), 1, r)
+        + p(r) / r
+        - m * t(r) / r
+        - k * w(r)
+    )
+    values['tComposite'] = (
+        rho * derivative1(sp.Symbol('p'), 1, rho) + p(rho)
+        - k * rho * w(rho)
+    ) / m
+    rule = sp.Function('Rule')
+    values['onSurf'] = sp.Tuple(
+        rule(
+            r,
+            rho - eps * Delta(rho) * sp.cos(chi)
+            + eps**2 * (rr2(rho) + rr2c(rho) * sp.cos(2 * chi)),
+        ),
+        rule(th, chi / m),
+        rule(z, 0),
+    )
+    return values

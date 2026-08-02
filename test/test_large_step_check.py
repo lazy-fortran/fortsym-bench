@@ -46,3 +46,14 @@ def test_large_step_hessian_uses_all_six_coordinate_derivatives():
     sampled = values["SqcAt"]
     assert abs(float(sampled[3][3]) - 1.0) < 1e-12
     assert abs(float(sampled[3][4])) < 1e-12
+
+
+def test_large_step_lte_cancels_first_two_orders_and_has_slow_cubic_term():
+    module = _large_step_module()
+    values = module.results()
+    dt = sp.Symbol("dt")
+    assert values["lteCoeff1"] == 0
+    assert values["lteCoeff2"] == 0
+    assert values["lteCoeff3"].has(dt) is False
+    assert values["lteCoeff3"] != 0
+    assert not values["lteCoeff3"].has(sp.Symbol("qc"), sp.Symbol("wc"), sp.Symbol("eps"))

@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 43 non-assignment statement(s) remain.
@@ -112,4 +114,44 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-cpp-derivation/large_step_check.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-cpp-derivation/large_step_check.wl'
+    )
+
+    # The source constructs the midpoint series by repeatedly substituting
+    # the previous coefficients into
+    #   Y = y0 + dt F((y0 + Y)/2).
+    # The generic lowering cannot solve that coefficient recurrence, so its
+    # placeholder ``ysolSer = y0`` makes all LTE coefficients wrong.  Rebuild
+    # this small, source-faithful recurrence explicitly.
+    a0, a1, a2, a3, y0, dt = sp.symbols("a0 a1 a2 a3 y0 dt")
+    f = lambda y: a0 + a1 * y + a2 * y**2 + a3 * y**3
+    coefficients = sp.symbols("c1:5")
+    midpoint = y0 + sum(c * dt** power for power, c in enumerate(coefficients, 1))
+    residual = sp.series(
+        midpoint - (y0 + dt * f((y0 + midpoint) / 2)), dt, 0, 5
+    ).removeO()
+    solved = {}
+    for power, coefficient in enumerate(coefficients, 1):
+        solved[coefficient] = sp.solve(
+            sp.expand(residual.subs(solved)).coeff(dt, power), coefficient
+        )[0]
+    midpoint = midpoint.subs(solved)
+
+    exact = y0
+    derivative = f(sp.Symbol("y"))
+    y = sp.Symbol("y")
+    for power in range(1, 5):
+        exact += dt**power / sp.factorial(power) * derivative.subs(y, y0)
+        derivative = sp.diff(derivative, y) * f(y)
+    lte = sp.expand(exact - midpoint)
+    values.update(
+        {
+            "ysolSer": midpoint,
+            "LTE": lte,
+            "lteCoeff1": lte.coeff(dt, 1),
+            "lteCoeff2": lte.coeff(dt, 2),
+            "lteCoeff3": lte.coeff(dt, 3),
+        }
+    )
+    return values

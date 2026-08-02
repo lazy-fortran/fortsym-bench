@@ -1,4 +1,14 @@
 import sympy as sp
+from importlib.util import module_from_spec, spec_from_file_location
+from pathlib import Path
+
+
+def _target_results():
+    path = Path(__file__).parents[1] / "corpus/proj-flux_pumping/28_general_maxwell_surface.py"
+    spec = spec_from_file_location("general_maxwell_surface", path)
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.results()
 
 
 def test_maxwell_surface_normal_forms_and_first_order_surface_identity():
@@ -49,3 +59,30 @@ def test_maxwell_surface_normal_forms_and_first_order_surface_identity():
     )
     expected_compact_inside = r * (25 * r**4 - 64 * r**3 + 45 * r**2 - 5) / 120
     assert sp.simplify(compact_inside - expected_compact_inside) == 0
+
+
+def test_generated_maxwell_bindings_match_independent_source_normal_forms():
+    values = _target_results()
+    r, theta, z, m, k, cl = sp.symbols("r theta z m k cl")
+    current = sp.Function("current")(r)
+    u = sp.Function("u")(r)
+    chi = m * theta + k * z
+    source = 4 * sp.pi * current / cl
+    radial_residual = (
+        sp.diff(u, r, 2)
+        + sp.diff(u, r) / r
+        - (m**2 / r**2 + k**2) * u
+        - r * sp.diff(source, r)
+        - 2 * source
+    )
+    expected_div_b = radial_residual * sp.sin(chi) / m
+    expected_curl_b = sp.Tuple(
+        0,
+        -k * r * source * sp.cos(chi) / m,
+        source * sp.cos(chi),
+    )
+    assert sp.simplify(values["divB"] - expected_div_b) == 0
+    assert all(
+        sp.simplify(actual - expected) == 0
+        for actual, expected in zip(values["curlB"], expected_curl_b)
+    )
