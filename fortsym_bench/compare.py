@@ -44,7 +44,7 @@ def parse(text: str, syntax: str):
         normalised, restore = _normalise_inputform(text)
         try:
             parsed = parse_mathematica(normalised)
-        except (AttributeError, TypeError, ValueError):
+        except (AttributeError, TypeError, ValueError, RuntimeError):
             # SymPy's Mathematica parser eagerly maps List[...] to Tuple.
             # That is correct for a list on its own, but it can construct an
             # invalid non-Expr tree for list-valued arithmetic such as
@@ -59,7 +59,7 @@ def parse(text: str, syntax: str):
             )
             try:
                 parsed = parse_mathematica(protected_lists)
-            except (AttributeError, TypeError, ValueError):
+            except (AttributeError, TypeError, ValueError, RuntimeError):
                 if not any(
                     f"fortsymInputOpaque{name}" in normalised
                     for name in _OPAQUE_INPUTFORM_HEADS

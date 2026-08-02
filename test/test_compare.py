@@ -119,6 +119,17 @@ def test_inputform_unavoidable_higher_order_evaluation_stays_opaque():
     assert result.outcome == DIFFER
 
 
+def test_inputform_rendering_stack_failures_stay_opaque():
+    result = compare_text(
+        'LogPlot[{x, x^2}, {x, 0, 1}, Epilog -> {Text[Style["label", 12]]}]',
+        "Plot[x, {x, 0, 1}]",
+        "inputform",
+        "structural",
+    )
+
+    assert result.outcome == DIFFER
+
+
 def test_numeric_policy_accepts_guard_digit_rounding_at_requested_precision():
     result = compare_cross_text(
         "3.14159265358979323846264",
