@@ -169,7 +169,8 @@ at 337 MiB RSS, with no backend subprocesses started. The full v60 refresh
 took 2:14.26 at a 1.61 GiB peak RSS with one worker. The
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
-The SymPy cache is now version 26: Unicode `λ`, the user symbol `CC`, and
+The SymPy cache is now version 27: Unicode `λ`, the user symbol `CC`, bounded
+`Curl`, and
 bounded `With`/`Do` forms are
 protected while parsing
 function arguments, quoted string literals use the same collision-resistant
@@ -297,9 +298,10 @@ vector-matrix `Dot`; v60 adds bounded `Do`, numeric native `FindRoot`, and the
 differences, 7 unsupported outcomes, 76
 timeouts, 60 errors, 2 unavailable oracle rows, 194 oracle disagreements, and
 354 oracle-missing bindings. The Mathics wrapper
-also neutralizes `Quit`, isolates per-run protocol symbols, and restores
+also neutralizes `Quit`, isolates per-run protocol symbols, restores
 `$Assumptions` safely after local integrals; current Mathics inventory is 255
-successful rows, 60 errors, and 69 timeouts.
+successful rows, 60 errors, and 69 timeouts. Its cache is version 6 and
+selectively refreshes legacy `Curl` rows after the cylindrical rule was added.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
@@ -396,7 +398,14 @@ cache contains 255 successful rows, 60 errors, and 69 timeouts. The latest
 committed full binding-level audit has 3,853 agreements, 468 declared
 differences, 7 unsupported outcomes, 76 timeouts, 60 errors, 194 oracle
 disagreements, and 354 oracle-missing bindings. Its warm run took 0.66
-seconds at 337 MiB RSS; the current v60 parity batch is documented above.
+seconds at 337 MiB RSS. The v68 audit on 2026-08-03 reports 3,863
+agreements, 465 declared differences, 7 unsupported outcomes, 76 timeouts, 61
+errors, 208 oracle disagreements, and 349 oracle-missing bindings across 4,888
+bindings. It reused 378 native, 375 SymPy, and 255 Mathics rows, and peaked at
+426 MiB RSS. The v68 cycle adds bounded cylindrical `Curl` support to both
+open-source oracle paths, selective Mathics cache invalidation, bounded
+matrix contractions in the generated gc-drift companion, and the named-blank
+native rule path.
 
 The bounded Fortran inventory in `tools/inventory_wl_to_f90.py` inspected all
 384 `.wl` sources on 2026-08-02 with a serial five-second limit. It emitted
@@ -448,11 +457,12 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The latest full run produced 3,853 agreements, 468 declared
-differences, 7 unsupported outcomes, 76 timeouts, 60 errors, 194 oracle
-disagreements, and 354 oracle-missing bindings. The v43-v60 batches add 68
-independent behavioral tests covering new source-faithful Python companions
-and native backend semantics.
+place. The v68 audit on 2026-08-03 produced 3,863 agreements, 465 declared
+differences, 7 unsupported outcomes, 76 timeouts, 61 errors, 208 oracle
+disagreements, and 349 oracle-missing bindings across 4,888 bindings. Mathics3
+10.0.1 is installed with UV. The v43-v68 batches add 75 independent behavioral
+tests covering new source-faithful Python companions, oracle shims, cache
+invalidation, and native backend semantics.
 Translation quality and the remaining backend parity work stay measured by
 the independent oracle report; the report is the source of truth for current
 counts.
