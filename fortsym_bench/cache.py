@@ -23,7 +23,7 @@ from .backends import Backend, RunFailure
 CACHE_VERSION = 1
 # Bump when comparison parsing/equivalence semantics change; raw backend rows
 # remain reusable while verdicts are recomputed from their cached operands.
-COMPARISON_CACHE_VERSION = 13
+COMPARISON_CACHE_VERSION = 14
 
 
 @dataclass(frozen=True)
