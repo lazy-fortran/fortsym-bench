@@ -400,6 +400,16 @@ def test_solve_rules_can_feed_replace_all():
     assert evaluate_assignments(assignments)["value"] == sp.Rational(1, 5)
 
 
+def test_prefix_first_solve_unwraps_singleton_rules_for_replace_all():
+    assignments, skipped = extract_assignments(
+        "value = x /. First@Solve[x + a == 0, x]"
+    )
+
+    assert skipped == []
+    x, a = sp.symbols("x a")
+    assert evaluate_assignments(assignments)["value"] == -a
+
+
 def test_thread_expands_equal_lists_with_an_independent_shape_check():
     assignments, skipped = extract_assignments(
         "value = Thread[Equal[{x, y}, {a, b}]]; "
