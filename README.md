@@ -164,8 +164,8 @@ updated 16 rows in 16.51 seconds at 399 MiB RSS; the v20 positive-level
 `Map` transition updated six rows in 4.07 seconds at 403 MiB RSS. The 155 MB
 raw-result cache
 then served
-a warm audit in 1.24 seconds
-at 456 MiB RSS, with no backend subprocesses started. The
+a warm audit in 0.56 seconds
+at 344 MiB RSS, with no backend subprocesses started. The
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
 The SymPy cache is now version 24: Unicode `λ` is protected while parsing
@@ -239,7 +239,7 @@ The v31 callable-definition slice adds bounded scalar `Set`/`SetDelayed`
 semantics after `DSolve`, including Wolfram `C[1]` normalization; the v32
 slice adds bounded lexical `Module` locals with sequential assignments and
 nested shadowing, and v33 normalizes derivative `Subs` wrappers after
-replacement. The full suite now passes 154 tests. The refreshed 384-source
+replacement. The full suite now passes 166 tests. The refreshed 384-source
 cache contains 374 successful SymPy rows, 5 unsupported rows, and 5 timeouts,
 plus 255 successful Mathics rows, 60 errors, and 69 timeouts; all rows are
 reusable at timeout 15. The native cache contains 379 successful rows, 3
@@ -266,9 +266,13 @@ dependent geometry bindings, adding seven agreements with an independent test.
 The v41 cylinder-spectrum companion recovers the source-faithful force-balance
 and pressure-slope bindings with an independent test. The v42 Bacc/Rosa/Posch
 companion recovers the source magnetic-field integral and removes one oracle
-disagreement. The current cache-only score is 3,574 agreements, 503
-differences, 8 unsupported outcomes, 75 timeouts, 61 errors, 2 unavailable
-oracle rows, 208 oracle disagreements, and 541 oracle-missing bindings. The Mathics wrapper
+disagreement. The v43 parity batch adds source-faithful ECNL equation strings,
+numeric validity estimates, Maxwell/flux-pumping companions, math10y and
+Suydam recoveries, a large-step LTE reconstruction, and Sympl3 field forms;
+it adds 12 independent tests. The current cache-only score is 3,661
+agreements, 508 differences, 7 unsupported outcomes, 74 timeouts, 61 errors,
+2 unavailable oracle rows, 194 oracle disagreements, and 463 oracle-missing
+bindings. The Mathics wrapper
 also neutralizes `Quit`, isolates per-run protocol symbols, and restores
 `$Assumptions` safely after local integrals; current Mathics inventory is 255
 successful rows, 60 errors, and 69 timeouts.
@@ -347,17 +351,14 @@ diagnostic, not evidence.
 **384 `.wl` scripts across 50 projects**, ingested 2026-08-01. Every script has
 a Python companion; the manifest distinguishes generated, hand, and preserved
 translations and counts statements that still need manual work. The latest
-60-second native sweep, using two workers, completed 380 scripts (344 with
-non-empty results and 36 valid empty result sets), timed out on 1, reported 1
-runner error, and explicitly refused 2 unsupported constructs; it had no native
-crashes. The same compact cache contains 359 completed SymPy rows (332
-non-empty, 27 empty, 7 timeouts, 18 refusals) and 235 completed Mathics rows
-(208 non-empty, 27 empty, 107 errors, 30 timeouts, 12 unavailable). The
-latest committed full binding-level audit has 3,219 agreements, 716 declared
-differences, 20
-unsupported outcomes, 38 timeouts, 117 errors, 192 oracle disagreements, and
-798 oracle-missing bindings. Its warm run takes 1.24 seconds at 456 MiB RSS;
-the current v23 focused slice is documented above.
+native cache contains 379 successful script rows, 3 explicit unsupported
+rows, 1 timeout, and 1 runner error, with no native crashes. The SymPy cache
+contains 376 successful rows, 4 unsupported rows, and 4 timeouts; the Mathics
+cache contains 255 successful rows, 60 errors, and 69 timeouts. The latest
+committed full binding-level audit has 3,661 agreements, 508 declared
+differences, 7 unsupported outcomes, 74 timeouts, 61 errors, 194 oracle
+disagreements, and 463 oracle-missing bindings. Its warm run takes 0.56
+seconds at 344 MiB RSS; the current v43 parity batch is documented above.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
@@ -403,8 +404,10 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The latest full run produced 3,219 agreements, 716 declared
-differences, 20 unsupported outcomes, 38 timeouts, 117 errors, 192 oracle
-disagreements, and 798 oracle-missing bindings. Translation quality and the
-remaining backend parity work stay measured by the independent oracle report;
-the report is the source of truth for current counts.
+place. The latest full run produced 3,661 agreements, 508 declared
+differences, 7 unsupported outcomes, 74 timeouts, 61 errors, 194 oracle
+disagreements, and 463 oracle-missing bindings. The v43 batch adds 12
+independent behavioral tests covering new source-faithful Python companions.
+Translation quality and the remaining backend parity work stay measured by
+the independent oracle report; the report is the source of truth for current
+counts.
