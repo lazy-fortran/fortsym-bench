@@ -149,6 +149,18 @@ def test_sympy_cache_upgrade_reruns_sources_containing_lambda(tmp_path):
     assert cache.get(current, source, 300.0) is None
 
 
+def test_native_runner_version_invalidates_old_results(tmp_path):
+    source = tmp_path / "case.wl"
+    source.write_text("answer = 2\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("fortsym-wl", ".wl", "inputform", cache_version=1)
+    current = Backend("fortsym-wl", ".wl", "inputform", cache_version=2)
+
+    cache.put_result(old, source, 5.0, {"answer": "2"})
+
+    assert cache.get(current, source, 5.0) is None
+
+
 def test_sympy_cache_upgrade_reuses_sources_without_polynomial_heads(tmp_path):
     source = tmp_path / "case.py"
     source.write_text("value = x + 1\n")
