@@ -160,6 +160,17 @@ def test_characteristic_polynomial_uses_sympys_matrix_definition():
     assert evaluate_assignments(assignments)["value"] == matrix.charpoly(z).as_expr()
 
 
+def test_matrix_power_uses_sympys_matrix_definition():
+    assignments, skipped = extract_assignments(
+        "value = MatrixPower[{{1, 2}, {3, 4}}, 2]"
+    )
+
+    assert skipped == []
+    assert evaluate_assignments(assignments)["value"] == sp.Tuple(
+        sp.Tuple(7, 10), sp.Tuple(15, 22)
+    )
+
+
 def test_unicode_lambda_is_safe_inside_sympy_function_calls():
     assignments, skipped = extract_assignments(
         "value = CharacteristicPolynomial[{{1, 2}, {3, 4}}, λ]"
