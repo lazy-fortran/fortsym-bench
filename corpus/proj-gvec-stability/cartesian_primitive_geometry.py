@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 91 non-assignment statement(s) remain.
@@ -111,4 +113,10 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/cartesian_primitive_geometry.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/proj-gvec-stability/cartesian_primitive_geometry.wl',
+    )
+    s = sp.Symbol('s')
+    values['phiPrime'] = sp.diff(sp.Function('phiProfile')(s), s)
+    return values

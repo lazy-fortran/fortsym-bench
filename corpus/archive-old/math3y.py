@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 138 non-assignment statement(s) remain.
 COMPARE = {
@@ -70,4 +71,7 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math3y.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math3y.wl')
+    # The source rebinds p3 after the preceding NSolve/Solve examples.
+    values['p3'] = sp.Symbol('x')**3 + sp.Symbol('x') + 1
+    return values
