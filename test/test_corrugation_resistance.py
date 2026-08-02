@@ -47,3 +47,35 @@ def test_constraint_composite_and_surface_rules_match_the_source():
     assert rules[1] == sp.Function('Rule')(th, chi / m)
     assert rules[2] == sp.Function('Rule')(z, 0)
     assert rules[0].args[1].subs({eps: 0}) == rho
+
+
+def test_vector_repairs_preserve_source_forms():
+    values = _module().results()
+    r, th, z = sp.symbols('r th z')
+    bvec = sp.Symbol('Bvec')
+    dot = sp.Function('Dot')
+    b2 = dot(bvec, bvec)
+    assert values['B2On'] == b2
+    assert values['Bmag'] == sp.sqrt(b2)
+    assert values['ratioOn'] == b2 / sp.Symbol('BzOn')
+    assert values['lhsId'] == sp.Function('divCyl')(
+        sp.Function('g')(r, th, z) * bvec / sp.sqrt(b2), r, th, z
+    )
+
+def test_vector_identities_match_independent_source_forms():
+    values = _module().results()
+    r, th, z, m, k, alpha, B0 = sp.symbols(
+        'r th z m k alpha B0'
+    )
+    Bth = sp.Function('Bth')
+    Delta = sp.Function('Delta')
+    p = sp.Function('p')
+    chi = m * th + k * z
+    expected_tangency = p(r) * sp.sin(chi) - Delta(r) * (
+        m * Bth(r) / r + k * B0
+    ) * sp.sin(chi + alpha)
+    assert sp.simplify(values['tangency'] - expected_tangency) == 0
+    assert sp.simplify(
+        values['BtS'] + values['BxS'] * sp.sin(th)
+        - values['ByS'] * sp.cos(th)
+    ) == 0
