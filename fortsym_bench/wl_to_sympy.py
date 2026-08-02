@@ -256,6 +256,7 @@ def evaluate_expression(text: str, environment: dict[str, object] | None = None)
 
     environment = {} if environment is None else environment
     normalised = _normalise_expression_layout(_normalise_named_characters(text))
+    normalised = _normalise_prefix_calls(normalised)
     normalised = _protect_thread_equal(normalised)
     # SymPy's Mathematica parser eagerly constructs Max/Min and rejects a
     # Wolfram list as one incomparable argument. Protect those heads so the
@@ -1962,3 +1963,26 @@ def _normalise_expression_layout(text: str) -> str:
         index += 1
     pieces.append(text[start:])
     return "".join(pieces)
+
+
+def _normalise_prefix_calls(text: str) -> str:
+    """Rewrite Wolfram ``f@Head[...]`` before SymPy sees it.
+
+    SymPy's Mathematica parser treats the prefix operator as multiplication,
+    which turns ``First@Solve[...]`` into ``First * Solve[...]``.  Restrict
+    this normalization to prefix calls with a bracketed operand; those have a
+    clear balanced extent and cover the corpus forms without guessing where
+    an atomic prefix operand ends.
+    """
+    pattern = re.compile(
+        r"(?<![A-Za-z0-9$])([A-Za-z][A-Za-z0-9$]*)\s*@\s*"
+        r"([A-Za-z][A-Za-z0-9$]*)\s*\["
+    )
+    while match := pattern.search(text):
+        opening = text.find("[", match.start(2), match.end())
+        closing = _matching_delimiter(text, opening)
+        if closing < 0:
+            break
+        operand = text[match.start(2) : closing + 1]
+        text = text[: match.start(1)] + match.group(1) + "[" + operand + "]" + text[closing + 1 :]
+    return text
