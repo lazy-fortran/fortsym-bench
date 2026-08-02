@@ -314,6 +314,20 @@ python tools/translate_wl_corpus.py --refresh-generated
 Existing hand translations are preserved. Use `--force` only when deliberately
 replacing them.
 
+The bounded source-to-Fortran slice can be inventoried without touching the
+corpus. It writes each candidate into a temporary directory and records one
+machine-readable row per `.wl` source:
+
+```sh
+python tools/inventory_wl_to_f90.py --report /tmp/wl-to-f90.json
+```
+
+`translated` means only that `fortsym_wl_to_f90` accepted the source and emitted
+non-empty Fortran. `refused`, `timeout`, `unavailable`, and `error` remain
+separate. The inventory does not compile, execute, or compare the generated
+source, so it must not be read as whole-corpus Fortran parity. Add
+`--require-all-translated` to use it as a strict acceptance gate.
+
 Each (script, backend) pair runs in its own subprocess, so a crash or a
 module-state leak cannot reach another. Results cross the process boundary as
 text — `srepr` from the Python side, `InputForm` from the Wolfram side — and are
