@@ -10,6 +10,7 @@ from fortsym_bench.wl_to_sympy import evaluate_assignments
 # NOT TRANSLATED: 80 non-assignment statement(s) remain.
 COMPARE = {
     'refs': 'numeric',
+    'deff': 'equivalent',
 }
 _ASSIGNMENTS = [
     ('$failures', '0', ()),

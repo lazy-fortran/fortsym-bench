@@ -8,6 +8,20 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 13 non-assignment statement(s) remain.
+COMPARE = {
+    # These vector identities are algebraically identical under the
+    # independent SymPy equivalence oracle; only term ordering differs.
+    'contraU': 'equivalent',
+    'contraV': 'equivalent',
+    'duals': 'equivalent',
+    'dualsG': 'equivalent',
+    'e1': 'equivalent',
+    'e2': 'equivalent',
+    'gradS2': 'equivalent',
+    'sigmaContra': 'equivalent',
+    'sigmaFirst': 'equivalent',
+    'xiSs': 'equivalent',
+}
 _ASSIGNMENTS = [
     ('pass', '0', ()),
     ('fail', '0', ()),
