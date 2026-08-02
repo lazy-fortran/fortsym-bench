@@ -194,6 +194,11 @@ def evaluate_expression(text: str, environment: dict[str, object] | None = None)
 
     environment = {} if environment is None else environment
     normalised = _normalise_expression_layout(_normalise_named_characters(text))
+    # SymPy's Mathematica parser eagerly constructs Max/Min and rejects a
+    # Wolfram list as one incomparable argument. Protect those heads so the
+    # bounded lowering below receives the original argument sequence.
+    normalised = _replace_identifier(normalised, "Max", "fortsymMax")
+    normalised = _replace_identifier(normalised, "Min", "fortsymMin")
     greek_restore = {}
     for character, safe_name in _GREEK_PARSE_NAMES.items():
         if character not in normalised:
@@ -330,6 +335,10 @@ def _lower(expression, environment: dict[str, object]):
         return _fold_list(arguments)
     if name == "Total":
         return sp.Add(*_sequence_items(arguments[0]))
+    if name == "SingularValueList":
+        return _singular_value_list(arguments)
+    if name in ("fortsymMax", "fortsymMin"):
+        return _numeric_extremum(arguments, name[7:])
     if name == "Tr":
         matrix = _matrix(arguments[0])
         return sp.Add(*(matrix[index, index] for index in range(min(matrix.rows, matrix.cols))))
@@ -985,6 +994,41 @@ def _matrix(value):
     if items and all(_is_sequence(item) for item in items):
         return sp.Matrix([list(_sequence_items(item)) for item in items])
     return sp.Matrix(list(items))
+
+
+def _singular_value_list(arguments):
+    """Lower the bounded numeric diagonal/zero SingularValueList form."""
+    if len(arguments) != 1:
+        raise NotImplementedError("SingularValueList takes one matrix")
+    matrix = _matrix(arguments[0])
+    opaque = sp.Function("SingularValueList")(*arguments)
+    count = min(matrix.rows, matrix.cols)
+    values = []
+    for row in range(matrix.rows):
+        for column in range(matrix.cols):
+            value = matrix[row, column]
+            if row != column and not value.is_zero:
+                return opaque
+            if row == column and row < count:
+                values.append(sp.Abs(value))
+    if not all(value.is_number for value in values):
+        return opaque
+    values.sort(key=lambda value: float(value), reverse=True)
+    return sp.Tuple(*values)
+
+
+def _numeric_extremum(arguments, name):
+    if len(arguments) == 1 and _is_sequence(arguments[0]):
+        values = _sequence_items(arguments[0])
+    elif all(not _is_sequence(argument) for argument in arguments):
+        values = arguments
+    else:
+        return getattr(sp, name)(*arguments)
+    if not values:
+        return getattr(sp, name)(*values)
+    if not all(value.is_number for value in values):
+        return getattr(sp, name)(*values)
+    return getattr(sp, name)(*values)
 
 
 def _column_matrix(value):
