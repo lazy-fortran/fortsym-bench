@@ -142,19 +142,21 @@ comparison verdicts are cached separately in
 their syntaxes, the strictness policy, and the comparator version. On the
 2026-08-01 corpus, measured again on 2026-08-02, the earlier full refresh after
 the translator change took 4:54 with four workers. The latest bounded
-CharacteristicPolynomial/LegendreP/Diagonal/list-selector/Coefficient audit took
-106.65 seconds with two workers and a 0.57 GiB peak RSS:
-374 native rows were fresh, 331 SymPy rows and 235 Mathics rows were reused,
-and only 28 SymPy rows affected by the polynomial translator were refreshed.
-The 155 MB raw-result cache then served an identical warm audit in 1.04 seconds
-at 423 MiB
+CharacteristicPolynomial/LegendreP/Diagonal/list-selector/Coefficient/Solve
+audit, with native and Mathics rows cached, took 6:03.95 with two workers and a
+4.21 GiB peak RSS:
+all 380 native rows and 235 Mathics rows were reused, while 336 SymPy rows
+affected by the Solve translator were refreshed. The 155 MB raw-result cache
+then served an identical warm audit in 1.13 seconds at 422 MiB
 RSS, with no backend subprocesses started. The
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
-The SymPy cache is now version 11: Unicode `λ` is protected while parsing
-function arguments, and `Coefficient`/`CoefficientList` are lowered through
-SymPy. The cache transition reuses unaffected version-9/10 rows and refreshes
-only affected translations.
+The SymPy cache is now version 13: Unicode `λ` is protected while parsing
+function arguments, `Coefficient`/`CoefficientList` are lowered through SymPy,
+and single-variable `Solve` results are serialized as Wolfram `Rule` heads.
+The cache transition reuses unaffected version-9/10/11/12 rows and refreshes
+only affected translations; the direct version-chain compatibility avoids
+repeating the six-minute transition on the next translator change.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
@@ -236,9 +238,9 @@ runner error, and explicitly refused 2 unsupported constructs; it had no native
 crashes. The same compact cache contains 359 completed SymPy rows (332
 non-empty, 27 empty, 7 timeouts, 18 refusals) and 235 completed Mathics rows
 (208 non-empty, 27 empty, 107 errors, 30 timeouts, 12 unavailable). The final
-binding-level audit has 3,149 agreements, 780 declared differences, 20
-unsupported outcomes, 38 timeouts, 122 errors, 199 oracle disagreements, and
-797 oracle-missing bindings. Its warm run takes 1.04 seconds at 423 MiB RSS.
+binding-level audit has 3,150 agreements, 780 declared differences, 20
+unsupported outcomes, 38 timeouts, 122 errors, 198 oracle disagreements, and
+797 oracle-missing bindings. Its warm run takes 1.13 seconds at 422 MiB RSS.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
@@ -284,8 +286,8 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The latest full run produced 3,149 agreements, 780 declared
-differences, 20 unsupported outcomes, 38 timeouts, 122 errors, 199 oracle
+place. The latest full run produced 3,150 agreements, 780 declared
+differences, 20 unsupported outcomes, 38 timeouts, 122 errors, 198 oracle
 disagreements, and 797 oracle-missing bindings. Translation quality and the
 remaining backend parity work stay measured by the independent oracle report;
 the report is the source of truth for current counts.

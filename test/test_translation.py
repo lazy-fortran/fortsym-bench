@@ -201,6 +201,16 @@ def test_multivariate_coefficient_list_keeps_variable_order():
     )
 
 
+def test_solve_wraps_single_variable_roots_in_wolfram_rules():
+    assignments, skipped = extract_assignments("value = Solve[x + a == 0, x]")
+
+    assert skipped == []
+    x, a = sp.symbols("x a")
+    assert evaluate_assignments(assignments)["value"] == sp.Tuple(
+        sp.Tuple(sp.Function("Rule")(x, -a))
+    )
+
+
 def test_unicode_lambda_is_safe_inside_sympy_function_calls():
     assignments, skipped = extract_assignments(
         "value = CharacteristicPolynomial[{{1, 2}, {3, 4}}, λ]"

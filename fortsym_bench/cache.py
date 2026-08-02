@@ -326,9 +326,11 @@ class ReferenceCache:
 
         SymPy version 10 added protection for literal Unicode ``λ`` inside
         function calls. Version 11 adds the Coefficient and CoefficientList
-        lowering. Older rows remain exact for sources unaffected by the
-        corresponding change, which prevents a translator fix from forcing a
-        multi-gigabyte full oracle refresh.
+        lowering, and versions 12/13 normalize single-variable Solve results
+        to Wolfram rule lists and serialize those rules as opaque Rule heads.
+        Older rows remain exact for sources unaffected by the corresponding
+        change, which prevents a translator fix from forcing a multi-gigabyte
+        full oracle refresh.
         """
         version = entry.get("cache_version", 1)
         if version == backend.cache_version:
@@ -358,6 +360,35 @@ class ReferenceCache:
                 if "Coefficient" in text:
                     return False
                 return version != 9 or "λ" not in text
+            except (OSError, UnicodeError):
+                return False
+        if (
+            backend.name == "sympy"
+            and backend.cache_version == 12
+            and version == 11
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                return "Solve" not in Path(source).read_text()
+            except (OSError, UnicodeError):
+                return False
+        if (
+            backend.name == "sympy"
+            and backend.cache_version == 13
+            and version in (9, 10, 11, 12)
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                text = Path(source).read_text()
+                if version == 9 and "λ" in text:
+                    return False
+                if version <= 10 and "Coefficient" in text:
+                    return False
+                return "Solve" not in text
             except (OSError, UnicodeError):
                 return False
         if backend.name != "mathics" or version > backend.cache_version:

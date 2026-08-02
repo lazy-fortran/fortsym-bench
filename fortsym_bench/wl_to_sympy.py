@@ -1052,17 +1052,31 @@ def _evalf(value, precision):
 def _solve(arguments):
     filtered = tuple(argument for argument in arguments if not isinstance(argument, WolframRule))
     result = sp.solve(*filtered)
+    variables = []
+    for argument in arguments[1:]:
+        if isinstance(argument, WolframRule):
+            continue
+        items = _sequence_items(argument)
+        variables.extend(items if items is not None else (argument,))
     if isinstance(result, dict):
         result = [result]
     if isinstance(result, list):
         rows = []
         for solution in result:
             if isinstance(solution, dict):
-                rows.append(sp.Tuple(*(sp.Tuple(key, value) for key, value in solution.items())))
+                pairs = solution.items()
+            elif isinstance(solution, (tuple, list)) and len(variables) == len(solution):
+                pairs = zip(variables, solution)
             elif isinstance(solution, (tuple, list)):
                 rows.append(sp.Tuple(*solution))
+                continue
             else:
-                rows.append(solution)
+                if len(variables) == 1:
+                    pairs = ((variables[0], solution),)
+                else:
+                    rows.append(solution)
+                    continue
+            rows.append(sp.Tuple(*(sp.Function("Rule")(key, value) for key, value in pairs)))
         return sp.Tuple(*rows)
     return result
 
