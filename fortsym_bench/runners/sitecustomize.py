@@ -11,6 +11,20 @@ from mathics.core.definitions import Definitions
 from mathics.core.list import ListExpression
 from mathics.core.symbols import BooleanType
 from mathics.builtin.numbers.calculus import Derivative
+import sympy
+
+
+# Mathics 10.0.1 declares ``Curl`` as a SympyFunction but SymPy 1.14 no
+# longer exports the old top-level ``sympy.curl`` name.  A Curl expression
+# that does not match Mathics's own arity rules should remain unevaluated;
+# without this fallback the conversion path raises AttributeError and aborts
+# the complete corpus script.  Valid two- and three-argument Curl calls are
+# handled by Mathics's rules before this conversion hook is reached.
+if not hasattr(sympy, "curl"):
+    def _unevaluated_curl(*args):
+        return sympy.Function("Curl")(*args)
+
+    sympy.curl = _unevaluated_curl
 
 
 _set_ownvalue = Definitions.set_ownvalue
