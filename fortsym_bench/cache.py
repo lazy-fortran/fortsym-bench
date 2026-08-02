@@ -331,8 +331,9 @@ class ReferenceCache:
         version 14 adds the bounded FoldList form, version 15 aligns protected
         string literals with the native comparison protocol, version 16 lowers
         the bounded diagonal SingularValueList and numeric extrema forms, and
-        version 17 adds bounded polynomial heads, and version 18 lets
-        serialized Solve rules feed ReplaceAll. Older rows remain exact for
+        version 17 adds bounded polynomial heads, version 18 lets serialized
+        Solve rules feed ReplaceAll, and version 19 lowers bounded Thread.
+        Older rows remain exact for
         sources unaffected by the
         corresponding change, which prevents a translator fix from forcing a
         multi-gigabyte full oracle refresh.
@@ -496,7 +497,19 @@ class ReferenceCache:
                 return False
         if (
             backend.name == "sympy"
-            and backend.cache_version == 18
+            and backend.cache_version == 19
+            and version in (9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                return "Thread[" not in Path(source).read_text()
+            except (OSError, UnicodeError):
+                return False
+        if (
+            backend.name == "sympy"
+            and backend.cache_version in (18, 19)
             and version in (9, 10, 11, 12, 13, 14, 15, 16, 17)
         ):
             source = entry.get("source")

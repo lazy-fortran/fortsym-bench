@@ -194,6 +194,7 @@ def evaluate_expression(text: str, environment: dict[str, object] | None = None)
 
     environment = {} if environment is None else environment
     normalised = _normalise_expression_layout(_normalise_named_characters(text))
+    normalised = _protect_thread_equal(normalised)
     # SymPy's Mathematica parser eagerly constructs Max/Min and rejects a
     # Wolfram list as one incomparable argument. Protect those heads so the
     # bounded lowering below receives the original argument sequence.
@@ -253,6 +254,8 @@ def _lower(expression, environment: dict[str, object]):
         return _constant_array(expression.args, environment)
     if name == "Outer":
         return _outer(expression.args, environment)
+    if name == "Thread":
+        return _thread(expression.args, environment)
     arguments = tuple(_lower(arg, environment) for arg in expression.args)
     bound = environment.get(name)
     if isinstance(bound, WolframFunction):
@@ -499,6 +502,60 @@ def _table(arguments: tuple[object, ...]):
         return sp.Tuple(*children)
 
     return build(0, arguments[0])
+
+
+def _thread(raw_arguments, environment):
+    """Thread one explicit Wolfram expression over its list arguments."""
+
+    if len(raw_arguments) != 1:
+        raise NotImplementedError("Thread takes one expression")
+    expression = raw_arguments[0]
+    head = _head_name(expression)
+    if head == "fortsymThreadEqual":
+        return _thread_equal(expression.args, environment)
+    if isinstance(expression, sp.Equality):
+        return _thread_equal(expression.args, environment)
+
+    arguments = tuple(_lower(argument, environment) for argument in expression.args)
+    sequences = [_sequence_items(argument) for argument in arguments]
+    lengths = {len(items) for items in sequences if items is not None}
+    if not lengths:
+        return _lower(expression, environment)
+    if len(lengths) != 1:
+        raise NotImplementedError("Thread list lengths do not match")
+    length = lengths.pop()
+    values = []
+    for index in range(length):
+        items = tuple(
+            sequence[index] if sequence is not None else argument
+            for argument, sequence in zip(arguments, sequences)
+        )
+        values.append(_lower(expression.func(*items), environment))
+    return sp.Tuple(*values)
+
+
+def _thread_equal(raw_arguments, environment):
+    if len(raw_arguments) != 2:
+        raise NotImplementedError("Thread Equal needs two arguments")
+    arguments = tuple(_lower(argument, environment) for argument in raw_arguments)
+    sequences = [_sequence_items(argument) for argument in arguments]
+    lengths = {len(items) for items in sequences if items is not None}
+    if not lengths:
+        return sp.Eq(*arguments)
+    if len(lengths) != 1:
+        raise NotImplementedError("Thread Equal list lengths do not match")
+    length = lengths.pop()
+    left, right = arguments
+    left_items, right_items = sequences
+    return sp.Tuple(
+        *(
+            sp.Eq(
+                left_items[index] if left_items is not None else left,
+                right_items[index] if right_items is not None else right,
+            )
+            for index in range(length)
+        )
+    )
 
 
 def _resolve_mapper(raw_mapper, environment):
@@ -1308,6 +1365,16 @@ def _replace_identifier(text: str, old: str, new: str) -> str:
     for index in range(0, len(pieces), 2):
         pieces[index] = pattern.sub(new, pieces[index])
     return "".join(pieces)
+
+
+def _protect_thread_equal(text: str) -> str:
+    """Keep list-valued Equal arguments intact through SymPy parsing."""
+
+    return re.sub(
+        r"(?<![A-Za-z0-9$])Thread\s*\[\s*Equal\s*\[",
+        "Thread[fortsymThreadEqual[",
+        text,
+    )
 
 
 def _restore_names(value, restore: dict[str, str]):

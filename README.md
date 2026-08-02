@@ -149,12 +149,14 @@ quoted-string translator refresh updated 175 SymPy rows in 2:00.16 with a 543
 MiB peak RSS; the v16 singular-value/extrema transition updated 22 rows in
 8.93 seconds; the v17 polynomial transition updated eight rows in 11.28
 seconds; the v18 Solve-rule/fractional-`Exponent` transition updated four
-rows in 10.46 seconds at 399 MiB RSS. The 155 MB raw-result cache then served
+rows in 10.46 seconds at 399 MiB RSS; the v19 bounded `Thread` transition
+updated 16 rows in 16.51 seconds at 399 MiB RSS. The 155 MB raw-result cache
+then served
 a warm audit in 1.24 seconds
 at 456 MiB RSS, with no backend subprocesses started. The
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
-The SymPy cache is now version 18: Unicode `λ` is protected while parsing
+The SymPy cache is now version 19: Unicode `λ` is protected while parsing
 function arguments, quoted string literals use the same collision-resistant
 comparison atom as the native backend, `Coefficient`/`CoefficientList` are
 lowered through SymPy, single-variable `Solve` results are serialized as
@@ -164,14 +166,16 @@ and bounded polynomial heads (`Exponent`, `PolynomialGCD`,
 `PolynomialQuotient`, `PolynomialRemainder`, `Numerator`, and `Denominator`)
 are translated directly. Version 18 also lets serialized `Rule`/`RuleDelayed`
 heads from `Solve` feed `ReplaceAll` and preserves exact fractional-monomial
-`Exponent` results. Its compatibility transition reused unaffected older rows
-and refreshed only the four affected rows; the direct version-chain
+`Exponent` results. Version 19 also lowers bounded one-level `Thread` forms,
+including list-valued `Equal`. Its compatibility transition reused unaffected
+older rows and refreshed only the 16 affected rows; the direct version-chain
 compatibility avoids repeating a broad oracle refresh on the next translator
-change. A current one-worker audit of the affected 11-script slice, using the
-rebuilt native runner, took 42.39 seconds at 804 MiB RSS and reported 181
-agreements, 63 differences, 2 unavailable oracle rows, 9 errors, and 54
-oracle-missing bindings. This focused result is not a replacement for a new
-whole-corpus baseline.
+change. A current one-worker audit of the 16-script `Thread` slice, using the
+rebuilt native runner, took 17.43 seconds at 508 MiB RSS and reported 249
+agreements, 58 differences, 1 unavailable oracle row, 1 timeout, 5 errors,
+26 oracle disagreements, and 58 oracle-missing bindings. It converted two
+native `Thread` bindings from differences to agreements; this focused result
+is not a replacement for a new whole-corpus baseline.
 Use `--refresh-reference` after upgrading an oracle, `--refresh-cache` for a
 full fresh backend pass, or `--no-cache` to disable both caches. A rebuilt
 native executable invalidates only its own rows, and a translator change
@@ -257,7 +261,7 @@ latest committed full binding-level audit has 3,219 agreements, 716 declared
 differences, 20
 unsupported outcomes, 38 timeouts, 117 errors, 192 oracle disagreements, and
 798 oracle-missing bindings. Its warm run takes 1.24 seconds at 456 MiB RSS;
-the current v18 focused slice is documented above.
+the current v19 focused slice is documented above.
 
 Sources: `$HOME/proj`, the `itpplasma` and `lazy-fortran` worktrees, 335 GitHub
 repositories reached by tree listing, `~/Nextcloud`, and the personal archive.
