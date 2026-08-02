@@ -353,6 +353,10 @@ class ReferenceCache:
         Version 26 adds bounded ``With`` and ``Do`` lowering.  Sources
         containing ``CC``, ``With``, or ``Do`` need a fresh result; unaffected
         version-24/25 rows remain reusable.
+        Mathics version 5 adds a fallback for invalid ``Curl`` calls that
+        otherwise crash through the removed top-level SymPy ``curl`` API.
+        Existing successful rows and unrelated failures remain reusable; only
+        that specific failure is rerun.
         Older rows remain exact for
         sources unaffected by the
         corresponding change, which prevents a translator fix from forcing a
@@ -374,6 +378,15 @@ class ReferenceCache:
                 return not any(token in text for token in ("CC", "With", "Do"))
             except (OSError, UnicodeError):
                 return False
+        if (
+            backend.name == "mathics"
+            and backend.cache_version == 5
+            and version == 4
+        ):
+            if entry.get("outcome") != "failure":
+                return True
+            detail = entry.get("failure", {}).get("detail", "").lower()
+            return not ("sympy" in detail and "curl" in detail)
         if (
             backend.name == "sympy"
             and backend.cache_version == 25

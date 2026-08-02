@@ -149,6 +149,35 @@ def test_sympy_cache_upgrade_reruns_sources_containing_lambda(tmp_path):
     assert cache.get(current, source, 300.0) is None
 
 
+def test_mathics_curl_compatibility_reruns_only_old_curl_crashes(tmp_path):
+    source = tmp_path / "case.wl"
+    source.write_text("answer = Curl[a]\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("mathics", ".wl", "inputform", cache_version=4)
+    current = Backend("mathics", ".wl", "inputform", cache_version=5)
+
+    cache.put_failure(
+        old,
+        source,
+        5.0,
+        RunFailure("error", "AttributeError: module 'sympy' has no attribute 'curl'"),
+    )
+
+    assert cache.get(current, source, 5.0) is None
+
+
+def test_mathics_curl_compatibility_reuses_unrelated_failures(tmp_path):
+    source = tmp_path / "case.wl"
+    source.write_text("answer = 1\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("mathics", ".wl", "inputform", cache_version=4)
+    current = Backend("mathics", ".wl", "inputform", cache_version=5)
+
+    cache.put_failure(old, source, 5.0, RunFailure("timeout", "exceeded 5s"))
+
+    assert cache.get(current, source, 5.0) is not None
+
+
 def test_native_runner_version_invalidates_old_results(tmp_path):
     source = tmp_path / "case.wl"
     source.write_text("answer = 2\n")
