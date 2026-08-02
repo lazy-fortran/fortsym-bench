@@ -353,6 +353,9 @@ class ReferenceCache:
         Version 26 adds bounded ``With`` and ``Do`` lowering.  Sources
         containing ``CC``, ``With``, or ``Do`` need a fresh result; unaffected
         version-24/25 rows remain reusable.
+        Version 28 evaluates numeric ``Abs`` expressions.  Only version-27
+        rows whose sources contain ``Abs[`` need a fresh result; unaffected
+        version-27 rows remain reusable.
         Mathics version 5 adds a fallback for invalid ``Curl`` calls that
         otherwise crash through the removed top-level SymPy ``curl`` API.
         Existing successful rows and unrelated failures remain reusable; only
@@ -391,6 +394,18 @@ class ReferenceCache:
                 return not any(
                     token in text for token in ("CC", "With", "Do", "Curl[")
                 )
+            except (OSError, UnicodeError):
+                return False
+        if (
+            backend.name == "sympy"
+            and backend.cache_version == 28
+            and version == 27
+        ):
+            source = entry.get("source")
+            if not isinstance(source, str):
+                return False
+            try:
+                return "Abs[" not in Path(source).read_text()
             except (OSError, UnicodeError):
                 return False
         if (
