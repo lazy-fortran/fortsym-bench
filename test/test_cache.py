@@ -441,6 +441,35 @@ def test_deferred_cache_updates_are_written_on_flush(tmp_path):
     assert cached.results == first
 
 
+def test_unchanged_cache_flush_skips_serialization(tmp_path, monkeypatch):
+    source = tmp_path / "case.py"
+    source.write_text("answer = 2\n")
+    reference_path = tmp_path / "reference.json"
+    comparison_path = tmp_path / "comparisons.json"
+
+    reference = ReferenceCache(reference_path, autosave=False)
+    reference.put_result(BACKENDS["sympy"], source, 5.0, {"answer": "2"})
+    reference.flush()
+    loaded_reference = ReferenceCache(reference_path, autosave=False)
+
+    comparison = ComparisonCache(comparison_path, autosave=False)
+    comparison.put("2", "inputform", "2", "srepr", "structural", "agree", "")
+    comparison.flush()
+    loaded_comparison = ComparisonCache(comparison_path, autosave=False)
+
+    def must_not_serialize(*args, **kwargs):
+        raise AssertionError("unchanged cache was serialized")
+
+    monkeypatch.setattr("fortsym_bench.cache.json.dump", must_not_serialize)
+    loaded_reference.flush()
+    loaded_comparison.flush()
+
+    assert loaded_reference.get(BACKENDS["sympy"], source, 300.0) is not None
+    assert loaded_comparison.get(
+        "2", "inputform", "2", "srepr", "structural"
+    ) == ("agree", "")
+
+
 def test_comparison_cache_keys_both_operands_and_policy(tmp_path):
     path = tmp_path / "comparisons.json"
     cache = ComparisonCache(path, autosave=False)
