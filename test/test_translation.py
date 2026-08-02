@@ -105,6 +105,25 @@ def test_multiline_matrix_product_keeps_a_trailing_dot_in_the_rhs():
     assert evaluate_assignments(assignments)["value"] == x + 2 * y
 
 
+def test_list_selectors_preserve_wolfram_item_order():
+    assignments, skipped = extract_assignments(
+        "first = First[{a, b, c}]; "
+        "tail = Rest[{a, b, c}]; "
+        "middle = Take[{a, b, c, d}, {2, 3}]; "
+        "dropped = Drop[{a, b, c, d}, -2]; "
+        "head = Most[{a, b, c}]"
+    )
+
+    assert skipped == []
+    values = evaluate_assignments(assignments)
+    a, b, c, d = sp.symbols("a b c d")
+    assert values["first"] == a
+    assert values["tail"] == sp.Tuple(b, c)
+    assert values["middle"] == sp.Tuple(b, c)
+    assert values["dropped"] == sp.Tuple(a, b)
+    assert values["head"] == sp.Tuple(a, b)
+
+
 def test_derivative_of_a_list_is_componentwise():
     assignments, skipped = extract_assignments(
         "value = D[{x^2, Sin[x]}, x]"

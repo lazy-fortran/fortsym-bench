@@ -297,8 +297,12 @@ def _lower(expression, environment: dict[str, object]):
         return _sequence_items(arguments[0])[-1]
     if name == "Rest":
         return sp.Tuple(*_sequence_items(arguments[0])[1:])
+    if name == "Most":
+        return _most(arguments)
     if name == "Take":
         return _take(arguments)
+    if name == "Drop":
+        return _drop(arguments)
     if name == "Total":
         return sp.Add(*_sequence_items(arguments[0]))
     if name == "Tr":
@@ -601,8 +605,49 @@ def _take(arguments: tuple[object, ...]):
         if len(bounds) != 2 or not all(_is_integer(bound) for bound in bounds):
             raise NotImplementedError("Take specification is not translated")
         start, stop = (int(bound) for bound in bounds)
-        selected = items[start - 1:stop]
+        start = _selector_index(start, len(items))
+        stop = _selector_index(stop, len(items))
+        selected = items[start - 1:stop] if start <= stop else ()
     return sp.Tuple(*selected)
+
+
+def _most(arguments: tuple[object, ...]):
+    if len(arguments) != 1:
+        raise NotImplementedError("Most needs one list")
+    items = _sequence_items(arguments[0])
+    if items is None or not items:
+        raise NotImplementedError("Most needs a non-empty list")
+    return sp.Tuple(*items[:-1])
+
+
+def _drop(arguments: tuple[object, ...]):
+    if len(arguments) != 2:
+        raise NotImplementedError("Drop needs a list and a specification")
+    items = _sequence_items(arguments[0])
+    if items is None:
+        raise NotImplementedError("Drop needs a list")
+    specification = arguments[1]
+    if _is_integer(specification):
+        count = int(specification)
+        selected = items[count:] if count >= 0 else items[:count]
+    else:
+        bounds = _sequence_items(specification)
+        if len(bounds) != 2 or not all(_is_integer(bound) for bound in bounds):
+            raise NotImplementedError("Drop specification is not translated")
+        start, stop = (int(bound) for bound in bounds)
+        start = _selector_index(start, len(items))
+        stop = _selector_index(stop, len(items))
+        selected = items[: start - 1] + items[stop:] if start <= stop else items
+    return sp.Tuple(*selected)
+
+
+def _selector_index(value: int, length: int) -> int:
+    if value == 0:
+        raise NotImplementedError("selector indices are one-based")
+    index = value if value > 0 else length + value + 1
+    if not 1 <= index <= length:
+        raise NotImplementedError("selector index is outside the sequence")
+    return index
 
 
 def _if(arguments: tuple[object, ...]):
