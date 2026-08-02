@@ -119,6 +119,18 @@ def extract_assignments(source: str) -> tuple[list[Assignment], list[str]]:
         # line would lose the useful assignment at its end.
         fragments = _split_top_level(statement, ",")
         for fragment in fragments:
+            wrapper = _times_compound_prefix(fragment)
+            if wrapper is not None:
+                prefix, remainder = wrapper
+                prefix_assignments, prefix_skipped = extract_assignments(prefix)
+                assignments.extend(prefix_assignments)
+                skipped.extend(prefix_skipped)
+                if remainder:
+                    # The suffix is deliberately retained as unsupported.  In
+                    # particular, do not turn a plotting head into a guessed
+                    # SymPy value just because its setup assignments are usable.
+                    skipped.append(remainder)
+                continue
             assignment = assignment_from_statement(fragment)
             if assignment is None:
                 if fragment.strip():
@@ -1630,6 +1642,52 @@ def _split_top_level(text: str, separator: str) -> list[str]:
             start = index + 1
     parts.append(text[start:])
     return parts
+
+
+def _times_compound_prefix(text: str) -> tuple[str, str] | None:
+    """Separate ``(compound assignments)*opaque_head`` notebook wrappers."""
+
+    text = text.strip()
+    if not text.startswith("("):
+        return None
+    close = _matching_delimiter(text, 0)
+    if close < 0:
+        return None
+    suffix = text[close + 1 :].lstrip()
+    if not suffix.startswith("*"):
+        return None
+    prefix = text[1:close]
+    if len(_split_top_level(prefix, ";")) == 1:
+        return None
+    return prefix, suffix[1:].strip()
+
+
+def _matching_delimiter(text: str, opening: int) -> int:
+    pairs = {"[": "]", "{": "}", "(": ")"}
+    stack = [text[opening]]
+    in_string = False
+    escaped = False
+    for index in range(opening + 1, len(text)):
+        char = text[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char in pairs:
+            stack.append(char)
+        elif char in pairs.values():
+            if not stack or pairs[stack[-1]] != char:
+                return -1
+            stack.pop()
+            if not stack:
+                return index
+    return -1
 
 
 def _strip_comments(source: str) -> str:

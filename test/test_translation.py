@@ -80,6 +80,20 @@ def test_a_script_with_only_function_definitions_returns_an_empty_result_set():
     assert evaluate_assignments(assignments) == {}
 
 
+def test_notebook_times_wrapper_extracts_prefix_without_evaluating_plotting_suffix():
+    assignments, skipped = extract_assignments(
+        "(x = 1; y = x + 2; )*Manipulate[Plot[y, {x, 0, 1}], {{a, 1}, 0, 2}]"
+    )
+
+    assert [(item.name, item.rhs) for item in assignments] == [
+        ("x", "1"),
+        ("y", "x + 2"),
+    ]
+    assert len(skipped) == 1
+    assert skipped[0].startswith("Manipulate[")
+    assert evaluate_assignments(assignments) == {"x": sp.Integer(1), "y": sp.Integer(3)}
+
+
 def test_multiple_integrate_ranges_keep_the_first_range_outermost():
     assignments, skipped = extract_assignments(
         "value = Integrate[x + y, {x, 0, 1}, {y, 0, x}]"
