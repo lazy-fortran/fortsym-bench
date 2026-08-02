@@ -33,6 +33,7 @@ def test_inventory_reports_acceptance_boundary_without_writing_corpus(tmp_path: 
     assert report["source_count"] == 3
     assert report["counts"] == {
         "translated": 2,
+        "compile-error": 0,
         "refused": 1,
         "timeout": 0,
         "unavailable": 0,
@@ -42,6 +43,34 @@ def test_inventory_reports_acceptance_boundary_without_writing_corpus(tmp_path: 
     assert report["sources"][2]["detail"] == "plot is unsupported"
     assert "semantic parity are not assessed" in report["acceptance_boundary"]
     assert not list(corpus.rglob("*.f90"))
+    assert not list(corpus.rglob("*.o"))
+
+
+def test_inventory_distinguishes_fortran_compile_errors(tmp_path: Path):
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "broken.wl").write_text("x = 1;\n")
+
+    translator = tmp_path / "bad_translator.py"
+    translator.write_text(
+        "import pathlib, sys\n"
+        "_, output = map(pathlib.Path, sys.argv[1:])\n"
+        "output.write_text('subroutine broken(\\nend subroutine broken\\n')\n"
+    )
+
+    report = inventory(
+        corpus,
+        (sys.executable, str(translator)),
+        timeout=2,
+    )
+
+    assert report["schema"] == "fortsym-bench/wl-to-f90-inventory-v2"
+    assert report["counts"]["compile-error"] == 1
+    assert report["counts"]["translated"] == 0
+    assert report["sources"][0]["output_bytes"] > 0
+    assert report["sources"][0]["detail"]
+    assert not list(corpus.rglob("*.f90"))
+    assert not list(corpus.rglob("*.o"))
 
 
 def test_inventory_cli_writes_machine_report_and_fails_strict_gate(tmp_path: Path):

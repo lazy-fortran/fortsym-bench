@@ -2,9 +2,12 @@
 """Inventory the bounded Wolfram-to-Fortran translator over a corpus.
 
 This is a source-to-source acceptance inventory, not a Fortran parity claim:
-``translated`` means that the translator accepted the source and emitted a
-non-empty ``.f90`` file.  The temporary output is discarded after each file;
-the corpus and any checked-in caches are never written.
+``translated`` means that the translator accepted the source, emitted a
+non-empty ``.f90`` file, and ``gfortran`` compiled it successfully.
+``compile-error`` separates emitted Fortran that the compiler rejected.  The
+temporary source, object, and module files are discarded after each file; the
+corpus and any checked-in caches are never written.  This remains a source
+acceptance inventory, not a semantic-parity check.
 """
 
 from __future__ import annotations
@@ -19,7 +22,14 @@ import tempfile
 import time
 
 
-STATUSES = ("translated", "refused", "timeout", "unavailable", "error")
+STATUSES = (
+    "translated",
+    "compile-error",
+    "refused",
+    "timeout",
+    "unavailable",
+    "error",
+)
 
 
 @dataclass(frozen=True)
@@ -59,12 +69,17 @@ def _detail(stderr: str, stdout: str) -> str:
     )[:500]
 
 
+def _command_available(command: tuple[str, ...]) -> bool:
+    return shutil.which(command[0]) is not None or Path(command[0]).exists()
+
+
 def translate_one(
     source: Path,
     command: tuple[str, ...],
     timeout: float,
     corpus: Path,
     cwd: Path,
+    compiler: tuple[str, ...] = ("gfortran",),
 ) -> TranslationResult:
     """Run one translation with output isolated outside the corpus."""
 
@@ -99,10 +114,60 @@ def translate_one(
         if completed.returncode == 0:
             size = output.stat().st_size if output.exists() else 0
             if size > 0:
+                if not _command_available(compiler):
+                    return TranslationResult(
+                        source=source.relative_to(corpus).as_posix(),
+                        status="unavailable",
+                        seconds=seconds,
+                        detail=f"{compiler[0]} not found",
+                        output_bytes=size,
+                    )
+
+                object_file = Path(work) / "translated.o"
+                try:
+                    compiled = subprocess.run(
+                        [
+                            *compiler,
+                            "-c",
+                            str(output),
+                            "-o",
+                            str(object_file),
+                        ],
+                        capture_output=True,
+                        text=True,
+                        timeout=timeout,
+                        cwd=work,
+                        check=False,
+                    )
+                except subprocess.TimeoutExpired:
+                    return TranslationResult(
+                        source=source.relative_to(corpus).as_posix(),
+                        status="timeout",
+                        seconds=time.monotonic() - started,
+                        detail=f"{compiler[0]} exceeded {timeout:g}s",
+                        output_bytes=size,
+                    )
+                except FileNotFoundError:
+                    return TranslationResult(
+                        source=source.relative_to(corpus).as_posix(),
+                        status="unavailable",
+                        seconds=time.monotonic() - started,
+                        detail=f"{compiler[0]} not found",
+                        output_bytes=size,
+                    )
+
+                if compiled.returncode != 0:
+                    return TranslationResult(
+                        source=source.relative_to(corpus).as_posix(),
+                        status="compile-error",
+                        seconds=time.monotonic() - started,
+                        detail=_detail(compiled.stderr, compiled.stdout),
+                        output_bytes=size,
+                    )
                 return TranslationResult(
                     source=source.relative_to(corpus).as_posix(),
                     status="translated",
-                    seconds=seconds,
+                    seconds=time.monotonic() - started,
                     output_bytes=size,
                 )
             return TranslationResult(
@@ -125,6 +190,7 @@ def inventory(
     corpus: Path,
     command: tuple[str, ...] = ("fortsym_wl_to_f90",),
     timeout: float = 30.0,
+    compiler: tuple[str, ...] = ("gfortran",),
 ) -> dict:
     """Translate every source serially and return a JSON-serializable report."""
 
@@ -144,7 +210,14 @@ def inventory(
         ]
     else:
         results = [
-            translate_one(source, command, timeout, corpus, corpus.parent)
+            translate_one(
+                source,
+                command,
+                timeout,
+                corpus,
+                corpus.parent,
+                compiler,
+            )
             for source in sources
         ]
 
@@ -152,15 +225,17 @@ def inventory(
     for result in results:
         counts[result.status] += 1
     return {
-        "schema": "fortsym-bench/wl-to-f90-inventory-v1",
+        "schema": "fortsym-bench/wl-to-f90-inventory-v2",
         "corpus": str(corpus),
         "source_count": len(sources),
         "translator": list(command),
+        "fortran_compiler": list(compiler),
         "timeout_seconds": timeout,
         "acceptance_boundary": (
-            "translated means the command exited zero and emitted non-empty "
-            "Fortran source; compilation, execution, and semantic parity are "
-            "not assessed"
+            "translated means the translator exited zero, emitted non-empty "
+            "Fortran source, and gfortran compiled it successfully; "
+            "compile-error means emitted source was rejected by gfortran; "
+            "execution and semantic parity are not assessed"
         ),
         "counts": counts,
         "sources": [asdict(result) for result in results],
@@ -181,6 +256,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--timeout", type=float, default=30.0)
     parser.add_argument(
+        "--fortran-compiler",
+        nargs="+",
+        default=["gfortran"],
+        help="Fortran compiler command followed by fixed arguments",
+    )
+    parser.add_argument(
         "--require-all-translated",
         action="store_true",
         help="return 1 if any source is refused, unavailable, timed out, or errors",
@@ -189,7 +270,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.timeout <= 0:
         parser.error("--timeout must be positive")
 
-    report = inventory(args.corpus, tuple(args.translator), args.timeout)
+    report = inventory(
+        args.corpus,
+        tuple(args.translator),
+        args.timeout,
+        tuple(args.fortran_compiler),
+    )
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
     print(json.dumps(report["counts"], sort_keys=True))
