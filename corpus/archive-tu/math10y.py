@@ -188,9 +188,15 @@ def _recovered_bindings():
     a, b, c, d, t, x, y, z, alpha, omega = sp.symbols(
         "a b c d t x y z alpha omega"
     )
+    # ``wl_to_sympy`` uses ``phi`` as the stable parser spelling for Wolfram's
+    # variant phi character; the cross-language comparator applies the same
+    # normalization to the native ``ϕ`` output.
+    phi = sp.Symbol("phi")
     r = sp.sqrt(x**2 + y**2 + z**2)
     rr = sp.sqrt(x**2 + y**2)
     unit = sp.Function("UnitStep")
+    rule = sp.Function("Rule")
+    rules = sp.Tuple
     return {
         "fx": sp.cos(a * x) * sp.sin(b * x),
         # Late, inexpensive bindings whose Wolfram values are independent
@@ -225,6 +231,30 @@ def _recovered_bindings():
         "ft": 1 / (t**2 + a**2),
         "fu": t * unit(a + t) - t * unit(t - a),
         "k": -sp.sin(3 * x) * sp.cos(x) ** 2,
+        # Literal rule assignments used by the surrounding plotting cells.
+        # They are independent of the expensive transforms and integrations
+        # later in the source.
+        "sy": rule(y, b * sp.sqrt(1 - x**2 / a**2) * sp.sin(phi)),
+        "su": rules(
+            rule(a, sp.Float("0.37")),
+            rule(b, sp.Float("1.23")),
+            rule(c, sp.Float("0.79")),
+            rule(d, sp.Float("3.21")),
+        ),
+        "sua": rule(a, 1),
+        "svd": rules(
+            rule(sp.Symbol("V0"), 10),
+            rule(sp.Symbol("R"), 22),
+            rule(sp.Symbol("L"), 110),
+            rule(sp.Symbol("C"), 1),
+        ),
+        "svs": rules(
+            rule(sp.Symbol("V0"), 10),
+            rule(sp.Symbol("R"), 22),
+            rule(sp.Symbol("L"), 110),
+            rule(sp.Symbol("C"), 19),
+        ),
+        "sa": rules(rule(a, 1)),
     }
 
 
