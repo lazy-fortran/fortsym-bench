@@ -77,6 +77,11 @@ def test_numeric_power_normalization_preserves_function_application():
     }
 
 
+def test_len_coordinate_is_not_parsed_as_python_builtin():
+    value = evaluate_assignments(extract_assignments("value = len + 1")[0])
+    assert value["value"] == sp.Symbol("len") + 1
+
+
 def test_cross_product_has_the_independent_three_vector_formula():
     assignments, skipped = extract_assignments(
         "value = Cross[{a, b, c}, {d, e, f}]"
