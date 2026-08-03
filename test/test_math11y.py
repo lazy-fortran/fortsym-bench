@@ -95,3 +95,36 @@ def test_direct_intermediates_preserve_native_source_aliases():
     assert values['pp'] == sp.Symbol('so')
     assert values['rf1'] == sp.Symbol('rs')
     assert values['rf2'] == sp.Symbol('rs')
+
+
+def test_transformed_ode_is_the_numeric_product_rule_expansion():
+    values = _module().results()
+    x = sp.Symbol('x')
+    m = sp.Symbol('m')
+    w = sp.Function('w')
+    z = sp.Function('z')
+    part = sp.Function('Part')
+    derivative = sp.Function('D')
+    product = w(x) * z(x)
+    expected_source_form = sp.Add(*(
+        part(sp.Symbol('cold'), index)
+        * derivative(product, sp.Tuple(x, order))
+        for index, order in ((1, 0), (2, 1), (3, 2))
+    ))
+    assert values['neweq'] == expected_source_form
+
+    source_form = (
+        sp.diff(z(x) * w(x), x, 2)
+        + sp.diff(z(x) * w(x), x) / x
+        + z(x) * w(x) * (1 - m**2 / x**2)
+    )
+    numeric = {x: sp.Integer(2), m: sp.Integer(3)}
+    numeric.update({
+        z(x): sp.Integer(5),
+        w(x): sp.Integer(7),
+        sp.diff(z(x), x): sp.Integer(11),
+        sp.diff(w(x), x): sp.Integer(13),
+        sp.diff(z(x), x, 2): sp.Integer(17),
+        sp.diff(w(x), x, 2): sp.Integer(19),
+    })
+    assert sp.simplify(source_form.subs(numeric)) == sp.Rational(2109, 4)

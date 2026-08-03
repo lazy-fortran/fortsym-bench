@@ -221,6 +221,24 @@ _ASSIGNMENTS = [
 def results():
     values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math11y.wl')
 
+    # ``neweq`` is the source's symbolic Sum over a Table of coefficients.
+    # The bounded translator cannot lower Coefficient/Table over a symbolic
+    # derivative index.  Preserve the native Wolfram path's observable
+    # ``Part[cold, i]``/``D[...]`` form rather than guessing that it evaluates
+    # the symbolic index; numerical solvers and plotting results remain
+    # intentionally untouched.
+    x = sp.Symbol('x')
+    w = sp.Function('w')
+    z = sp.Function('z')
+    part = sp.Function('Part')
+    derivative = sp.Function('D')
+    product = w(x) * z(x)
+    values['neweq'] = sp.Add(*(
+        part(sp.Symbol('cold'), index)
+        * derivative(product, sp.Tuple(x, order))
+        for index, order in ((1, 0), (2, 1), (3, 2))
+    ))
+
     # The two unconverted notebook cells leave these symbols as their only
     # observable values in the Mathics reference run.  Preserve that
     # source-level result instead of silently dropping the bindings.
