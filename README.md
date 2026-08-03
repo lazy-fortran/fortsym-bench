@@ -438,7 +438,10 @@ memo37 delta normal form; it reduces an unresolved class but does not add an
 agreement. The v86 cache-preserving pass took 6.38 seconds at about 489 MiB RSS;
 its all-warm UV pass took 1.11 seconds at about 489 MiB RSS. The v86 cycle adds
 `math10y` fourth-root coverage, a `sympl3_` denominator correction, and a memo34
-Bessel-kernel branch. The preceding v74 cold one-worker
+Bessel-kernel branch. The v87 cache-preserving pass took 3.96 seconds at about
+489 MiB RSS; its all-warm UV pass took 1.08 seconds at about 489 MiB RSS. The
+v87 cycle adds a Gaussian-integral `math10y` binding, the heat-kernel `k3`, and
+a `gc_drift` Christoffel tensor. The preceding v74 cold one-worker
 pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
 lowering; the v71 cycle adds bounded `Do` assignment loops and six
@@ -501,10 +504,10 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The v86 audit on 2026-08-03 produced 3,877 agreements, 486 declared
-differences, 7 unsupported outcomes, 76 timeouts, 61 errors, 195 oracle
-disagreements, and 324 oracle-missing bindings across 4,885 bindings. Mathics3
+place. The v87 audit on 2026-08-03 produced 3,879 agreements, 486 declared
+differences, 7 unsupported outcomes, 75 timeouts, 61 errors, 195 oracle
+disagreements, and 322 oracle-missing bindings across 4,885 bindings. Mathics3
 10.0.1 is installed with UV. The independent regression suites cover the v70
-through v86 changes. Translation quality and the remaining backend parity work
+through v87 changes. Translation quality and the remaining backend parity work
 stay measured by the independent oracle report; the report is the source of
 truth for current counts.
