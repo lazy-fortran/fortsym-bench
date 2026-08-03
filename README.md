@@ -528,8 +528,10 @@ The v109 follow-up advances the comparison cache to version 18 with an
 equation-aware equivalence policy for explicitly annotated rearrangements,
 recovers bounded `archive-tu/math6-1y` bindings and the first-block `vector2d`
 field plots, and applies that policy to the radial cubic spline companion. The
-focused v109 regressions pass; the
-full-corpus v108 audit remains the authoritative aggregate baseline below.
+focused v109 regressions pass. The v109 cache-rebuild audit is now the
+authoritative aggregate baseline below: 3,964 agreements, 456 differences,
+7 unsupported, 75 timeouts, 59 errors, 2 unavailable rows, 192 oracle
+disagreements, and 266 oracle-missing bindings across 4,880 bindings.
 The preceding v74 cold one-worker
 pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
