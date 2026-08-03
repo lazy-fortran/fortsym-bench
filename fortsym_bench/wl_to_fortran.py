@@ -9,6 +9,7 @@ remove only standalone top-level ``Null`` fragments before invoking it.
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 from typing import Sequence
@@ -16,6 +17,18 @@ from typing import Sequence
 
 class WolframFortranTranslationError(RuntimeError):
     """Raised when the native bounded translator cannot emit Fortran."""
+
+
+_BOUNDED_FOR = re.compile(
+    r"""^For\[\s*
+        (?P<iterator>[A-Za-z][A-Za-z0-9_]*)\s*=\s*(?P<start>[+-]?\d+)\s*,\s*
+        (?P=iterator)\s*<=\s*(?P<stop>[+-]?\d+)\s*,\s*
+        (?P=iterator)\+\+\s*,\s*
+        (?P<target>[A-Za-z][A-Za-z0-9_]*)\s*=\s*(?P<expression>.+?)\s*
+    \]$""",
+    re.DOTALL | re.VERBOSE,
+)
+MAX_BOUNDED_FOR_ITERATIONS = 128
 
 
 def normalize_assignment_stream(source: str) -> str:
@@ -111,3 +124,37 @@ def translate_wolfram_to_fortran(
                 "translator succeeded without emitting Fortran"
             )
         return output_path.read_text()
+
+
+def translate_bounded_for(
+    source: str,
+    translator: Sequence[str] = ("fortsym_wl_to_f90",),
+    max_iterations: int = MAX_BOUNDED_FOR_ITERATIONS,
+) -> str:
+    """Translate one safe scalar ``For`` assignment using native semantics.
+
+    This intentionally accepts only an integer, ascending inclusive range and
+    a scalar assignment body.  The native translator performs the actual
+    lowering; this wrapper only prevents an accidentally unbounded source from
+    entering the benchmark path.
+    """
+
+    if max_iterations <= 0:
+        raise ValueError("max_iterations must be positive")
+    normalized = normalize_assignment_stream(source).strip()
+    match = _BOUNDED_FOR.fullmatch(normalized)
+    if match is None:
+        raise WolframFortranTranslationError(
+            "expected one bounded For with an integer inclusive range and "
+            "scalar assignment body"
+        )
+    start = int(match.group("start"))
+    stop = int(match.group("stop"))
+    iterations = stop - start + 1
+    if iterations <= 0:
+        raise WolframFortranTranslationError("bounded For range is empty")
+    if iterations > max_iterations:
+        raise WolframFortranTranslationError(
+            f"bounded For exceeds the {max_iterations}-iteration limit"
+        )
+    return translate_wolfram_to_fortran(normalized, translator)
