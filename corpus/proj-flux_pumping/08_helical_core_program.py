@@ -9,6 +9,13 @@ from fortsym_bench.wl_to_sympy import evaluate_assignments
 import sympy as sp
 
 # NOT TRANSLATED: 35 non-assignment statement(s) remain.
+COMPARE = {
+    'jphOld': 'equivalent',
+    'fp': 'equivalent',
+    'nuE': 'numeric',
+    'ZDel': 'numeric',
+    'j0AUG': 'numeric',
+}
 _ASSIGNMENTS = [
     ('figdir', 'FileNameJoin[{DirectoryName[$InputFileName], "figures"}]', ()),
     ('eps', 'LeviCivitaTensor[3]', ()),
