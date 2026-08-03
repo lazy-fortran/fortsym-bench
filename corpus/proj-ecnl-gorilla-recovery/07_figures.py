@@ -29,4 +29,5 @@ def results():
     # at the association syntax before it can emit these coordinates.
     values['wave / beam'] = sp.Tuple(0, 2)
     values['RF crossing kernel'] = sp.Tuple(sp.Float('2.2'), 2)
+    values['GORILLA orbit'] = sp.Tuple(sp.Float('4.6'), 2)
     return values
