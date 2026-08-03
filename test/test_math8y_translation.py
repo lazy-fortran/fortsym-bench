@@ -41,7 +41,28 @@ def test_math8y_recovers_source_bindings_and_opaque_det():
         * sp.Function('Subscript')(sp.Symbol('a'), 2, 1)
     )
     assert len(values['mi3']) == 1 and len(values['mi3'][0]) == 4
-    assert values['rg'] == 3 and values['rh'] == 2
+    matrix = sp.Matrix([
+        [1, 2, 3, 4],
+        [2, 3, 0, -5],
+        [2, -1, 1, 1],
+        [1, 2, 3, 4],
+    ])
+    reduced = matrix.copy()
+    reduced[2, :] = 2 * matrix[0, :]
+    assert values['G'] == sp.Tuple(*(sp.Tuple(*row) for row in matrix.tolist()))
+    assert values['H'] == sp.Tuple(*(sp.Tuple(*row) for row in reduced.tolist()))
+    assert values['rg'] == matrix.rank() == 3
+    assert values['rh'] == reduced.rank() == 2
+    vector = sp.Matrix(values['v'])
+    assert matrix * vector == sp.zeros(4, 1)
+    assert vector != sp.zeros(4, 1)
+    null_space = tuple(tuple(vector) for vector in reduced.nullspace())
+    left_null_space = tuple(tuple(vector) for vector in reduced.T.nullspace())
+    assert values['ns'] == sp.Tuple(*(sp.Tuple(*vector) for vector in null_space))
+    assert values['nt'] == sp.Tuple(*(sp.Tuple(*vector) for vector in left_null_space))
+    alpha, beta = sp.symbols('α β')
+    assert values['ys'] == sp.Tuple(9*alpha + 22*beta, -6*alpha - 13*beta,
+                                     alpha, beta)
     assert values['sa'] == sp.Tuple(
         sp.Function('Rule')(sp.Symbol('a'), 19)
     )
@@ -50,4 +71,3 @@ def test_math8y_recovers_source_bindings_and_opaque_det():
         sp.Function('Point')(sp.Tuple(3, 2)),
         sp.Function('Point')(sp.Tuple(2, 3)),
     )
-    assert values['v'] == sp.Tuple()

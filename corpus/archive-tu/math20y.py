@@ -5,7 +5,9 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
-from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
+
+from fortsym_bench.wl_to_sympy import evaluate_assignments, evaluate_expression
 
 # NOT TRANSLATED: 123 non-assignment statement(s) remain.
 COMPARE = {
@@ -52,5 +54,25 @@ _ASSIGNMENTS = [
     ('g12', 'Take[g, 2]', ()),
 ]
 
+
+def _recovered_equation():
+    """Restore the equation assigned to both ``f1`` and ``eq`` in the source."""
+    a, bx, d, x, y, z = sp.symbols('a bx d x y z')
+    return sp.Eq(
+        a + bx + sp.Float('0.15') * x**2
+        + sp.Float('3.33') * d * y + sp.pi * z**3,
+        0,
+        evaluate=False,
+    )
+
+
+def _recovered_characters(text):
+    return sp.Tuple(*(evaluate_expression(f'"{character}"')
+                      for character in text))
+
+
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math20y.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math20y.wl')
+    values['eq'] = _recovered_equation()
+    values['sv'] = _recovered_characters('1234567890')
+    return values

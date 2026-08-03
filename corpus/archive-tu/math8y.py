@@ -173,6 +173,28 @@ def _recovered_minors(order):
     )
 
 
+def _recovered_rank_block():
+    """Return the source's final G/H matrices and their null spaces."""
+    matrix = sp.Matrix([
+        [1, 2, 3, 4],
+        [2, 3, 0, -5],
+        [2, -1, 1, 1],
+        [-2, 2, 0, -5],
+    ])
+    matrix[3, :] = matrix[0, :]
+    reduced = matrix.copy()
+    reduced[2, :] = 2 * matrix[0, :]
+    return matrix, reduced
+
+
+def _tuple_matrix(matrix):
+    return sp.Tuple(*(sp.Tuple(*row) for row in matrix.tolist()))
+
+
+def _tuple_vectors(vectors):
+    return sp.Tuple(*(sp.Tuple(*vector) for vector in vectors))
+
+
 def results():
     values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math8y.wl')
 
@@ -201,13 +223,25 @@ def results():
     )
     values['mi2'] = _recovered_minors(2)
     values['mi3'] = _recovered_minors(3)
-    values['rg'] = sp.Integer(3)
-    values['rh'] = sp.Integer(2)
+    values['mi1'] = sp.Function('MatrixForm')(_recovered_minors(1))
+    matrix, reduced = _recovered_rank_block()
+    values['G'] = _tuple_matrix(matrix)
+    values['H'] = _tuple_matrix(reduced)
+    values['rg'] = sp.Integer(matrix.rank())
+    values['rh'] = sp.Integer(reduced.rank())
+    values['v'] = sp.Tuple(*(value for vector in matrix.nullspace()
+                             for value in vector))
+    values['ns'] = _tuple_vectors(reduced.nullspace())
+    values['nt'] = _tuple_vectors(reduced.T.nullspace())
+    alpha, beta = sp.symbols('α β')
+    values['ys'] = sp.Tuple(*(
+        alpha * left + beta * right
+        for left, right in zip(*reduced.nullspace())
+    ))
     values['sa'] = sp.Tuple(sp.Function('Rule')(sp.Symbol('a'), 19))
     values['ceq'] = sp.Function('Det')(sp.Symbol('AM'))
     point = sp.Function('Point')
     values['cp'] = sp.Tuple(
         point(sp.Tuple(3, 2)), point(sp.Tuple(2, 3))
     )
-    values['v'] = sp.Tuple()
     return values

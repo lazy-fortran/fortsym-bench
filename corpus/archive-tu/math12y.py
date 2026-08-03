@@ -100,8 +100,34 @@ _ASSIGNMENTS = [
     ('nlm', 'NonlinearModelFit[data, (θ1*θ3*x1)/(x1*θ1 + x2*θ2 + 1), {θ1, θ2, θ3}, {x1, x2}]', ()),
 ]
 
+
+def _recovered_chebyshev_coefficients():
+    """Evaluate the seven numeric coefficients defined by the source integral."""
+    root = 2 * sp.sqrt(2) - 3
+    return sp.Tuple(*(sp.N(sp.sqrt(2) * root**order) for order in range(7)))
+
+
+def _recovered_interpolation_derivatives():
+    """Evaluate the source's numeric ``d2`` table independently of NIntegrate."""
+    x = sp.Symbol('x')
+    function = (sp.exp(-x) - 1)**2
+    derivative = sp.diff(function, x)
+    data = (-1, sp.Float('-0.5'), 0, 1, 3, 6, 9)
+    return sp.Tuple(*(
+        sp.Tuple(
+            sp.Tuple(sp.N(point)),
+            sp.N(function.subs(x, point)),
+            sp.N(derivative.subs(x, point)),
+        )
+        for point in data
+    ))
+
+
 def results():
     values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math12y.wl')
+
+    values['cn'] = _recovered_chebyshev_coefficients()
+    values['d2'] = _recovered_interpolation_derivatives()
 
     # Preserve the source-level point list.  The shared evaluator does not
     # lower the Point/@ mapping or the AbsolutePointSize option, while the
