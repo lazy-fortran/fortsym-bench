@@ -36,4 +36,22 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/zero_family_stability_policy.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/proj-gvec-stability/zero_family_stability_policy.wl',
+    )
+
+    # The shared translator keeps Wolfram Rule expressions opaque.  This
+    # source list is a literal response reduction, so preserve its exact
+    # Rule tree rather than dropping the binding from the SymPy oracle.
+    import sympy as sp
+
+    rule = sp.Function('Rule')
+    values['zeroHarmonicRules'] = sp.Tuple(
+        rule(sp.Symbol('sqrtgXiRadial'), 0),
+        rule(sp.Symbol('sqrtgEtaTheta'), sp.Symbol('gt') * sp.Symbol('eta')),
+        rule(sp.Symbol('sqrtgEtaZeta'), sp.Symbol('gz') * sp.Symbol('eta')),
+        rule(sp.Symbol('muTheta'), 0),
+        rule(sp.Symbol('muZeta'), 0),
+    )
+    return values
