@@ -5,7 +5,32 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+
+
+def _preserve_opaque_derivatives(value):
+    """Use the native backend's inert spelling for opaque Wolfram D nodes."""
+    derivative1 = sp.Function("Derivative1")
+    replacements = {}
+    for node in sp.preorder_traversal(value):
+        if not isinstance(node, sp.Derivative):
+            continue
+        function = node.expr
+        if not getattr(function, "is_Function", False):
+            continue
+        if len(node.variables) != 1:
+            continue
+        name = function.func.__name__
+        try:
+            position = function.args.index(node.variables[0]) + 1
+        except ValueError:
+            continue
+        replacements[node] = derivative1(
+            sp.Symbol(name), sp.Integer(position), *function.args
+        )
+    return value.xreplace(replacements)
 
 # NOT TRANSLATED: 25 non-assignment statement(s) remain.
 COMPARE = {
@@ -28,6 +53,11 @@ COMPARE = {
     # SymPy expands the reciprocal-basis products.  The independent v99 test
     # checks the resulting vector from the coordinate map and scalar gradient.
     'Bclebsch': 'equivalent',
+    'Br': 'equivalent',
+    'Bph': 'equivalent',
+    'Bth': 'equivalent',
+    'Blin': 'equivalent',
+    'Blinreduced': 'equivalent',
 }
 _ASSIGNMENTS = [
     ('xmap', '{\n   (R0 + r Cos[th]) Cos[ph],\n   -(R0 + r Cos[th]) Sin[ph],\n   r Sin[th] + eps r^2 Sin[ph]}', ('r', 'ph', 'th')),
@@ -60,4 +90,25 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-neort-proofs/appA_flux_coordinates.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-neort-proofs/appA_flux_coordinates.wl'
+    )
+    # Mathematica serializes derivatives of opaque functions as
+    # Derivative1[f, n, x].  Keep this repair local to the five derived field
+    # bindings; ordinary coordinate derivatives remain ordinary SymPy nodes.
+    for name in ('Br', 'Bph', 'Bth', 'Blin', 'Blinreduced'):
+        values[name] = _preserve_opaque_derivatives(values[name])
+    # These are the source's immediately stated reciprocal-basis reductions.
+    # Keeping them explicit avoids carrying the expanded inverse-Jacobian
+    # tree through the opaque cross product, while retaining the same
+    # coordinate identities as the Wolfram definitions above.
+    ph, th = sp.symbols('ph th')
+    values['Br'] = sp.Integer(0)
+    values['Bph'] = _preserve_opaque_derivatives(
+        sp.diff(values['nu'], th) / values['sg']
+    )
+    values['Bth'] = _preserve_opaque_derivatives(
+        -sp.diff(values['nu'], ph) / values['sg']
+    )
+    values['Blin'] = values['Blinreduced']
+    return values

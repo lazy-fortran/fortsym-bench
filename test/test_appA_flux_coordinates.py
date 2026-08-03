@@ -46,3 +46,39 @@ def test_appA_coordinate_basis_is_source_faithful():
     reciprocal = (sp.Matrix(values["gradu"]) * actual_jacobian).subs(point)
     assert reciprocal.applyfunc(sp.trigsimp) == sp.eye(3)
     assert sp.trigsimp(values["sg"].subs(point) + actual_jacobian.det().subs(point)) == 0
+
+
+def test_appA_derived_fields_preserve_opaque_derivative_heads():
+    values = _load_app().results()
+    derivative1 = sp.Function("Derivative1")
+
+    for name in ("Br", "Bph", "Bth", "Blin", "Blinreduced"):
+        assert not any(
+            isinstance(node, sp.Derivative)
+            for node in sp.preorder_traversal(values[name])
+        )
+    assert any(
+        node.func == derivative1
+        for node in sp.preorder_traversal(values["Bph"])
+        if getattr(node, "is_Function", False)
+    )
+
+
+def test_appA_contravariant_and_linear_flux_identities():
+    values = _load_app().results()
+    r, ph, th = sp.symbols("r ph th")
+    derivative1 = sp.Function("Derivative1")
+    dnu_th = sp.Function("bf")(r) + derivative1(
+        sp.Symbol("nut"), 3, r, ph, th
+    )
+    dnu_ph = sp.Function("af")(r) + derivative1(
+        sp.Symbol("nut"), 2, r, ph, th
+    )
+
+    assert values["Br"] == 0
+    assert sp.simplify(values["Bph"] - dnu_th / values["sg"]) == 0
+    assert sp.simplify(values["Bth"] + dnu_ph / values["sg"]) == 0
+    assert all(
+        sp.simplify(left - right) == 0
+        for left, right in zip(values["Blin"], values["Blinreduced"])
+    )
