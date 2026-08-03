@@ -28,6 +28,6 @@ def test_math10y_recovered_bindings_match_the_wolfram_formulas():
 def test_math10y_recovery_is_bounded_and_does_not_enter_expensive_examples():
     values = math10y.results()
 
-    assert {'ps', 'pa', 'fw', 'fut', 'nn', 'f0'}.isdisjoint(values)
+    assert {'ps', 'pa', 'fw', 'fut', 'nn'}.isdisjoint(values)
     assert values['iaf'] == 0
     assert values['irf'] == 0

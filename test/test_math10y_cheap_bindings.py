@@ -80,6 +80,18 @@ def test_math10y_step_binding_matches_independent_numeric_oracle():
     assert step.subs({t: 1, a: 0}) == 1
 
 
+def test_math10y_f0_fourth_root_scaling_matches_numeric_boundaries():
+    value = math10y.results()['f0']
+    v, z = sp.symbols('v z')
+    assert value.func == sp.Function('Set')
+    assert value.args[0] == sp.Symbol('y')
+    value = value.args[1]
+
+    assert value.subs({v: 1, z: 7}) == 7
+    assert value.subs({v: 16, z: 16}) == 8
+    assert value.subs({v: 16, z: 0}) == 0
+
+
 def test_math10y_final_which_binding_matches_independent_numeric_oracle():
     value = math10y.results()['f']
     x = sp.Symbol('x')

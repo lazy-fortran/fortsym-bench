@@ -185,8 +185,8 @@ def _recovered_bindings():
     right-hand sides of the corresponding final bindings; unresolved
     transform, integration, and plotting values remain omitted.
     """
-    a, b, c, d, t, x, y, z, alpha, omega = sp.symbols(
-        "a b c d t x y z alpha omega"
+    a, b, c, d, t, v, x, y, z, alpha, omega = sp.symbols(
+        "a b c d t v x y z alpha omega"
     )
     # ``wl_to_sympy`` uses ``phi`` as the stable parser spelling for Wolfram's
     # variant phi character; the cross-language comparator applies the same
@@ -208,6 +208,7 @@ def _recovered_bindings():
     dy = b * sp.sqrt(1 - x**2 / a**2) * sp.cos(phi)
     unit = sp.Function("UnitStep")
     rule = sp.Function("Rule")
+    set_value = sp.Function("Set")
     rules = sp.Tuple
     # Final source binding: the ordered Which branches make the x >= 2 case
     # take precedence over the later x >= 1 branch.
@@ -223,6 +224,10 @@ def _recovered_bindings():
         (0, x < 0),
     )
     return {
+        # Wolfram parses the chained power as v^(4^(-1)); this is the
+        # source-faithful fourth-root scaling from the early derivative
+        # example, kept separate from the later expensive assignments.
+        "f0": set_value(y, z / v ** sp.Rational(1, 4)),
         "fx": sp.cos(a * x) * sp.sin(b * x),
         # Late, inexpensive bindings whose Wolfram values are independent
         # of the disputed three-dimensional antiderivative ``g``.
