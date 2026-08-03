@@ -12,7 +12,9 @@ from fortsym_bench.wl_to_sympy import evaluate_assignments
 # NOT TRANSLATED: 43 non-assignment statement(s) remain.
 COMPARE = {
     'Jred': 'numeric',
+    'LopNorms': 'numeric',
     'SqcAt': 'numeric',
+    'dtFull': 'numeric',
     'hessFull': 'numeric',
     'sgS': 'equivalent',
     'slowThird': 'numeric',
@@ -147,6 +149,21 @@ def results():
             for row in values["SqcSym"]
         )
     )
+
+    # The source applies SingularValueList to five numeric 6x6 matrices.
+    # The generic lowering leaves that bounded numeric operation opaque, so
+    # recover the largest singular value from the eigenvalues of A.T*A.
+    # This is the source's operator norm, not a symbolic approximation.
+    generator = sp.Matrix(values["J6"]).inv()
+    norms = []
+    for matrix in values["SfullList"]:
+        operator = generator * sp.Matrix(matrix)
+        gram = operator.T * operator
+        roots = sp.nroots(gram.charpoly().as_expr(), n=20, maxsteps=200)
+        largest = max((sp.re(root) for root in roots), key=lambda root: float(root))
+        norms.append(sp.N(sp.sqrt(largest), 30))
+    values["LopNorms"] = sp.Tuple(*norms)
+    values["dtFull"] = sp.Tuple(*(sp.N(2 / norm, 30) for norm in norms))
 
     # The source constructs the midpoint series by repeatedly substituting
     # the previous coefficients into

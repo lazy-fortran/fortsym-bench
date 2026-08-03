@@ -37,3 +37,47 @@ def test_source_free_of_fast_binding_is_an_independent_boolean_result():
 
     assert expected is True
     assert values["freeOfFast"] is True
+
+
+def _matmul(matrix, vector):
+    return [sum(row[j] * vector[j] for j in range(len(vector))) for row in matrix]
+
+
+def _spectral_norm(matrix):
+    vector = [1.0] * len(matrix[0])
+    for _ in range(80):
+        image = _matmul(matrix, vector)
+        transpose_image = [
+            sum(matrix[row][column] * image[row] for row in range(len(matrix)))
+            for column in range(len(matrix[0]))
+        ]
+        scale = sum(value * value for value in transpose_image) ** 0.5
+        vector = [value / scale for value in transpose_image]
+    image = _matmul(matrix, vector)
+    return sum(value * value for value in image) ** 0.5
+
+
+def test_source_full_operator_norm_and_step_are_numeric():
+    values = _module().results()
+    j_inverse = [
+        [0.0, 0.0, 0.0, -1.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, -1.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0, -1.0],
+        [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+    ]
+    expected_steps = []
+    for hessian in values["SfullList"]:
+        operator = [
+            _matmul(j_inverse, [float(entry) for entry in column])
+            for column in zip(*hessian)
+        ]
+        operator = [list(column) for column in zip(*operator)]
+        expected_steps.append(2.0 / _spectral_norm(operator))
+
+    actual_norms = [float(value) for value in values["LopNorms"]]
+    actual_steps = [float(value) for value in values["dtFull"]]
+    assert all(abs(2.0 / norm - step) < 1e-12 for norm, step in zip(actual_norms, actual_steps))
+    for actual, expected in zip(actual_steps, expected_steps):
+        assert abs(actual - expected) / expected < 1e-8
