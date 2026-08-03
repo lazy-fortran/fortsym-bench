@@ -70,8 +70,9 @@ def results():
     )
     # The source association contains this exact exported label.  The
     # generic assignment pass intentionally leaves associations opaque, so
-    # recover this cheap scalar binding without pretending to load the
+    # recover these cheap scalar bindings without pretending to load the
     # unavailable validation CSV.
     values['II_tz'] = _field_tex_atom(r'\mathrm{II}_{\vartheta\zeta}')
     values['II_tt'] = _field_tex_atom(r'\mathrm{II}_{\vartheta\vartheta}')
+    values['II_zz'] = _field_tex_atom(r'\mathrm{II}_{\zeta\zeta}')
     return values
