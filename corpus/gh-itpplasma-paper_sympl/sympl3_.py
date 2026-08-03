@@ -129,7 +129,7 @@ def results():
             * h0ph
             * (
                 h0ph * (r - c * r**2) / r / (r * c + 1)
-                + h0th * vp / r / (r * c / R0 + 1)
+                + h0th * vp / r / (r * c + 1)
             )
             * (r * c / R0 + 1)
             + h0th
