@@ -115,9 +115,14 @@ def test_math10y_step_binding_matches_independent_numeric_oracle():
     step = values['ft1']
     t, a = sp.symbols('t a')
 
-    assert step.subs({t: -1, a: 0}) == 0
-    assert step.subs({t: 0, a: 0}) == 0
-    assert step.subs({t: 1, a: 0}) == 1
+    for time, threshold, expected in (
+        (-1.0, 0.0, 0),
+        (2.0, 3.0, 0),
+        (3.0, 3.0, 0),
+        (4.0, 3.0, 1),
+    ):
+        actual = int(step.subs({t: time, a: threshold}))
+        assert actual == expected
 
 
 def test_math10y_f0_fourth_root_scaling_matches_numeric_boundaries():
@@ -216,19 +221,34 @@ def test_math10y_ellipsoid_bindings_match_independent_numeric_oracles():
     values = math10y.results()
     a, b, c, x, phi = sp.symbols('a b c x phi')
 
-    # Integrating dz dy dx over the positive octant of an ellipsoid gives
-    # one eighth of 4*pi*a*b*c/3, independently of the Wolfram translation.
-    assert values['v'] == sp.pi * a * b * c / 6
+    # These expected values come from the ellipsoid geometry, not from a
+    # second rendering of the translated SymPy expressions.  The positive
+    # octant volume is one eighth of 4*pi*a*b*c/3.
+    samples = ((2.0, 3.0, 4.0, 0.5, 1.0 / 3.0), (1.7, 2.4, 0.9, 0.8, 0.6))
+    for aa, bb, cc, xx, angle in samples:
+        fraction = 1.0 - (xx / aa) ** 2
+        expected_v = math.pi * aa * bb * cc / 6.0
+        expected_vvy = cc * math.sqrt(
+            fraction - fraction * math.sin(angle) ** 2
+        )
+        expected_vy = math.pi * bb * cc * fraction / 4.0
+        substitutions = {a: aa, b: bb, c: cc, x: xx, phi: angle}
 
-    sample = {a: 2, b: 3, c: 4, x: sp.Rational(1, 2), phi: sp.Rational(1, 3)}
-    expected_vvy = 4 * sp.sqrt(
-        1 - sp.Rational(1, 2) ** 2 / 2**2
-        - (1 - sp.Rational(1, 2) ** 2 / 2**2) * sp.sin(sp.Rational(1, 3)) ** 2
-    )
-    assert abs(values['vvy'].subs(sample).evalf() - expected_vvy.evalf()) < 1e-14
-    assert values['vy'].subs(sample) == (
-        sp.pi * 3 * 4 * (1 - sp.Rational(1, 2) ** 2 / 2**2) / 4
-    )
+        assert math.isclose(
+            float(values['v'].subs(substitutions).evalf()),
+            expected_v,
+            rel_tol=1e-14,
+        )
+        assert math.isclose(
+            float(values['vvy'].subs(substitutions).evalf()),
+            expected_vvy,
+            rel_tol=1e-14,
+        )
+        assert math.isclose(
+            float(values['vy'].subs(substitutions).evalf()),
+            expected_vy,
+            rel_tol=1e-14,
+        )
 
 
 def test_math10y_ft0_matches_independent_numeric_boundaries():
