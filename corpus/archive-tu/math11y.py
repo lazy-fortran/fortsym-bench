@@ -239,6 +239,16 @@ def results():
         for index, order in ((1, 0), (2, 1), (3, 2))
     ))
 
+    # ``fneweq`` is the following Sum after the source's coefficient list
+    # has been formed.  As with ``neweq``, the bounded translator preserves
+    # the native unresolved ``D[..., {x, k}]``/``Part[...]`` structure rather
+    # than inventing values for the symbolic derivative index.
+    values['fneweq'] = sp.Add(*(
+        derivative(z(x), sp.Tuple(x, order))
+        * part(sp.Symbol('cnew'), index)
+        for index, order in ((1, 0), (2, 1), (3, 2))
+    ))
+
     # The two unconverted notebook cells leave these symbols as their only
     # observable values in the Mathics reference run.  Preserve that
     # source-level result instead of silently dropping the bindings.

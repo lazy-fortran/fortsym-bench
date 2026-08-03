@@ -128,3 +128,17 @@ def test_transformed_ode_is_the_numeric_product_rule_expansion():
         sp.diff(w(x), x, 2): sp.Integer(19),
     })
     assert sp.simplify(source_form.subs(numeric)) == sp.Rational(2109, 4)
+
+
+def test_transformed_ode_sum_preserves_each_source_coefficient_binding():
+    values = _module().results()
+    x = sp.Symbol('x')
+    z = sp.Function('z')
+    part = sp.Function('Part')
+    derivative = sp.Function('D')
+    expected = sp.Add(*(
+        derivative(z(x), sp.Tuple(x, order))
+        * part(sp.Symbol('cnew'), index)
+        for index, order in ((1, 0), (2, 1), (3, 2))
+    ))
+    assert values['fneweq'] == expected
