@@ -7,6 +7,7 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 import sympy as sp
+from sympy.parsing.mathematica import parse_mathematica
 
 # NOT TRANSLATED: 295 non-assignment statement(s) remain.
 COMPARE = {
@@ -18,6 +19,8 @@ COMPARE = {
     'in': 'numeric',
     'ni': 'numeric',
 }
+
+_FN_WL = r"""(x^2*y^2*Sqrt[x^2 + y^2 + 3.31^2]^2*3.31^6 - x^2*y^2*Sqrt[x^2 + y^2 + 3.31^2]^4*3.31^4*3/2 + x^2*y^2*Sqrt[x^2 + y^2 + 3.31^2]^6*3.31^2*1/3 + x^2*y^4*Sqrt[x^2 + y^2 + 3.31^2]^2*3.31^4*4/3 - x^2*y^4*Sqrt[x^2 + y^2 + 3.31^2]^4*3.31^2*2/3 + x^2*y^6*Sqrt[x^2 + y^2 + 3.31^2]^2*3.31^2*1/3 - x^2*Sqrt[x^2 + y^2 + 3.31^2]^4*3.31^6*1/3 + x^2*Sqrt[x^2 + y^2 + 3.31^2]^6*3.31^4*7/6 + x^4*y^2*Sqrt[x^2 + y^2 + 3.31^2]^2*3.31^4*1/3 + x^4*y^2*Sqrt[x^2 + y^2 + 3.31^2]^4*3.31^2*7/3 - x^4*y^4*Sqrt[x^2 + y^2 + 3.31^2]^2*3.31^2*5/6 + x^4*y^4*Sqrt[x^2 + y^2 + 3.31^2]^4*1/6 + x^4*y^4*3.31^4*1/3 - x^4*y^6*Sqrt[x^2 + y^2 + 3.31^2]^2*1/3 + x^4*y^6*3.31^2*1/2 + x^4*y^8*1/6 - x^4*Sqrt[x^2 + y^2 + 3.31^2]^4*3.31^4*1/3 - x^6*y^2*Sqrt[x^2 + y^2 + 3.31^2]^2*3.31^2*2/3 + x^6*y^4*Sqrt[x^2 + y^2 + 3.31^2]^2*7/6 - x^6*y^6*1/6 - x^8*y^4*1/3 + y^2*Sqrt[x^2 + y^2 + 3.31^2]^4*3.31^6*1/6 - y^2*Sqrt[x^2 + y^2 + 3.31^2]^6*3.31^4*1/3 + y^4*Sqrt[x^2 + y^2 + 3.31^2]^4*3.31^4*1/6 - Sqrt[x^2 + y^2 + 3.31^2]^6*3.31^6*1/6 + Sqrt[x^2 + y^2 + 3.31^2]^8*3.31^4*1/6)/(x^2*y^2*Sqrt[x^2 + y^2 + 3.31^2]^5*3.31^2*2 + x^4*y^4*Sqrt[x^2 + y^2 + 3.31^2]^3 + Sqrt[x^2 + y^2 + 3.31^2]^7*3.31^4)"""
 _ASSIGNMENTS = [
     ('f', 'Sin[a*x]', ()),
     ('g', 'D[f, x]', ()),
@@ -274,6 +277,11 @@ def _recovered_bindings():
         "vy": sp.pi * b * c * (1 - x**2 / a**2) / 4,
         "v": sp.pi * a * b * c / 6,
         "gn": g331,
+        # The later source block rebinds ``fn`` after differentiating the
+        # three-dimensional antiderivative ``g``.  This is its compact
+        # rational form after Together/Simplify and z -> 3.31; parsing the
+        # Wolfram spelling preserves the source's machine-real tree exactly.
+        "fn": parse_mathematica(_FN_WL),
         # Direct source binding from the early total-derivative example.
         # Keep Dt and Set opaque: v and y have Wolfram total-derivative
         # semantics that are intentionally not guessed by the Python oracle.
