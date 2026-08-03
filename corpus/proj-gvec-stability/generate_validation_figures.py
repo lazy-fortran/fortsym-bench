@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 16 non-assignment statement(s) remain.
@@ -49,4 +51,64 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/generate_validation_figures.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/proj-gvec-stability/generate_validation_figures.wl',
+    )
+
+    # Preserve the source tree for the generalized-eigensystem bindings.  The
+    # generic assignment pass cannot lower the tuple-valued Eigensystem
+    # assignment, and then SymPy eagerly treats the later Wolfram List as a
+    # matrix.  The native Wolfram path keeps these source-level operations
+    # opaque, so construct the same bounded tree explicitly instead of
+    # inventing a numerical eigenvector.
+    list_head = sp.Function('List')
+    eigenvector = sp.Symbol('eigenvector0')
+    lambda0 = sp.Symbol('lambda0')
+    mass_squared = list_head(
+        list_head(
+            sp.Mul(
+                sp.Float('2.033333333333332993', 16),
+                eigenvector**2,
+                evaluate=False,
+            ),
+            sp.Integer(0),
+        ),
+        list_head(
+            sp.Integer(0),
+            sp.Mul(sp.Float('3.0'), eigenvector**2, evaluate=False),
+        ),
+    )
+    values['lowestIndex'] = sp.Function('First')(
+        sp.Function('Ordering')(sp.Symbol('eigenvalues0'))
+    )
+    values['eigenvector0'] = sp.Mul(
+        eigenvector,
+        sp.Pow(mass_squared, sp.Rational(-1, 2)),
+        evaluate=False,
+    )
+    derivative_first = sp.Mul(
+        eigenvector**2,
+        sp.Add(1, -lambda0 / 10, evaluate=False),
+        sp.Pow(mass_squared, -1),
+        evaluate=False,
+    )
+    derivative_second = sp.Mul(
+        -1,
+        eigenvector**2,
+        sp.Pow(mass_squared, -1),
+        evaluate=False,
+    )
+    values['analyticDerivative'] = list_head(
+        list_head(derivative_first, sp.Integer(0)),
+        list_head(sp.Integer(0), derivative_second),
+    )
+
+    # ``10.^Range[-8, -1, 1/4]`` is cheap and deterministic; retain it as a
+    # concrete binding even though the surrounding plot is intentionally
+    # outside the bounded translator.
+    values['stepSizes'] = sp.Tuple(*(
+        sp.Float(10.0 ** (-8 + index / 4))
+        for index in range(29)
+    ))
+    return values
