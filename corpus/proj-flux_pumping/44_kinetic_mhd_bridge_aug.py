@@ -39,7 +39,11 @@ _ASSIGNMENTS = [
     ('me', '9.1093837 10^-31', ()),
     ('ee', '1.602177 10^-19', ()),
     ('teKev', '(1.65 10^-9 15/eta0)^(2/3)', ()),
-    ('vte', 'Sqrt[teKev 10^3 ee/me]', ()),
+    # Mathematica evaluates this expression at machine precision because all
+    # physical inputs are machine reals.  Make that evaluation explicit so
+    # the SymPy companion preserves the source's numeric binding rather than
+    # retaining an equivalent sqrt(10) factor symbolically.
+    ('vte', 'N[Sqrt[teKev 10^3 ee/me]]', ()),
     ('nuEff', 'nne ee^2 eta0/me', ()),
     ('lambdaMfp', 'vte/nuEff', ()),
     ('kPar', 'dq/rr0', ('dq',)),
