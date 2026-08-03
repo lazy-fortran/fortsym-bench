@@ -105,4 +105,14 @@ def results():
         / r
     )
     values['pressureSlope'] = pressure_rhs
+
+    # The source defines jDotB as mu0 times the cylindrical current dotted
+    # with the magnetic field.  Expanding Curl for
+    # bField = {0, btheta[r], bz[r]} gives this radial expression.
+    btheta_prime = derivative1(sp.Symbol('btheta'), 1, r)
+    bz_prime = derivative1(sp.Symbol('bz'), 1, r)
+    values['jDotB'] = (
+        -btheta(r) * bz_prime
+        + bz(r) * (btheta_prime + btheta(r) / r)
+    )
     return values
