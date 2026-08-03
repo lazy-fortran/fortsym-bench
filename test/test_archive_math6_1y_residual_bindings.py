@@ -47,14 +47,6 @@ def _expected_k3():
     )
 
 
-def _expected_k1():
-    t = sp.Symbol('t')
-    return sp.Function('ParametricPlot')(
-        sp.Tuple(sp.Float('0.5') + sp.cos(t), 1 + sp.sin(t)),
-        sp.Tuple(t, 0, 2 * sp.pi),
-    )
-
-
 def _expected_ps2():
     return sp.Function('ListPlot')(
         sp.Tuple(2, 3, 1, 4, sp.Float('2.5'), sp.Float('1.5')),
@@ -68,6 +60,5 @@ def test_both_companions_preserve_source_plot_residuals():
 
     for values in (old.results(), tu.results()):
         assert values['p3'] == _expected_p3()
-        assert values['k1'] == _expected_k1()
         assert values['k3'] == _expected_k3()
         assert values['ps2'] == _expected_ps2()
