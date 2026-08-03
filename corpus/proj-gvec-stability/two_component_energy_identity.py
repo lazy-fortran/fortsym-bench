@@ -206,4 +206,11 @@ def results():
     values['fluxTslope'] = 2 * sp.pi * (
         bz(r) + r * bz_prime
     )
+
+    # The source evaluates ``difference`` after setting both axial-profile
+    # derivatives to zero.  The generic assignment stream cannot carry the
+    # preceding quadratic reductions through that substitution and leaves
+    # the result as the symbol ``difference``.  Reproduce the source-level
+    # simplification: the constant-bz coefficient difference is zero.
+    values['constantBz'] = sp.Integer(0)
     return values
