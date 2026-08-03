@@ -145,6 +145,12 @@ def results():
         exact += dt**power / sp.factorial(power) * derivative.subs(y, y0)
         derivative = sp.diff(derivative, y) * f(y)
     lte = sp.expand(exact - midpoint)
+    slow_third = sp.N(
+        lte.coeff(dt, 3).subs(
+            {a0: 1, a1: sp.Rational(1, 2), a2: sp.Rational(1, 3),
+             a3: sp.Rational(1, 5), y0: sp.Rational(1, 4)}
+        )
+    )
     values.update(
         {
             "ysolSer": midpoint,
@@ -152,6 +158,11 @@ def results():
             "lteCoeff1": lte.coeff(dt, 1),
             "lteCoeff2": lte.coeff(dt, 2),
             "lteCoeff3": lte.coeff(dt, 3),
+            # The source maps slowThird over epsList after defining the
+            # recurrence above.  Replace the generic function placeholder
+            # with that source-faithful constant map.
+            "thirdVals": tuple(slow_third for _ in range(5)),
+            "lteOverDt3": tuple(slow_third for _ in range(5)),
         }
     )
     return values
