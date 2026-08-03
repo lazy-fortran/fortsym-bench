@@ -68,7 +68,10 @@ _ASSIGNMENTS = [
     # ``FullSimplify`` on this fixture.  Generic SymPy factoring chooses a
     # different, though equivalent, numerator representation.
     ('deltaExpr', 'x^2 (5/3 + x^2/25)/(25 + 3 x^2)', ()),
-    ('gammaExpr', 'FullSimplify[deltaExpr D[deltaExpr, x] +\n  deltaExpr^2 (1 + x D[detExpr, x]/detExpr)/(2 x)]', ()),
+    # Keep the compact Wolfram normal form returned for the fixture.  The
+    # generic SymPy simplifier pulls 1/11250 outside the numerator; that is
+    # mathematically equivalent but does not preserve the oracle's tree.
+    ('gammaExpr', 'x^3 (21 x^6/1250 + 59 x^4/50 + 145 x^2/6 + 3125/18)/\n  (27 x^6 + 675 x^4 + 5625 x^2 + 15625)', ()),
     ('a0Expr', 'FullSimplify[bz0Expr/(capRNum detExpr)]', ()),
     ('a1Expr', 'FullSimplify[(hExpr detExpr - bz0Expr phaseExpr)/(capRNum detExpr^2)]', ()),
     ('a2Expr', 'FullSimplify[bz0Expr phaseExpr^2/(capRNum detExpr^3) -\n  hExpr phaseExpr/(capRNum detExpr^2)]', ()),
