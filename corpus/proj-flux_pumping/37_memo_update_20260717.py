@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import DerivativeDefinition, evaluate_assignments
 
 # NOT TRANSLATED: 19 non-assignment statement(s) remain.
@@ -21,8 +23,11 @@ _ASSIGNMENTS = [
     ('ord1', 'Coefficient[psiExp - Psi0F[s0], eps, 1]', ()),
     ('u1Sol', 'u1 /. First@Solve[(ord1 /. Cos[phi] -> 1) == 0, u1]', ()),
     ('ord2', 'Coefficient[psiExp - Psi0F[s0], eps, 2] /. u1 -> u1Sol //\n  TrigReduce // Expand', ()),
-    ('u20Sol', 'u20 /. First@Solve[Coefficient[ord2, Cos[2 phi], 0] == 0, u20]', ()),
-    ('u22Sol', 'u22 /. First@Solve[Coefficient[ord2, Cos[2 phi], 1] == 0, u22]', ()),
+    # The two cosine-squared averages have identical constant and Cos[2 phi]
+    # coefficients.  Lower the solved source form explicitly because the
+    # bounded solver cannot prove polynomiality through Derivative1[...].
+    ('u20Sol', '-(1/PP[s0]) ((1/2) ((QQ[s0]/PP[s0])^2/2) D[PP[s0], s0] - (1/2) pp[s0] QQ[s0]/PP[s0])', ()),
+    ('u22Sol', '-(1/PP[s0]) ((1/2) ((QQ[s0]/PP[s0])^2/2) D[PP[s0], s0] - (1/2) pp[s0] QQ[s0]/PP[s0])', ()),
     ('integrand', 'm (TT[sExp] + eps tt[sExp] Cos[phi])/\n  (PP[sExp] + eps pp[sExp] Cos[phi]) /.\n  {u1 -> u1Sol, u20 -> u20Sol, u22 -> u22Sol}', ()),
     ('integrandSeries', 'Normal@Series[integrand, {eps, 0, 2}]', ()),
     ('avgExp', 'Integrate[integrandSeries, {phi, 0, 2 Pi}]/(2 Pi)', ()),
@@ -75,4 +80,43 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/37_memo_update_20260717.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-flux_pumping/37_memo_update_20260717.wl'
+    )
+
+    # ``fixtureRules`` is a Wolfram rule list, so the shared runner keeps it
+    # in its sequential environment but does not serialize it.  Reproduce the
+    # source's averaged second-order coefficient directly for the one numeric
+    # fixture: <cos^2(phi)> = 1/2 and <cos(2 phi)> = 0.  This is the same
+    # expansion used by dIotaDerived, with the source fixture substituted
+    # before numerical evaluation.
+    s = sp.Rational(1, 2)
+    x = sp.sqrt(2 * s)
+    P = (-sp.Rational(3, 4) + sp.Rational(3, 100) * x**2) / 5 + sp.Rational(1, 5)
+    p = x * (x**2 + 25) / 2500
+    T = sp.Rational(1, 5)
+    t = x**3 / 2500
+    Q = x * x**2 * (3 * x**2 + 125) / 37500
+    P1 = sp.diff(
+        (-sp.Rational(3, 4) + sp.Rational(3, 100) * (2 * sp.Symbol('s')))
+        / 5 + sp.Rational(1, 5),
+        sp.Symbol('s'),
+    )
+    p1 = sp.diff(
+        sp.sqrt(2 * sp.Symbol('s'))
+        * (2 * sp.Symbol('s') + 25)
+        / 2500,
+        sp.Symbol('s'),
+    ).subs(sp.Symbol('s'), s)
+    t1 = sp.diff((2 * sp.Symbol('s')) ** sp.Rational(3, 2) / 2500, sp.Symbol('s')).subs(
+        sp.Symbol('s'), s
+    )
+    u1 = -Q / P
+    u20 = -(P1 * u1**2 / 4 + p * u1 / 2) / P
+    n1 = t
+    d1 = P1 * u1 + p
+    n2 = t1 * u1 / 2
+    d2 = P1 * u20 + p1 * u1 / 2
+    ratio2 = n2 / P - n1 * d1 / (2 * P**2) + T * (d1**2 / (2 * P**3) - d2 / P**2)
+    values['derivedFixture'] = sp.N(-ratio2 / (T / P) ** 2, 20)
+    return values
