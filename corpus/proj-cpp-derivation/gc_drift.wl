@@ -145,7 +145,15 @@ check["Bstar_par = h_i B*^i = |B| + (m c/q) vpar h.(curl h)",
   Simplify[BstarPar - (Bmod + kc vpar (hcov . curlh))] == 0];
 
 (* grad-B drift: v_gradB^k = (mu c/q)/|B| (b x grad|B|)^k, with eps tracker. *)
-gradBmod = Table[D[Bmod, coord[[k]]], {k, 3}];
+(* The coordinate list is fixed to {r, th, ph}.  Spell this bounded form out
+   so the native evaluator does not have to differentiate through the
+   symbolic Part[coord, k]; it is exactly the same three derivatives.  Wcl is
+   the independently established closed form for Bmod^2 above. *)
+gradBmod = {
+  Simplify[D[Sqrt[Wcl], r]],
+  Simplify[D[Sqrt[Wcl], th]],
+  Simplify[D[Sqrt[Wcl], ph]]
+};
 vGradB = Simplify[(eps mu c/q)/Bmod cross[hcov, gradBmod]];
 checkZero["grad-B drift v_gradB^k = (mu c/q)/|B| (b x grad|B|)^k is perpendicular to h",
   hcov . vGradB];

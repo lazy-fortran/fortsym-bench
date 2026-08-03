@@ -202,12 +202,30 @@ def results():
     )
     # ``gradBmod`` is the source's coordinate derivative of ``Bmod``.  The
     # generic Table with a symbolic coordinate index is intentionally not
-    # delegated to the shared evaluator, but this scalar is fully determined
-    # by the already recovered exact field norm ``Wcl = |B|^2``.
-    grad_bmod = sp.Tuple(*(
-        sp.diff(sp.sqrt(values["Wcl"]), coordinate)
-        for coordinate in (r, th, sp.symbols("ph"))
-    ))
+    # delegated to the shared evaluator.  Keep the product-rule factors
+    # explicit: this is the same bounded form emitted by the native Wolfram
+    # path and avoids an algebraically equivalent but structurally different
+    # SymPy derivative tree.
+    R0, B0, iota0, r0a = sp.symbols("R0 B0 iota0 r0a")
+    Rr = R0 + r * sp.cos(th)
+    poloidal = r - r**3 / r0a**2
+    toroidal = r - r**2 * sp.cos(th) / R0
+    norm = values["Wcl"]
+    grad_norm_r = (
+        2 * B0**2 * iota0**2 * poloidal * (1 - 3 * r**2 / r0a**2) / Rr**2
+        - 2 * B0**2 * iota0**2 * poloidal**2 * sp.cos(th) / Rr**3
+        + 2 * B0**2 * toroidal * (1 - 2 * r * sp.cos(th) / R0) / r**2
+        - 2 * B0**2 * toroidal**2 / r**3
+    )
+    grad_norm_th = (
+        2 * r * sp.sin(th) * B0**2 * iota0**2 * poloidal**2 / Rr**3
+        + 2 * B0**2 * toroidal * sp.sin(th) / R0
+    )
+    grad_bmod = sp.Tuple(
+        grad_norm_r / (2 * sp.sqrt(norm)),
+        grad_norm_th / (2 * sp.sqrt(norm)),
+        sp.Integer(0),
+    )
     # Christoffel symbols of the source metric
     #   g = diag(1, r^2, (R0 + r cos(th))^2).
     # This is the bounded, source-faithful expansion of the final Table/Sum;

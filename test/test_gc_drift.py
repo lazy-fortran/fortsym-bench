@@ -110,6 +110,23 @@ def test_grad_bmod_matches_independent_derivative_of_field_norm():
     )
     point = {R0: 10, B0: 3, iota0: 2, r0a: 7, r: 2, th: sp.Rational(1, 5)}
     assert all(
-        sp.N(actual.subs(point) - reference.subs(point)) == 0
+        sp.simplify((actual - reference).subs(point)) == 0
         for actual, reference in zip(values["gradBmod"], expected)
     )
+
+
+def test_grad_bmod_r_component_matches_independent_sample_value():
+    values = _module().results()
+    r, th = sp.symbols("r th")
+    R0, B0, iota0, r0a = sp.symbols("R0 B0 iota0 r0a")
+    Rr = R0 + r * sp.cos(th)
+    # Recompute the field norm directly from the two source potentials; this
+    # does not use Wcl or any intermediate from the generated companion.
+    ath_r = B0 * (r - r**2 * sp.cos(th) / R0)
+    aph_r = -B0 * iota0 * (r - r**3 / r0a**2)
+    direct_norm = ath_r**2 / r**2 + aph_r**2 / Rr**2
+    point = {R0: 10, B0: 3, iota0: 2, r0a: 7, r: 2, th: sp.Rational(1, 5)}
+    expected = sp.diff(sp.sqrt(direct_norm), r).subs(point)
+    actual = values["gradBmod"][0].subs(point)
+
+    assert sp.simplify(actual - expected) == 0
