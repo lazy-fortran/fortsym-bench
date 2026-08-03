@@ -29,7 +29,8 @@ CACHE_VERSION = 1
 # from list-valued Mathics output. Version 18 adds equation-aware algebraic
 # equivalence for explicitly declared ``equivalent`` comparisons. Version 19
 # adds default machine-precision tolerance for numeric composite expressions.
-COMPARISON_CACHE_VERSION = 19
+# Version 20 bounds algebraic equivalence before SymPy polynomial simplify.
+COMPARISON_CACHE_VERSION = 20
 
 
 @dataclass(frozen=True)

@@ -26,6 +26,11 @@ UNTRANSLATED = "untranslated"
 # result in this corpus; larger values are retained in the report as an
 # explicit comparison error unless their raw text already matches.
 MAX_COMPARISON_TEXT = 4 * 1024 * 1024
+# Simplification is useful for ordinary equivalent expressions but can spend
+# unbounded time in polynomial GCD on a large symbolic tree. Keep the oracle
+# comparison path responsive; exact structural equality remains a witness even
+# when a non-identical tree exceeds this budget.
+MAX_EQUIVALENCE_NODES = 50_000
 
 
 @dataclass
@@ -625,8 +630,17 @@ def _normalize_subs(expr):
 def _equivalent(a, b) -> bool:
     import sympy
 
+    try:
+        if a == b:
+            return True
+    except Exception:
+        return False
+
     a = _normalize_subs(a)
     b = _normalize_subs(b)
+
+    if not _within_equivalence_budget(a) or not _within_equivalence_budget(b):
+        return False
 
     if isinstance(a, sympy.Equality) or isinstance(b, sympy.Equality):
         if not isinstance(a, sympy.Equality) or not isinstance(b, sympy.Equality):
@@ -666,6 +680,23 @@ def _equivalent(a, b) -> bool:
     except Exception:
         # The comparison oracle failing to decide is not evidence of agreement.
         return False
+
+
+def _within_equivalence_budget(expression) -> bool:
+    """Return whether an expression is small enough for algebraic simplify."""
+    import sympy
+
+    pending = [expression]
+    seen = 0
+    while pending:
+        node = pending.pop()
+        if not isinstance(node, sympy.Basic):
+            continue
+        seen += 1
+        if seen > MAX_EQUIVALENCE_NODES:
+            return False
+        pending.extend(node.args)
+    return True
 
 
 def _numeric_equivalent(a, b) -> bool:
