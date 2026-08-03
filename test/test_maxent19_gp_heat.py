@@ -23,7 +23,7 @@ def test_recovered_k3_is_the_full_line_heat_kernel_convolution():
         2 * sp.sqrt(sp.pi) * sp.sqrt(t0 + t1)
     )
 
-    assert set(values) == {"k0", "k0a", "k1", "k2", "k3"}
+    assert set(values) == {"k0", "k1", "k2", "k3"}
     assert sp.simplify(values["k3"] - expected) == 0
 
 
