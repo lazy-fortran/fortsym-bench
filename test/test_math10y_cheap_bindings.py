@@ -71,6 +71,45 @@ def test_math10y_recovered_geometry_values_have_independent_numeric_oracles():
         assert abs(values[name] - expected) < sp.Float('1e-14')
 
 
+def test_math10y_final_sine_antiderivative_matches_independent_numeric_oracle():
+    value = math10y.results()['g']
+    x = sp.Symbol('x')
+
+    for sample in (0.2, 1.1, 2.4):
+        step = 1.0e-5
+        numeric_derivative = (
+            float(value.subs(x, sample + step))
+            - float(value.subs(x, sample - step))
+        ) / (2.0 * step)
+        assert math.isclose(
+            numeric_derivative, math.sin(sample), rel_tol=1.0e-9
+        )
+
+    assert math.isclose(
+        float(value.subs(x, sp.pi / 2) - value.subs(x, 0)), 1.0, rel_tol=1.0e-15
+    )
+
+
+def test_math10y_arc_sinh_h_matches_independent_numeric_derivative():
+    value = math10y.results()['h']
+    a, x = sp.symbols('a x')
+
+    def source_antiderivative(argument, parameter):
+        return (
+            argument * math.asinh(parameter / argument)
+            + parameter * math.asinh(argument / parameter)
+        )
+
+    for parameter, sample in ((1.37, 0.8), (2.1, 1.6)):
+        step = 1.0e-5
+        expected = (
+            source_antiderivative(sample + step, parameter)
+            - source_antiderivative(sample - step, parameter)
+        ) / (2.0 * step)
+        actual = float(value.subs({a: parameter, x: sample}).evalf())
+        assert math.isclose(actual, expected, rel_tol=1.0e-9)
+
+
 def test_math10y_step_binding_matches_independent_numeric_oracle():
     values = math10y.results()
     step = values['ft1']

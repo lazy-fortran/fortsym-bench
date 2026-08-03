@@ -201,6 +201,8 @@ def _recovered_bindings():
     phi = sp.Symbol("phi")
     r = sp.sqrt(x**2 + y**2 + z**2)
     rr = sp.sqrt(x**2 + y**2)
+    g1 = x * sp.asinh(a / x) + a * sp.asinh(x / a)
+    h1 = sp.diff(g1, x)
     r331 = sp.sqrt(x**2 + y**2 + sp.Float("3.31") ** 2)
     g331 = (
         x * y * r331 / 6
@@ -239,7 +241,11 @@ def _recovered_bindings():
         # Late, inexpensive bindings whose Wolfram values are independent
         # of the disputed three-dimensional antiderivative ``g``.
         "fxd": (sp.sin(a * x + b * x) - sp.sin(a * x - b * x)) / 2,
-        "g1": x * sp.asinh(a / x) + a * sp.asinh(x / a),
+        # The later source assignment rebinds g to Integrate[Sin[x], x].
+        # Keep that final value distinct from the earlier three-dimensional
+        # geometry expression, which is represented by gn after z -> 3.31.
+        "g": -sp.cos(x),
+        "g1": g1,
         "go": (
             sp.sqrt(a**2 - x**2) * sp.sqrt(b**2 - x**2) / 2
             + (a**2 + b**2)
@@ -258,7 +264,10 @@ def _recovered_bindings():
         ),
         "gt": 1,
         "gc": sp.cos(1) - sp.cos(2),
-        "h1": sp.diff(x * sp.asinh(a / x) + a * sp.asinh(x / a), x),
+        # h is assigned from the ArcSinh antiderivative immediately before
+        # g1/h1 restate the same source identity explicitly.
+        "h": h1,
+        "h1": h1,
         "iaf": sp.Integer(0),
         "irf": sp.Integer(0),
         # The late Gaussian integral is over [-1000, 1000].  Its omitted
