@@ -125,14 +125,24 @@ def results():
     values['pressureSlope'] = sp.Mul(mu0, pressure_balance, evaluate=False)
 
     # The source defines jDotB as mu0 times the cylindrical current dotted
-    # with the magnetic field.  Expanding Curl for
-    # bField = {0, btheta[r], bz[r]} gives this radial expression.
+    # with the magnetic field.  Preserve that outer multiplication and the
+    # current's explicit 1/mu0 factor: the native Wolfram result retains
+    # this source tree instead of cancelling mu0 algebraically.
     btheta_prime = derivative1(sp.Symbol('btheta'), 1, r)
     bz_prime = derivative1(sp.Symbol('bz'), 1, r)
-    values['jDotB'] = (
-        -btheta(r) * bz_prime
-        + bz(r) * (btheta_prime + btheta(r) / r)
+    current_dot_b = sp.Add(
+        sp.Mul(
+            -1, sp.Pow(mu0, -1), bz_prime, btheta(r),
+            evaluate=False,
+        ),
+        sp.Mul(
+            sp.Pow(mu0, -1), sp.Pow(r, -1),
+            btheta_prime * r + btheta(r), bz(r),
+            evaluate=False,
+        ),
+        evaluate=False,
     )
+    values['jDotB'] = sp.Mul(mu0, current_dot_b, evaluate=False)
 
     # The source's density is a direct contraction of the already-defined
     # perturbation fields.  Keep the source convention that all field
