@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 15 non-assignment statement(s) remain.
@@ -28,4 +30,14 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/nc-plasma-DOCUMENTS/peng.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/nc-plasma-DOCUMENTS/peng.wl'
+    )
+    # In the source, p and A are opaque symbolic vectors at this point.  Do
+    # not let SymPy's parser reinterpret their symbolic Dot as scalar
+    # multiplication: Mathics and the native Wolfram path both retain the
+    # source contraction unevaluated.
+    p, A, e, c, m, Phi = sp.symbols('p A e c m Phi')
+    dot = sp.Function('Dot')
+    values['H'] = e * Phi + dot(p - e * A / c, p - e * A / c) / (2 * m)
+    return values
