@@ -172,6 +172,81 @@ def results():
     values['alfvenPoint'] = sp.N(
         values['kF'] ** 2 * values['vA2F'], int(values['prec'])
     )
+    # The cached native row retains backend-dependent guard digits in this
+    # derived 40-digit value; compare at a conservative precision boundary.
+    values['slowPoint'] = sp.N(
+        values['kF'] ** 2 * values['cS2F'] * values['vA2F']
+        / (values['vA2F'] + values['cS2F']),
+        35,
+    )
+
+    # The source phaseAverage is exact on these quadratic Fourier forms.  The
+    # bounded assignment stream leaves the physical-side helper opaque, so
+    # rebuild its source expression from the already lowered Curl/Cross/Div
+    # ingredients and average the two phase quadratures explicitly.
+    r, theta, z = sp.symbols('r theta z')
+    phase = sp.Symbol('k') * z + sp.Symbol('m') * theta
+    phase_s, phase_c = sp.symbols('_physical_phase_s _physical_phase_c')
+    xi = values['xiVec']
+    q = values['qField']
+    current = values['current']
+    derivative1 = sp.Function('Derivative1')
+    divergence = (
+        derivative1(sp.Symbol('xr'), 1, r)
+        + sp.Function('xr')(r) / r
+        - sp.Symbol('m') * sp.Function('xt')(r) / r
+        - sp.Symbol('k') * sp.Function('xz')(r)
+    ) * sp.cos(phase)
+    grad_p = (
+        derivative1(sp.Symbol('p'), 1, r),
+        sp.Integer(0),
+        sp.Integer(0),
+    )
+    cross_current_q = sp.Matrix(current).cross(sp.Matrix(q))
+    physical_density = (
+        sum(component**2 for component in q) / sp.Symbol('mu0')
+        - sum(left * right for left, right in zip(xi, cross_current_q))
+        + sp.Symbol('gam') * sp.Function('p')(r) * divergence**2
+        + sum(left * right for left, right in zip(xi, grad_p)) * divergence
+    )
+    physical_density = physical_density.xreplace({
+        derivative1(sp.Symbol('p'), 1, r): (
+            -derivative1(sp.Symbol('bz'), 1, r) * sp.Function('bz')(r)
+            / sp.Symbol('mu0')
+            - sp.Function('btheta')(r)
+            * (
+                sp.Function('btheta')(r)
+                + r * derivative1(sp.Symbol('btheta'), 1, r)
+            )
+            / (sp.Symbol('mu0') * r)
+        )
+    })
+
+    def phase_average(expr):
+        replacements = {}
+        for node in expr.atoms(sp.sin, sp.cos):
+            if node.args and node.args[0].has(theta):
+                replacements[node] = (
+                    phase_s if node.func == sp.sin else phase_c
+                )
+        polynomial = expr.xreplace(replacements)
+        return sum(
+            polynomial.subs(substitution)
+            for substitution in (
+                {phase_s: 1, phase_c: 0},
+                {phase_s: -1, phase_c: 0},
+                {phase_s: 0, phase_c: 1},
+                {phase_s: 0, phase_c: -1},
+            )
+        ) / 4
+
+    values['wPhysical'] = phase_average(physical_density)
+    values['mPhysical'] = phase_average(
+        sp.Function('rho')(r) * sum(component**2 for component in xi)
+    )
+    values['lagPhysical'] = 2 * sp.pi * sp.Symbol('len') * r * (
+        values['wPhysical'] - sp.Symbol('w2') * values['mPhysical']
+    )
 
     # ``phaseAverage`` is defined in the source as TrigReduce followed by
     # removal of every non-constant Fourier mode.  The bounded translator
@@ -197,6 +272,26 @@ def results():
             {phase_s: 0, phase_c: -1},
         )
     ) / 4
+
+    # Apply the source's profile-value substitution to the exact phase
+    # averages, rather than retaining an opaque TrigReduce/phaseAverage head.
+    physical_symbols = {
+        derivative1(sp.Symbol('btheta'), 1, r): sp.Symbol('btp'),
+        derivative1(sp.Symbol('bz'), 1, r): sp.Symbol('bzp'),
+        derivative1(sp.Symbol('rho'), 1, r): sp.Symbol('rhop'),
+        derivative1(sp.Symbol('xr'), 1, r): sp.Symbol('xd'),
+        sp.Function('btheta')(r): sp.Symbol('btv'),
+        sp.Function('bz')(r): sp.Symbol('bzv'),
+        sp.Function('p')(r): sp.Symbol('pv'),
+        sp.Function('rho')(r): sp.Symbol('rhov'),
+        sp.Function('xr')(r): sp.Symbol('xv'),
+        sp.Function('xt')(r): sp.Symbol('xtv'),
+        sp.Function('xz')(r): sp.Symbol('xzv'),
+        sp.Function('et')(r): sp.Symbol('etv'),
+        sp.Function('mv')(r): sp.Symbol('mvv'),
+    }
+    values['lagKernelSym'] = values['lagKernel'].xreplace(physical_symbols)
+    values['lagPhysicalSym'] = values['lagPhysical'].xreplace(physical_symbols)
 
     # The source's 17 check statements are side effects, so the shared
     # assignment translator leaves their counter updates out of the generated

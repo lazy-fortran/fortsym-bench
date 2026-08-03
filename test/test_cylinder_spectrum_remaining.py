@@ -51,3 +51,25 @@ def test_lag_kernel_is_the_exact_quadratic_phase_average():
 
     assert sp.simplify(actual - expected) == 0
     assert not actual.has(sp.sin(phi), sp.cos(phi))
+
+
+def test_physical_mass_and_lagrangian_follow_the_source_phase_average():
+    values = _load_module().results()
+
+    r = sp.Symbol('r')
+    rho = sp.Function('rho')
+    xr = sp.Function('xr')
+    xt = sp.Function('xt')
+    xz = sp.Function('xz')
+    expected_mass = rho(r) * (
+        xr(r)**2 + xt(r)**2 + xz(r)**2
+    ) / 2
+
+    assert sp.simplify(values['mPhysical'] - expected_mass) == 0
+    expected_lagrangian = 2 * sp.pi * sp.Symbol('len') * r * (
+        values['wPhysical'] - sp.Symbol('w2') * values['mPhysical']
+    )
+    assert sp.simplify(values['lagPhysical'] - expected_lagrangian) == 0
+    assert not values['wPhysical'].has(
+        sp.sin, sp.cos, sp.Symbol('theta'), sp.Symbol('z')
+    )
