@@ -38,8 +38,7 @@ _ASSIGNMENTS = [
 _RECOVERED_ASSIGNMENTS = [
     ('k1', 'Simplify[(Erf[((-t1)*x0 - t0*x1 + (t0 + t1)*xa)/(2*Sqrt[t0]*Sqrt[t1]*Sqrt[t0 + t1])] + 1)/(E^((x0 - x1)^2/(4*(t0 + t1)))*(4*Sqrt[Pi]*Sqrt[t0 + t1]))]', ()),
     ('k2', 'Simplify[(-Erf[((-t1)*x0 - t0*x1 + (t0 + t1)*xb)/(2*Sqrt[t0]*Sqrt[t1]*Sqrt[t0 + t1])] + 1)/(E^((x0 - x1)^2/(4*(t0 + t1)))*(4*Sqrt[Pi]*Sqrt[t0 + t1]))]', ()),
-    ('k0a', 'Simplify[k1 + k2]', ()),
-    ('k0', 'k0a /. {xa -> 0, xb -> 1}', ()),
+    ('k0', 'Simplify[(k1 + k2) /. {xa -> 0, xb -> 1}]', ()),
     ('k3', 'Simplify[(1 + 1)/(E^((x0 - x1)^2/(4*(t0 + t1)))*(4*Sqrt[Pi]*Sqrt[t0 + t1]))]', ()),
 ]
 
