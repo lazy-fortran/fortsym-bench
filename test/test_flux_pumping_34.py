@@ -38,3 +38,24 @@ def test_memo34_y_long_keeps_radial_powers_as_factors():
         {sp.Function("lowerMoment")(2): 11, sp.Function("upperMoment")(2): 13}
     )
     assert numeric == sp.Rational(123, 35) * sp.pi
+
+
+def test_memo34_kernel_relative_error_uses_the_positive_numeric_branch():
+    spec = importlib.util.spec_from_file_location("memo_maxwell_34", _SOURCE)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    values = module.results()
+    product = sp.besseli(1, sp.Rational(1, 10)) * sp.besselk(
+        1, sp.Rational(1, 10)
+    )
+    expected = 1 - 2 * product
+    value = values["kernelRelativeError"].xreplace({
+        sp.Function("BesselI")(1, sp.Rational(1, 10)):
+            sp.besseli(1, sp.Rational(1, 10)),
+        sp.Function("BesselK")(1, sp.Rational(1, 10)):
+            sp.besselk(1, sp.Rational(1, 10)),
+    })
+    assert sp.N(value, 15) == sp.N(expected, 15)
+    assert sp.N(expected, 15) > 0.01
