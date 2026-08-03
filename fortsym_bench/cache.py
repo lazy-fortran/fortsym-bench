@@ -30,7 +30,9 @@ CACHE_VERSION = 1
 # equivalence for explicitly declared ``equivalent`` comparisons. Version 19
 # adds default machine-precision tolerance for numeric composite expressions.
 # Version 20 bounds algebraic equivalence before SymPy polynomial simplify.
-COMPARISON_CACHE_VERSION = 20
+# Version 21 preserves collision-safe string atoms while normalising numeric
+# exponent spelling around them.
+COMPARISON_CACHE_VERSION = 21
 
 
 @dataclass(frozen=True)
