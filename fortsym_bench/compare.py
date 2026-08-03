@@ -592,6 +592,19 @@ def compare_cross_text(
 def _equivalent(a, b) -> bool:
     import sympy
 
+    if isinstance(a, sympy.Equality) or isinstance(b, sympy.Equality):
+        if not isinstance(a, sympy.Equality) or not isinstance(b, sympy.Equality):
+            return False
+        # An explicitly equivalent Wolfram equation may be rearranged by one
+        # backend.  Compare the two zero-form residuals, including the
+        # orientation-reversed form, rather than subtracting Boolean nodes.
+        try:
+            left = sympy.simplify(a.lhs - a.rhs)
+            right = sympy.simplify(b.lhs - b.rhs)
+            return bool(left == right or sympy.simplify(left + right) == 0)
+        except Exception:
+            return False
+
     if isinstance(a, sympy.Tuple) or isinstance(b, sympy.Tuple):
         if not isinstance(a, sympy.Tuple) or not isinstance(b, sympy.Tuple):
             return False

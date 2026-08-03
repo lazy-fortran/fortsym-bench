@@ -524,6 +524,11 @@ separators, recovers the Bacc/Rosa/Posch derivation and Sympl3 orbit clusters,
 and advances the comparison cache to version 17. Malformed Mathics
 list-arithmetic trees are now reported as explicit differences rather than
 comparator errors.
+The v109 follow-up advances the comparison cache to version 18 with an
+equation-aware equivalence policy for explicitly annotated rearrangements,
+recovers the first-block `vector2d` field plots, and applies that policy to
+the radial cubic spline companion. The focused v109 regressions pass; the
+full-corpus v108 audit remains the authoritative aggregate baseline below.
 The preceding v74 cold one-worker
 pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
