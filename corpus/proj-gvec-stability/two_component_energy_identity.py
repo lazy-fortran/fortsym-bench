@@ -157,4 +157,26 @@ def results():
               for xi_component, grad_component in zip(xi_value, gradp_value))
         * _real_conjugate(divergence_value)
     )
+
+    # ``physicalWeighted`` is the source's next bounded operation: take the
+    # real part of density at the reference phase, apply force balance, and
+    # multiply by the cylindrical volume factor.  Keep the operation in this
+    # order instead of expanding a separately derived energy formula.
+    theta = sp.Symbol('theta')
+    z = sp.Symbol('z')
+    pressure_rhs = (
+        -derivative1(sp.Symbol('bz'), 1, r) * bz(r)
+        - btheta(r)
+        * (btheta(r) + r * derivative1(sp.Symbol('btheta'), 1, r))
+        / r
+    )
+    physical_value = (
+        (values['density'] + _real_conjugate(values['density'])) / 2
+    ).subs({theta: 0, z: 0})
+    physical_value = physical_value.subs(
+        derivative1(sp.Symbol('p'), 1, r), pressure_rhs / mu0
+    )
+    values['physicalWeighted'] = (
+        2 * sp.pi * sp.Symbol('len') * r * physical_value
+    )
     return values
