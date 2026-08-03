@@ -108,4 +108,18 @@ def results():
         -sp.Symbol('Bc') * projection / sp.Symbol('Bn'),
         -sp.Symbol('Bc') * projection / sp.Symbol('Bn'),
     )
+    # Reapply the source's metric Gram--Schmidt normalization after restoring
+    # the opaque Dot structure above.  Letting the generic lowering simplify
+    # this expression changes the source result from a metric norm to the
+    # special-case first-component shortcut.
+    e1raw = values['e1raw']
+    metric = values['gN']
+    norm_sq = sum(
+        e1raw[i] * metric[i][j] * e1raw[j]
+        for i in range(3)
+        for j in range(3)
+    )
+    values['e1'] = sp.Tuple(
+        *(component / sp.sqrt(norm_sq) for component in e1raw)
+    )
     return values
