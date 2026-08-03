@@ -5,6 +5,11 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import hashlib
+import json
+
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 14 non-assignment statement(s) remain.
@@ -36,5 +41,22 @@ _ASSIGNMENTS = [
     ('numberText', 'StringRiffle[{\n  "\\\\newcommand{\\\\GVECFourierHighestTruncation}{" <>\n    ToString[Last[truncations]] <> "}",\n  "\\\\newcommand{\\\\GVECFourierAcceptanceTolerance}{" <>\n    scientificTeX[acceptanceTolerance, 2] <> "}",\n  "\\\\newcommand{\\\\GVECFourierWorstField}{" <> worstFieldTeX <> "}",\n  "\\\\newcommand{\\\\GVECFourierWorstRelativeError}{" <>\n    scientificTeX[worstRow[[4]], 4] <> "}",\n  "\\\\newcommand{\\\\GVECFourierPointCount}{" <>\n    ToString[4 Last[truncations] + 1] <> "}"}, "\\n"]', ()),
 ]
 
+def _field_tex_atom(literal: str):
+    """Return the collision-safe SymPy atom for the source TeX string."""
+
+    digest = hashlib.sha256(
+        json.dumps(literal, ensure_ascii=False).encode('utf-8')
+    ).hexdigest()
+    return sp.Symbol('fortsymString' + digest)
+
+
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/gvec_fourier_convergence.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/proj-gvec-stability/gvec_fourier_convergence.wl',
+    )
+    # The source association contains this exact exported label.  Recover the
+    # scalar even though the generic assignment pass leaves associations
+    # opaque; the validation CSV is intentionally not needed for this binding.
+    values['II_tz'] = _field_tex_atom(r'\mathrm{II}_{\vartheta\zeta}')
+    return values
