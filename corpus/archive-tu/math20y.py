@@ -75,6 +75,7 @@ def results():
     values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math20y.wl')
     values['eq'] = _recovered_equation()
     values['sv'] = _recovered_characters('1234567890')
+    values['sw'] = sp.Function('FullForm')(values['sv'])
     # In the source, the second ``lp`` assignment uses ``%`` for the output
     # produced by the immediately preceding ``np = N[Pi, 17]`` assignment.
     # The generic translator deliberately leaves that notebook shorthand
