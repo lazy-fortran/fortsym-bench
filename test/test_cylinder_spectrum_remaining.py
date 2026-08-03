@@ -73,3 +73,45 @@ def test_physical_mass_and_lagrangian_follow_the_source_phase_average():
     assert not values['wPhysical'].has(
         sp.sin, sp.cos, sp.Symbol('theta'), sp.Symbol('z')
     )
+
+
+def test_residual_bindings_preserve_source_heads_and_fixture_precision():
+    values = _load_module().results()
+
+    r = sp.Symbol('r')
+    xr = sp.Function('xr')
+    derivative1 = sp.Function('Derivative1')
+    dot = sp.Function('Dot')
+    vector = sp.Tuple(
+        xr(r), derivative1(sp.Symbol('xr'), 1, r)
+    )
+    expected_lag = dot(dot(vector, sp.Symbol('schurPhysical')), vector)
+
+    assert values['lagTPfun'] == expected_lag
+    assert values['eulerTP'].func == sp.Add
+
+    shoot = sp.Function('shootResidual')
+    lag_u = sp.Symbol('lagU')
+    suydam_m = sp.Integer(4)
+    probe_grid = (
+        -1000000, -100000, -10000, -1000, -100, -10, -1,
+        -sp.Rational(1, 10), -sp.Rational(1, 100),
+    )
+    expected_signs = sp.Function('Sign')(
+        sp.Tuple(*(
+            shoot(lag_u, probe, suydam_m)
+            for probe in probe_grid
+        ))
+    )
+    assert values['probeSigns'] == expected_signs
+    refine = sp.Function('refineBracket')
+    assert values['growthBracket'] == refine(
+        lag_u, refine(lag_u, sp.Symbol('growthBracket'), 4, 8), 4, 8
+    )
+
+    expected_slow = sp.N(
+        values['kF'] ** 2 * values['cS2F'] * values['vA2F']
+        / (values['vA2F'] + values['cS2F']),
+        40,
+    )
+    assert abs(values['slowPoint'] - expected_slow) < sp.Rational(1, 10**35)

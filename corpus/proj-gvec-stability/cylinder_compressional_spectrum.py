@@ -177,7 +177,7 @@ def results():
     values['slowPoint'] = sp.N(
         values['kF'] ** 2 * values['cS2F'] * values['vA2F']
         / (values['vA2F'] + values['cS2F']),
-        35,
+        int(values['prec']),
     )
 
     # The source phaseAverage is exact on these quadratic Fourier forms.  The
@@ -340,6 +340,45 @@ def results():
     )
     values['lagTP'] = dot(
         dot(vector, sp.Symbol('schurPhysical')), vector
+    )
+
+    # Preserve the source-faithful residual assignments that the bounded
+    # stream cannot execute.  Their unresolved helper heads are observable
+    # values, not permission to invent a numerical shooting result.
+    r = sp.Symbol('r')
+    xr_r = sp.Function('xr')(r)
+    xr_prime = derivative1(sp.Symbol('xr'), 1, r)
+    tp_vector = sp.Tuple(xr_r, xr_prime)
+    values['lagTPfun'] = dot(
+        dot(tp_vector, sp.Symbol('schurPhysical')), tp_vector
+    )
+    values['eulerTP'] = sp.Function('Derivative1')(
+        sp.Symbol('Dot'), 1, values['lagTPfun'], xr_r
+    ) - sp.Function('Derivative1')(
+        sp.Symbol('Dot'), 1, values['lagTPfun'], xr_prime
+    )
+
+    shoot_residual = sp.Function('shootResidual')
+    lag_u = sp.Symbol('lagU')
+    suydam_m = sp.Integer(4)
+    probe_grid = (
+        -1000000, -100000, -10000, -1000, -100, -10, -1,
+        -sp.Rational(1, 10), -sp.Rational(1, 100),
+    )
+    values['probeSigns'] = sp.Function('Sign')(
+        sp.Tuple(*(
+            shoot_residual(lag_u, probe, suydam_m)
+            for probe in probe_grid
+        ))
+    )
+    refine_bracket = sp.Function('refineBracket')
+    values['growthBracket'] = refine_bracket(
+        lag_u,
+        refine_bracket(
+            lag_u, sp.Symbol('growthBracket'), 4, 8
+        ),
+        4,
+        8,
     )
 
     # The source cTwo expression is already fully bounded.  Keep its
