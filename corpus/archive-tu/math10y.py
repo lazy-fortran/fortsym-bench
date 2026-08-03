@@ -217,7 +217,6 @@ def _recovered_bindings():
     dy = b * sp.sqrt(1 - x**2 / a**2) * sp.cos(phi)
     unit = sp.Function("UnitStep")
     rule = sp.Function("Rule")
-    set_value = sp.Function("Set")
     rules = sp.Tuple
     # Final source binding: the ordered Which branches make the x >= 2 case
     # take precedence over the later x >= 1 branch.
@@ -236,7 +235,8 @@ def _recovered_bindings():
         # Wolfram parses the chained power as v^(4^(-1)); this is the
         # source-faithful fourth-root scaling from the early derivative
         # example, kept separate from the later expensive assignments.
-        "f0": set_value(y, z / v ** sp.Rational(1, 4)),
+        # Set evaluates to its assigned value in the native Wolfram result.
+        "f0": z / v ** sp.Rational(1, 4),
         "fx": sp.cos(a * x) * sp.sin(b * x),
         # Late, inexpensive bindings whose Wolfram values are independent
         # of the disputed three-dimensional antiderivative ``g``.
@@ -292,10 +292,10 @@ def _recovered_bindings():
         # Wolfram spelling preserves the source's machine-real tree exactly.
         "fn": parse_mathematica(_FN_WL),
         # Direct source binding from the early total-derivative example.
-        # Keep Dt and Set opaque: v and y have Wolfram total-derivative
-        # semantics that are intentionally not guessed by the Python oracle.
+        # Keep Dt opaque: v and y have Wolfram total-derivative semantics
+        # that are intentionally not guessed by the Python oracle.
         "ft0": sp.Function("Dt")(v, sp.Tuple(x, 2))
-        * set_value(y, z / v ** sp.Rational(1, 4))
+        * (z / v ** sp.Rational(1, 4))
         / 4,
         "g11": sp.N(g331.subs({x: sp.Float("0.9"), y: sp.Float("0.7")}), 16),
         "g01": sp.N(g331.subs({x: sp.Float("0.2"), y: sp.Float("0.7")}), 16),
@@ -313,26 +313,27 @@ def _recovered_bindings():
             t,
         ),
         # The first derivative binding is retained as an explicit Wolfram
-        # ``Dt`` tree, matching the source's final value before later
-        # assignments change the surrounding symbols.
-        "f1": sp.Function("Dt")(
-            set_value(y, z / v ** sp.Rational(1, 4)), x
-        ),
+        # ``Dt`` tree, matching the native value before later assignments
+        # change the surrounding symbols.
+        "f1": sp.Function("Dt")(z / v ** sp.Rational(1, 4), x),
         # The next source binding differentiates that same total-derivative
         # tree once more.  Preserve the Wolfram structure so unresolved
         # dependencies (for example Dt[v, x]) are not guessed away.
         "f2": sp.Function("Dt")(
-            sp.Function("Dt")(set_value(y, z / v ** sp.Rational(1, 4)), x), x
+            sp.Function("Dt")(z / v ** sp.Rational(1, 4), x), x
         ),
+        # The bounded native run exposes this earlier cheap assignment; the
+        # later If/plot block remains intentionally refused.
+        "ft1": sp.Function("Dt")(v, x)
+        * sp.Function("Dt")(z / v ** sp.Rational(1, 4), x)
+        / 2,
         # The following source assignment only multiplies the total
         # derivative by v; retain that exact symbolic structure rather than
         # imposing a particular v(x) dependency on Wolfram's Dt.
         "ft2": v
         * sp.Function("Dt")(
-            sp.Function("Dt")(set_value(y, z / v ** sp.Rational(1, 4)), x), x
+            sp.Function("Dt")(z / v ** sp.Rational(1, 4), x), x
         ),
-        # Final cheap source binding before the Laplace-transform examples.
-        "ft1": sp.Piecewise((0, t <= a), (1, True)),
         # Mathics does not emit this transform binding, and the native
         # Wolfram runner preserves the unsupported transform head. Retain
         # the exact source tree so the SymPy translation remains useful

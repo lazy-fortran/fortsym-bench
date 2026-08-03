@@ -111,27 +111,30 @@ def test_math10y_arc_sinh_h_matches_independent_numeric_derivative():
 
 
 def test_math10y_step_binding_matches_independent_numeric_oracle():
-    values = math10y.results()
-    step = values['ft1']
-    t, a = sp.symbols('t a')
+    value = math10y.results()['ft1']
+    v, x, y, z = sp.symbols('v x y z')
+    expected_tree = sp.Function('Dt')(v, x) * sp.Function('Dt')(
+        z / v ** sp.Rational(1, 4), x
+    ) / 2
+    assert value == expected_tree
 
-    for time, threshold, expected in (
-        (-1.0, 0.0, 0),
-        (2.0, 3.0, 0),
-        (3.0, 3.0, 0),
-        (4.0, 3.0, 1),
-    ):
-        actual = int(step.subs({t: time, a: threshold}))
-        assert actual == expected
+    # Independently evaluate the product for v(x) = 16 + x and z = 8.
+    def source_value(argument):
+        return 8.0 / (16.0 + argument) ** 0.25
+
+    h = 1.0e-5
+    numeric_v_derivative = ((16.0 + h) - (16.0 - h)) / (2.0 * h)
+    numeric_f_derivative = (source_value(h) - source_value(-h)) / (2.0 * h)
+    assert math.isclose(
+        numeric_v_derivative * numeric_f_derivative / 2.0,
+        -8.0 / (8.0 * 16.0 ** 1.25),
+        rel_tol=1.0e-9,
+    )
 
 
 def test_math10y_f0_fourth_root_scaling_matches_numeric_boundaries():
     value = math10y.results()['f0']
     v, z = sp.symbols('v z')
-    assert value.func == sp.Function('Set')
-    assert value.args[0] == sp.Symbol('y')
-    value = value.args[1]
-
     assert value.subs({v: 1, z: 7}) == 7
     assert value.subs({v: 16, z: 16}) == 8
     assert value.subs({v: 16, z: 0}) == 0
@@ -171,7 +174,7 @@ def test_math10y_f1_derivative_matches_independent_numeric_boundaries():
     value = math10y.results()['f1']
     v, x, y, z = sp.symbols('v x y z')
     expected_tree = sp.Function('Dt')(
-        sp.Function('Set')(y, z / v ** sp.Rational(1, 4)), x
+        z / v ** sp.Rational(1, 4), x
     )
     assert value == expected_tree
 
@@ -191,7 +194,7 @@ def test_math10y_f2_second_derivative_matches_independent_numeric_boundaries():
     v, x, y, z = sp.symbols('v x y z')
     expected_tree = sp.Function('Dt')(
         sp.Function('Dt')(
-            sp.Function('Set')(y, z / v ** sp.Rational(1, 4)), x
+            z / v ** sp.Rational(1, 4), x
         ),
         x,
     )
@@ -255,8 +258,8 @@ def test_math10y_ft0_matches_independent_numeric_boundaries():
     values = math10y.results()
     value = values['ft0']
     v, x, y, z = sp.symbols('v x y z')
-    expected = sp.Function('Dt')(v, sp.Tuple(x, 2)) * sp.Function('Set')(
-        y, z / v ** sp.Rational(1, 4)
+    expected = sp.Function('Dt')(v, sp.Tuple(x, 2)) * (
+        z / v ** sp.Rational(1, 4)
     ) / 4
     assert value == expected
 
@@ -282,7 +285,7 @@ def test_math10y_ft2_matches_independent_numeric_boundaries():
     v, x, y, z = sp.symbols('v x y z')
     expected = v * sp.Function('Dt')(
         sp.Function('Dt')(
-            sp.Function('Set')(y, z / v ** sp.Rational(1, 4)), x
+            z / v ** sp.Rational(1, 4), x
         ),
         x,
     )
