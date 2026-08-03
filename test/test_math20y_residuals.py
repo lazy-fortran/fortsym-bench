@@ -39,6 +39,7 @@ def test_character_binding_maps_the_source_decimal_string_characterwise():
     values = _module().results()['sv']
     assert values == sp.Tuple(*(_string_atom(character)
                                 for character in '1234567890'))
+    assert _module().results()['sw'] == sp.Function('FullForm')(values)
 
 
 def test_cross_backend_string_comparison_preserves_the_complete_digest():
