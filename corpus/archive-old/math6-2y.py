@@ -215,6 +215,7 @@ _ASSIGNMENTS = [
 
 def results():
     values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math6-2y.wl')
+    x, y, mu = sp.symbols('x y μ')
 
     # The native runner keeps this direct ParametricPlot3D source head when
     # the later Graphics3D/Show assignments refuse rendering.  Preserve that
@@ -230,6 +231,25 @@ def results():
         ),
         sp.Tuple(u, 0, 2 * sp.pi),
         rule(sp.Symbol('PlotPoints'), 200),
+    )
+    values['pa'] = sp.Function('ParametricPlot3D')(
+        sp.Tuple(x, y, sp.sin(x * y)), sp.Tuple(x, 1, 2), sp.Tuple(y, 1, 2),
+        rule(sp.Symbol('PlotPoints'), 4),
+        rule(sp.Symbol('BoxRatios'), sp.Tuple(1, 1, sp.Float('0.4'))),
+    )
+    values['cp'] = sp.Function('ContourPlot')(
+        sp.Symbol('um'), sp.Tuple(x, -sp.Float('1.5'), sp.Float('1.5')),
+        sp.Tuple(y, -sp.Float('1.5'), sp.Float('1.5')),
+        rule(sp.Symbol('Contours'), 15), rule(sp.Symbol('PlotPoints'), 100),
+    )
+    values['tm'] = sp.Tuple(
+        sp.Function('Text')(sp.Function('Subscript')(sp.Symbol('μ'), 1), sp.Tuple(-sp.Rational(1, 4), sp.Float('0.15'))),
+        sp.Function('Text')(sp.Function('Subscript')(sp.Symbol('μ'), 2), sp.Tuple(sp.Rational(3, 4), sp.Float('0.15'))),
+    )
+    values['pl'] = sp.Function('Plot')(
+        sp.Symbol('x') ** 3 + 2 * sp.Symbol('x') ** 2 - 4 * sp.Symbol('x'),
+        sp.Tuple(sp.Symbol('x'), -4, 3),
+        rule(sp.Symbol('AxesLabel'), sp.Tuple('x', 'y')),
     )
 
     # Recover the source's restricted-three-body example separately from its
@@ -261,6 +281,11 @@ def results():
     values.setdefault('fy', -sp.diff(fu, y))
     values.setdefault('sm', sp.Function('Rule')(mu, sp.Rational(1, 4)))
     values.setdefault('um', fu.subs(mu, sp.Rational(1, 4)))
+    values['cp'] = sp.Function('ContourPlot')(
+        values['um'], sp.Tuple(x, -sp.Float('1.5'), sp.Float('1.5')),
+        sp.Tuple(y, -sp.Float('1.5'), sp.Float('1.5')),
+        rule(sp.Symbol('Contours'), 15), rule(sp.Symbol('PlotPoints'), 100),
+    )
     values.setdefault(
         'pm', sp.Tuple(sp.Function('Point')(sp.Tuple(-sp.Rational(1, 4), 0)),
                        sp.Function('Point')(sp.Tuple(sp.Rational(3, 4), 0)))

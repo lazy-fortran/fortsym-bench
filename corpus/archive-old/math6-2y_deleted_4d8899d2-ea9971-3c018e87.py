@@ -205,6 +205,7 @@ def results():
         _ASSIGNMENTS,
         'corpus/archive-old/math6-2y_deleted_4d8899d2-ea9971-3c018e87.wl',
     )
+    x, y, mu = sp.symbols('x y μ')
 
     # The final source assignment is a plot with an option rule.  The shared
     # evaluator intentionally keeps Rule objects opaque, so that assignment
@@ -215,6 +216,22 @@ def results():
         sp.Tuple(sp.sin(8 * u) * sp.sin(u), sp.cos(8 * u) * sp.sin(u), sp.cos(u)),
         sp.Tuple(u, 0, 2 * sp.pi),
         sp.Function('Rule')(sp.Symbol('PlotPoints'), 200),
+    )
+    values['pa'] = sp.Function('ParametricPlot3D')(
+        sp.Tuple(x, y, sp.sin(x * y)), sp.Tuple(x, 1, 2), sp.Tuple(y, 1, 2),
+        sp.Function('Rule')(sp.Symbol('PlotPoints'), 4),
+        sp.Function('Rule')(sp.Symbol('BoxRatios'), sp.Tuple(1, 1, sp.Float('0.4'))),
+    )
+    values['sm'] = sp.Function('Rule')(mu, sp.Rational(1, 4))
+    values['cp'] = sp.Function('ContourPlot')(
+        sp.Symbol('um'), sp.Tuple(x, -sp.Float('1.5'), sp.Float('1.5')),
+        sp.Tuple(y, -sp.Float('1.5'), sp.Float('1.5')),
+        sp.Function('Rule')(sp.Symbol('Contours'), 15),
+        sp.Function('Rule')(sp.Symbol('PlotPoints'), 100),
+    )
+    values['tm'] = sp.Tuple(
+        sp.Function('Text')(sp.Function('Subscript')(sp.Symbol('μ'), 1), sp.Tuple(-sp.Rational(1, 4), sp.Float('0.15'))),
+        sp.Function('Text')(sp.Function('Subscript')(sp.Symbol('μ'), 2), sp.Tuple(sp.Rational(3, 4), sp.Float('0.15'))),
     )
     # The source clears x and y before the Jacobi-CN example; Clear statements
     # are intentionally absent from the assignment-only translation stream.
@@ -236,6 +253,12 @@ def results():
     )
     values['fy'] = -sp.diff(fu, y)
     values['um'] = fu.subs(mu, sp.Rational(1, 4))
+    values['cp'] = sp.Function('ContourPlot')(
+        values['um'], sp.Tuple(x, -sp.Float('1.5'), sp.Float('1.5')),
+        sp.Tuple(y, -sp.Float('1.5'), sp.Float('1.5')),
+        sp.Function('Rule')(sp.Symbol('Contours'), 15),
+        sp.Function('Rule')(sp.Symbol('PlotPoints'), 100),
+    )
     point = sp.Function('Point')
     values['pm'] = sp.Tuple(
         point(sp.Tuple(-sp.Rational(1, 4), 0)),
