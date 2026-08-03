@@ -295,6 +295,14 @@ def _recovered_bindings():
         "fss": unit(a + t) + unit(a - t) - 1,
         "fst": unit(t) + unit(a - t) - 1,
         "ft": 1 / (t**2 + a**2),
+        # ``fw`` is rebound after the second FourierTransform example.  The
+        # Wolfram runner preserves the unevaluated intermediate ``fm`` rather
+        # than expanding the transform, so retain that final source tree.
+        "fw": sp.Function("InverseFourierTransform")(
+            sp.Symbol("fm"),
+            omega,
+            t,
+        ),
         # The first derivative binding is retained as an explicit Wolfram
         # ``Dt`` tree, matching the source's final value before later
         # assignments change the surrounding symbols.
