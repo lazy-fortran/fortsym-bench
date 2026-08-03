@@ -99,6 +99,13 @@ def results():
         * delta
         / (delta**2 + sp.Symbol('nu')**2)
     )
+    values['bCoef'] = (
+        sp.Symbol('m')
+        * sp.Function('h')(j)
+        * sp.Function('Derivative1')(sp.Symbol('f0'), sp.Integer(1), j)
+        * sp.Symbol('nu')
+        / (delta**2 + sp.Symbol('nu')**2)
+    )
     # The generic parser does not lower Mathematica's prime notation in this
     # assignment.  Keep the source-faithful logarithmic Maxwellian gradient
     # explicit, using the same opaque derivative convention as the oracle.
