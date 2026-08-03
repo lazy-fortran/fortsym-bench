@@ -46,3 +46,46 @@ def test_scalar_matrix_dot_keeps_the_metric_velocity_identity():
         sp.Function("List")(0, 0, speed),
     )
     assert values["vStrict"] == expected_vstrict
+
+
+def test_christoffel_tensor_matches_independent_metric_derivatives():
+    values = _module().results()
+    r, th, ph, R0 = sp.symbols("r th ph R0")
+    coords = (r, th, ph)
+    metric = sp.diag(1, r**2, (R0 + r * sp.cos(th))**2)
+    inverse = metric.inv()
+
+    # Recompute the defining Christoffel formula independently of the
+    # companion's hand-expanded tensor.
+    expected = sp.Tuple(*(
+        sp.Tuple(*(
+            sp.Tuple(*(
+                sp.simplify(sum(
+                    inverse[i, ell] * (
+                        sp.diff(metric[ell, j], coords[k])
+                        + sp.diff(metric[ell, k], coords[j])
+                        - sp.diff(metric[j, k], coords[ell])
+                    ) / 2
+                    for ell in range(3)
+                ))
+                for k in range(3)
+            ))
+            for j in range(3)
+        ))
+        for i in range(3)
+    ))
+
+    assert values["chr"] == expected
+    point = {R0: 10, r: 2, th: sp.Rational(1, 5), ph: 0}
+
+    def leaves(value):
+        if isinstance(value, sp.Tuple):
+            for item in value:
+                yield from leaves(item)
+        else:
+            yield value
+
+    assert all(
+        sp.N(actual.subs(point) - reference.subs(point)) == 0
+        for actual, reference in zip(leaves(values["chr"]), leaves(expected))
+    )
