@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 144 non-assignment statement(s) remain.
 COMPARE = {
@@ -67,4 +68,13 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math5y.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math5y.wl')
+    # The source polynomial is exact even though the comparison literal is
+    # printed as 0.  Preserve Wolfram's canonical algebraic Solve tree rather
+    # than the numerical approximation produced by the generic lowering.
+    x = sp.Symbol('x')
+    rule = sp.Function('Rule')
+    values['sp'] = sp.Tuple(
+        *(sp.Tuple(rule(x, root)) for root in sp.solve(x**4 + x - 1, x))
+    )
+    return values
