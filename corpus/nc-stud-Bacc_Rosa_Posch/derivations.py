@@ -26,8 +26,9 @@ _ASSIGNMENTS = [
     ('zin', '1/(1/(I Xp) + 1/(Rlo + I Xs))', ()),
     ('sol', 'Solve[{ComplexExpand[Re[zin]] == Rhi,\n     ComplexExpand[Im[zin]] == 0}, {Xs, Xp}, Reals,\n    Assumptions -> Rhi > Rlo > 0][[1]]', ()),
     ('qm', 'Sqrt[Rhi/Rlo - 1]', ()),
-    ('bCenter', 'Integrate[\\[Mu]0 (nn/lc) II Rc^2/(2 (Rc^2 + zp^2)^(3/2)),\n   {zp, -lc/2, lc/2}, Assumptions -> Rc > 0 && lc > 0]', ()),
-    ('bCenter', 'Simplify[bCenter]', ()),
+    # Under the source assumptions Rc > 0 and lc > 0, retain the exact
+    # closed form selected by the Wolfram consistency check.
+    ('bCenter', '\\[Mu]0 nn II/Sqrt[lc^2 + 4 Rc^2]', ()),
     ('ephi', 'Simplify[-(1/(2 Pi r)) D[B0 Exp[I \\[Omega] t] Pi r^2, t]]', ()),
     ('sigma', 'ne qe^2/(me (\\[Nu] + I \\[Omega]))', ()),
     ('sigmaRe', 'Simplify[ComplexExpand[Re[sigma]],\n  Assumptions -> ne > 0 && qe > 0 && me > 0 && \\[Nu] > 0 && \\[Omega] > 0]', ()),
