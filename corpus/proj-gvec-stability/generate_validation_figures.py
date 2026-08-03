@@ -111,4 +111,30 @@ def results():
         sp.Float(10.0 ** (-8 + index / 4))
         for index in range(29)
     ))
+
+    # The native bounded runner preserves the plot data as a source-level
+    # tree: Subdivide remains opaque, while its bounded ConstantArray adapter
+    # exposes the three representative values used in the native result.
+    # Keep that tree in the SymPy companion instead of fabricating 201 plotted
+    # points that the source-level backend did not emit.
+    list_head = sp.Tuple
+    transpose = sp.Function('Transpose')
+    grid = sp.Function('Subdivide')(sp.Integer(0), sp.Integer(2), sp.Integer(200))
+    values['spectrumData'] = list_head(
+        transpose(list_head(
+            grid,
+            sp.Add(1, -grid, evaluate=False),
+        )),
+        transpose(list_head(
+            grid,
+            list_head(sp.Integer(1), sp.Integer(1), sp.Integer(1)),
+        )),
+        transpose(list_head(
+            grid,
+            list_head(*(
+                sp.Float('2.0943951023931957')
+                for _ in range(3)
+            )),
+        )),
+    )
     return values
