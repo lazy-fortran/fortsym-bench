@@ -154,6 +154,42 @@ def results():
     k = sp.Symbol('k')
     xr = sp.Function('xr')
     eta = sp.Function('eta')
+
+    # ``Curl[Cross[xiPerp, bField], ..., "Cylindrical"]`` keeps the radial
+    # product in its third component as ``r*(-bz' xr - xr' bz)``.  The
+    # generic SymPy lowering differentiates that product and distributes the
+    # factor r, which is algebraically equivalent but is not source-faithful
+    # for the structural oracle.  Rebuild the bounded source tree while
+    # retaining ordinary SymPy Derivative nodes for the Python oracle.
+    btheta_r = btheta(r)
+    bz_r = bz(r)
+    xr_r = xr(r)
+    eta_r = eta(r)
+    btheta_prime = sp.Derivative(btheta_r, r)
+    bz_prime = sp.Derivative(bz_r, r)
+    xr_prime = sp.Derivative(xr_r, r)
+    q_field = sp.Tuple(
+        (
+            sp.I * k * r * bz_r * xr_r * phase_value
+            + sp.I * m * btheta_r * xr_r * phase_value
+        ) / r,
+        (
+            k * btheta_r**2 * eta_r * phase_value / bmag_value
+            + k * bz_r**2 * eta_r * phase_value / bmag_value
+            - btheta_prime * xr_r * phase_value
+            - xr_prime * btheta_r * phase_value
+        ),
+        (
+            -m * btheta_r**2 * eta_r * phase_value / bmag_value
+            - m * bz_r**2 * eta_r * phase_value / bmag_value
+            + r * (
+                -bz_prime * xr_r * phase_value
+                - xr_prime * bz_r * phase_value
+            )
+            - bz_r * xr_r * phase_value
+        ) / r,
+    )
+    values['qField'] = q_field
     divergence_value = (
         (xr(r) + r * derivative1(sp.Symbol('xr'), 1, r))
         * phase_value / r
