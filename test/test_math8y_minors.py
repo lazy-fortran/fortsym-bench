@@ -69,6 +69,29 @@ def test_recovered_final_row_assignment_and_plot_points_match_source():
     )
 
 
+def test_recovered_final_named_bindings_match_independent_source_oracles():
+    values = _MODULE.results()
+    x = sp.Symbol('x')
+    eigen_matrix = sp.Matrix([[1, 1, 2], [1, 2, 1], [2, 1, 1]])
+    assert values['ceq'] == (eigen_matrix - x * sp.eye(3)).det()
+
+    complex_matrix = sp.Matrix([
+        [1, sp.I],
+        [2, sp.Float(1.0)],
+        [3, -sp.I],
+    ])
+    error = complex_matrix * sp.Matrix(values['pa']) * complex_matrix - complex_matrix
+    assert max(abs(complex(value.evalf())) for value in error) < 1e-12
+
+    least_squares_matrix = sp.Matrix([[1, -2], [1, -2], [1, 1]])
+    rhs = sp.Matrix([-1, sp.Float(-3.95), 5])
+    point = sp.Matrix(values['pso'])
+    residual = least_squares_matrix.T * (
+        least_squares_matrix * point - rhs
+    )
+    assert max(abs(float(value)) for value in residual) < 1e-12
+
+
 def test_recovered_least_squares_point_satisfies_source_normal_equations():
     values = _MODULE.results()
     matrix = sp.Matrix([[1, -2], [1, -2], [1, 1]])
