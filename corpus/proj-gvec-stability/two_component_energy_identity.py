@@ -255,6 +255,25 @@ def results():
         evaluate=False,
     )
 
+    # ``kernelWeighted`` is the source-level wrapper around the angular
+    # average.  The preceding Integrate remains unevaluated in the native
+    # result, so preserve its named ``kernelAveraged`` operand and the exact
+    # Abs application instead of dropping this binding from the SymPy stream.
+    # ``Abs`` is intentionally an opaque head here: the native InputForm
+    # oracle retains that source tree under its structural comparison policy.
+    kernel_averaged = sp.Symbol('kernelAveraged')
+    sqg_argument = sp.Mul(
+        2, sp.pi, sp.Symbol('len'), r,
+        evaluate=False,
+    )
+    values['kernelWeighted'] = sp.Mul(
+        kernel_averaged,
+        sp.Function('Abs')(sqg_argument),
+        2,
+        sp.Pow(mu0, -1),
+        evaluate=False,
+    )
+
     # The source evaluates ``difference`` after setting both axial-profile
     # derivatives to zero.  The generic assignment stream cannot carry the
     # preceding quadratic reductions through that substitution and leaves
