@@ -73,3 +73,56 @@ def test_jdotb_is_the_cylindrical_current_field_contraction():
         derivative1(sp.Symbol('bz'), 1, r): 13,
     })
     assert expression == -6
+
+
+def test_density_matches_the_direct_numeric_vector_contraction():
+    values = _load().results()
+    r = sp.Symbol('r')
+    numeric = {
+        r: 2,
+        sp.Symbol('theta'): 0,
+        sp.Symbol('z'): 0,
+        sp.Symbol('m'): 1,
+        sp.Symbol('k'): 3,
+        sp.Symbol('len'): 4,
+        sp.Symbol('mu0'): 2,
+        sp.Function('btheta')(r): 3,
+        sp.Function('bz')(r): 5,
+        sp.Function('xr')(r): 7,
+        sp.Function('eta')(r): 11,
+        sp.Function('Derivative1')(sp.Symbol('xr'), 1, r): 13,
+        sp.Derivative(sp.Function('btheta')(r), r): 17,
+        sp.Derivative(sp.Function('bz')(r), r): 19,
+        sp.Derivative(sp.Function('xr')(r), r): 13,
+        sp.Function('Derivative1')(sp.Symbol('p'), 1, r): 23,
+    }
+    observed = sp.simplify(values['density'].subs(numeric))
+
+    # Independent evaluation of the source definition at the same point:
+    # q, current, and xi are the three vectors produced by the cylindrical
+    # formulas, and div(xi) is evaluated from its radial/theta/z components.
+    phase = 1
+    bmag = sp.sqrt(3**2 + 5**2)
+    xi = sp.Matrix([7, -sp.I * 11 * 5 / bmag, sp.I * 11 * 3 / bmag])
+    current = sp.Matrix([
+        0,
+        -sp.Rational(19, 2),
+        (17 + sp.Rational(3, 2)) / 2,
+    ])
+    q = sp.Matrix([
+        sp.I * sp.Rational(3 * 2 * 5 * 7 + 1 * 3 * 7, 2),
+        sp.Rational(3 * 3**2 * 11 + 3 * 5**2 * 11, 1) / bmag
+        - 3 * 13 - 7 * 17,
+        -sp.Rational((3**2 + 5**2) * 11, 2) / bmag
+        - sp.Rational(2 * 5 * 13 + 2 * 7 * 19 + 5 * 7, 2),
+    ])
+    div = sp.Rational(7 + 2 * 13, 2) + 11 * (
+        sp.Rational(1 * 5, 2) - 3 * 3
+    ) / bmag
+    gradp = sp.Matrix([23, 0, 0])
+    expected = (
+        (q.dot(sp.conjugate(q)) / 2)
+        - sp.conjugate(xi).dot(current.cross(q))
+        + xi.dot(gradp) * sp.conjugate(div)
+    )
+    assert sp.simplify(observed - expected) == 0
