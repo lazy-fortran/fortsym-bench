@@ -200,6 +200,27 @@ def results():
     vperp_gc = _thread_binary(
         lambda x, y: x - y, vGC, _times(_dot(hcov, vGC), hctr)
     )
+    # Christoffel symbols of the source metric
+    #   g = diag(1, r^2, (R0 + r cos(th))^2).
+    # This is the bounded, source-faithful expansion of the final Table/Sum;
+    # no unresolved field or tensor placeholder is involved here.
+    christoffel = sp.Tuple(
+        sp.Tuple(
+            sp.Tuple(0, 0, 0),
+            sp.Tuple(0, -r, 0),
+            sp.Tuple(0, 0, -sp.cos(th) * Rr),
+        ),
+        sp.Tuple(
+            sp.Tuple(0, 1 / r, 0),
+            sp.Tuple(1 / r, 0, 0),
+            sp.Tuple(0, 0, sp.sin(th) * Rr / r),
+        ),
+        sp.Tuple(
+            sp.Tuple(0, 0, sp.cos(th) / Rr),
+            sp.Tuple(0, 0, -r * sp.sin(th) / Rr),
+            sp.Tuple(sp.cos(th) / Rr, -r * sp.sin(th) / Rr, 0),
+        ),
+    )
 
     values.update(
         {
@@ -222,6 +243,7 @@ def results():
             "remainder": _list_head(remainder),
             "vPerpGC": _list_head(vperp_gc),
             "vPerpGC0": _list_head(vperp_gc),
+            "chr": christoffel,
         }
     )
     return values
