@@ -99,4 +99,19 @@ def results():
         sp.Tuple(x, 0, 1),
         sp.Tuple(y, 0, 1),
     )
+    # The remaining first-block plots are overwritten by the triangular sketch
+    # later in the source.  Keep their pre-overwrite vector fields observable
+    # at the same source-level names as the native Wolfram run.
+    for name in ('g13', 'g21', 'g22', 'g23'):
+        source_field = {
+            'g13': values['phi13'],
+            'g21': values['phi21'],
+            'g22': values['phi22'],
+            'g23': values['phi23'],
+        }[name]
+        values[name] = sp.Function('StreamPlot')(
+            source_field,
+            sp.Tuple(x, 0, 1),
+            sp.Tuple(y, 0, 1),
+        )
     return values
