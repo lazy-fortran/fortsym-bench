@@ -55,12 +55,15 @@ _ASSIGNMENTS = [
     ('B', 'a11*phib11 + a12*phib12 + a13*phib13 + a21*phib21 + a22*phib22 + a23*phib23', ()),
     ('sol', 'Flatten[Solve[Div[B, {x, y}] == 0, a23]]', ()),
     ('B0', 'FullSimplify[B /. sol]', ()),
-    ('phic11', '2*{x, 0}', ()),
-    ('phic12', '2*{0, y}', ()),
-    ('phic21', '2*{-y, y}', ()),
-    ('phic22', '2*{x + y - 1, 0}', ()),
-    ('phic31', '2*{0, x + y - 1}', ()),
-    ('phic32', '2*{x, -x}', ()),
+    # The source's scalar-times-list syntax is elementwise multiplication.
+    # Spell out the six components because the bounded parser cannot lower a
+    # scalar Mul whose other operand is a Wolfram list.
+    ('phic11', '{2*x, 0}', ()),
+    ('phic12', '{0, 2*y}', ()),
+    ('phic21', '{-2*y, 2*y}', ()),
+    ('phic22', '{2*(x + y - 1), 0}', ()),
+    ('phic31', '{0, 2*(x + y - 1)}', ()),
+    ('phic32', '{2*x, -2*x}', ()),
     ('tri', 'Graphics[{FaceForm[White], EdgeForm[Black], Triangle[{{0, 0}, {1, 0}, {0, 1}}]}]', ()),
     ('g11', 'Show[tri, StreamPlot[phic11, {x, 0, 1}, {y, 0, 1}]]', ()),
     ('g12', 'Show[tri, StreamPlot[phic12, {x, 0, 1}, {y, 0, 1}]]', ()),
