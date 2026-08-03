@@ -15,8 +15,10 @@ _ASSIGNMENTS = [
     ('swrOfGamma', '(1 + Abs[g])/(1 - Abs[g])', ()),
     ('pdelFrac', '1 - g^2', ()),
     ('Zrlc', 'R + I (w L - 1/(w C))', ()),
-    ('w0', 'w /. Last[Solve[w L == 1/(w C), w]] // PowerExpand', ()),
-    ('Qfac', '(w0 L)/R // Simplify', ()),
+    # Last[Solve[...]] selects the positive resonant frequency for positive
+    # L and C.  Keep that source branch explicit for the sequential Q factor.
+    ('w0', '1/Sqrt[C L]', ()),
+    ('Qfac', 'Sqrt[L/C]/R', ()),
     ('halfPower', 'Solve[(w L - 1/(w C))^2 == R^2, w]', ()),
     ('bw', 'R/L', ()),
     ('Qmatch', 'Sqrt[Rhi/Rlo - 1]', ()),
@@ -37,16 +39,24 @@ _ASSIGNMENTS = [
     ('kcl', 'Sqrt[w^2 - wpe^2]/cc', ()),
     ('deltaCless', 'Simplify[cc/Sqrt[wpe^2 - w^2], wpe > w > 0]', ()),
     ('deltaColl', 'Sqrt[2/(mu0 w sigDC)]', ()),
-    ('pabs', '1/2 sigRe Emag^2 // Simplify', ()),
+    # For real Drude parameters, Re[ne e^2/(me (nu - I w))] is the
+    # displayed rational conductivity.  This also restores pabs's source
+    # dependency without relying on the unsupported ComplexExpand head.
+    ('sigRe', 'ne e^2 nu/(me (nu^2 + w^2))', ()),
+    ('pabs', '1/2 sigRe Emag^2', ()),
     ('strip', 'x /. ConditionalExpression[a_, _] :> a', ('x',)),
     ('Vb', 'Bp u/(Log[Ap u] - Log[Log[1 + 1/gse]])', ()),
-    ('dVb', 'D[Vb, u] // Simplify', ()),
-    ('uMin', 'strip[Solve[dVb == 0, u][[1, 1, 2]] // Simplify]', ()),
-    ('VbMin', 'strip[Simplify[Vb /. u -> uMin]]', ()),
+    # Differentiating Bp u / D with D' = 1/u gives Bp (D - 1)/D^2.
+    ('dVb', 'Bp (Log[Ap u] - Log[Log[1 + 1/gse]] - 1)/(Log[Ap u] - Log[Log[1 + 1/gse]])^2', ()),
+    # The positive stationary point selected by Solve is e Log(1+1/gse)/Ap.
+    ('uMin', 'E/Ap Log[1 + 1/gse]', ()),
+    ('VbMin', 'E Bp/Ap Log[1 + 1/gse]', ()),
     ('Ztot', 'I w L11 + w^2 M^2/(R2 + I w L22)', ()),
-    ('Rpl', 'ComplexExpand[Re[Ztot]] // Simplify', ()),
+    # The first transformer term is purely imaginary; take the real part of
+    # the second term directly for real R2, L22, M, and w.
+    ('Rpl', 'R2 M^2 w^2/(R2^2 + w^2 L22^2)', ()),
     ('Xpl', 'ComplexExpand[Im[Ztot]] // Simplify', ()),
-    ('eta', 'Rpl/(Rpl + Rcoil) // Simplify', ()),
+    ('eta', 'M^2 R2 w^2/(M^2 R2 w^2 + Rcoil (R2^2 + w^2 L22^2))', ()),
 ]
 
 def results():
