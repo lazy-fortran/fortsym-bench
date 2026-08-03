@@ -186,7 +186,7 @@ def _normalise_inputform(text: str) -> tuple[str, dict[str, str]]:
         r"(\1^\2)",
         text,
     )
-    text = re.sub(r"([eE][+-]?)0+(\d+)", r"\1\2", text)
+    text = _normalise_exponent_zeros_outside_string_atoms(text)
     text = re.sub(r"\\\[([A-Za-z][A-Za-z0-9]*)\]", r"\1", text)
     text = re.sub(
         r"\b([A-Za-z$][A-Za-z0-9$]*)\s*\[\s*\]",
@@ -195,6 +195,20 @@ def _normalise_inputform(text: str) -> tuple[str, dict[str, str]]:
     )
     text, protected = _protect_inputform_greek_symbols(text)
     return _protect_inputform_builtin_symbols(text, protected)
+
+
+def _normalise_exponent_zeros_outside_string_atoms(text: str) -> str:
+    """Normalise exponent zeros without mutating collision-safe strings."""
+    exponent = re.compile(r"([eE][+-]?)0+(\d+)")
+    atom = re.compile(r"fortsymString[0-9a-f]{64}")
+    pieces: list[str] = []
+    cursor = 0
+    for match in atom.finditer(text):
+        pieces.append(exponent.sub(r"\1\2", text[cursor:match.start()]))
+        pieces.append(match.group(0))
+        cursor = match.end()
+    pieces.append(exponent.sub(r"\1\2", text[cursor:]))
+    return "".join(pieces)
 
 
 _OPAQUE_INPUTFORM_HEADS = (

@@ -6,6 +6,8 @@ from pathlib import Path
 
 import sympy as sp
 
+from fortsym_bench.compare import compare_cross_text
+
 
 def _module():
     path = Path(__file__).parents[1] / 'corpus/archive-tu/math20y.py'
@@ -37,3 +39,11 @@ def test_character_binding_maps_the_source_decimal_string_characterwise():
     values = _module().results()['sv']
     assert values == sp.Tuple(*(_string_atom(character)
                                 for character in '1234567890'))
+
+
+def test_cross_backend_string_comparison_preserves_the_complete_digest():
+    expected = "Symbol('" + str(_string_atom('9')) + "')"
+    result = compare_cross_text(
+        '"9"', 'inputform', expected, 'srepr', 'structural'
+    )
+    assert result.outcome == 'agree'
