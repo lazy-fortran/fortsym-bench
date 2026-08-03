@@ -283,6 +283,12 @@ def _recovered_bindings():
         "f1": sp.Function("Dt")(
             set_value(y, z / v ** sp.Rational(1, 4)), x
         ),
+        # The next source binding differentiates that same total-derivative
+        # tree once more.  Preserve the Wolfram structure so unresolved
+        # dependencies (for example Dt[v, x]) are not guessed away.
+        "f2": sp.Function("Dt")(
+            sp.Function("Dt")(set_value(y, z / v ** sp.Rational(1, 4)), x), x
+        ),
         # Final cheap source binding before the Laplace-transform examples.
         "ft1": sp.Piecewise((0, t <= a), (1, True)),
         "fu": t * unit(a + t) - t * unit(t - a),

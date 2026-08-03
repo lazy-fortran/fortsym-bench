@@ -142,6 +142,37 @@ def test_math10y_f1_derivative_matches_independent_numeric_boundaries():
     assert math.isclose(numeric_derivative, expected_derivative, rel_tol=1e-9)
 
 
+def test_math10y_f2_second_derivative_matches_independent_numeric_boundaries():
+    value = math10y.results()['f2']
+    v, x, y, z = sp.symbols('v x y z')
+    expected_tree = sp.Function('Dt')(
+        sp.Function('Dt')(
+            sp.Function('Set')(y, z / v ** sp.Rational(1, 4)), x
+        ),
+        x,
+    )
+    assert value == expected_tree
+
+    # Independently evaluate the second derivative represented by the
+    # Wolfram tree for v(x) = 16 + x and z = 8 at two points.
+    def source_value(argument):
+        return 8.0 / (16.0 + argument) ** 0.25
+
+    def numeric_second_derivative(argument):
+        h = 1.0e-3
+        return (
+            source_value(argument + h)
+            - 2.0 * source_value(argument)
+            + source_value(argument - h)
+        ) / h**2
+
+    for argument in (0.0, 1.0):
+        expected = 5.0 * 8.0 / (16.0 * (16.0 + argument) ** 2.25)
+        assert math.isclose(
+            numeric_second_derivative(argument), expected, rel_tol=1e-6
+        )
+
+
 def test_math10y_ellipsoid_bindings_match_independent_numeric_oracles():
     values = math10y.results()
     a, b, c, x, phi = sp.symbols('a b c x phi')
