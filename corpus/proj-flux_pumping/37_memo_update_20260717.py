@@ -47,7 +47,11 @@ _ASSIGNMENTS = [
     ('detExpr', 'FullSimplify[mNum btheta0Expr/x + kNum bz0Expr]', ()),
     ('uExpr', 'x^3/100', ()),
     ('sourceExpr', '(8 x/3 - kNum^2 x^3/5)/100', ()),
-    ('fExpr', 'FullSimplify[(D[uExpr, x] - x sourceExpr)/mNum]', ()),
+    # ``FullSimplify`` in the Wolfram source returns this polynomial in its
+    # factored form.  Preserve that source-faithful normal form explicitly;
+    # SymPy otherwise leaves the same exact value expanded, while Mathics
+    # emits the factored form.
+    ('fExpr', 'Factor[(D[uExpr, x] - x sourceExpr)/mNum]', ()),
     ('gExpr', 'uExpr/x', ()),
     ('hExpr', 'kNum uExpr/mNum', ()),
     ('phaseExpr', 'FullSimplify[mNum gExpr/x + kNum hExpr]', ()),
