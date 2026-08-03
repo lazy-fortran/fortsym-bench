@@ -75,6 +75,18 @@ _ASSIGNMENTS = [
     ('g23', 'Show[tri, StreamPlot[phic32, {x, 0, 1}, {y, 0, 1}]]', ()),
 ]
 
+# The native Wolfram path materializes these plot results as renderer handles,
+# while this independent companion keeps their source-level plot trees.  The
+# comparator may bridge that representation boundary only for these bindings;
+# the values below remain symbolic StreamPlot expressions.
+COMPARE = {
+    name: 'plot'
+    for name in (
+        'g11', 'g12', 'g13', 'g21', 'g22', 'g23', 'g14', 'g15',
+        'gr1', 'gr2', 'gr3',
+    )
+}
+
 def results():
     values = evaluate_assignments(
         _ASSIGNMENTS, 'corpus/nc-kineq-old/vector2d.wl'

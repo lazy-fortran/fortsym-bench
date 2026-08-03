@@ -32,6 +32,11 @@ MAX_COMPARISON_TEXT = 4 * 1024 * 1024
 # when a non-identical tree exceeds this budget.
 MAX_EQUIVALENCE_NODES = 50_000
 
+# A native plot result is a handle to a rendered artifact. It is not a
+# mathematical expression and must not be compared as one. This is used only
+# by an explicit per-binding comparison policy.
+NATIVE_PLOT_HANDLE = re.compile(r"fortsym-plot-[1-9][0-9]*\.png\Z")
+
 
 @dataclass
 class Comparison:
@@ -510,6 +515,15 @@ def compare(candidate, reference, strictness: str) -> Comparison:
             )
         return Comparison(DIFFER, detail)
 
+    if strictness == "plot":
+        if _is_source_plot(candidate) and _is_source_plot(reference):
+            return Comparison(AGREE if candidate == reference else DIFFER)
+        return Comparison(
+            DIFFER,
+            "plot policy requires a StreamPlot/Show expression or a native "
+            "plot handle",
+        )
+
     raise ValueError(f"unknown strictness: {strictness}")
 
 
@@ -532,6 +546,10 @@ def compare_text(
     """
     if candidate_text == reference_text:
         return Comparison(AGREE)
+    if strictness == "plot":
+        return _compare_plot_text(
+            candidate_text, syntax, reference_text, syntax, parsed_cache
+        )
     largest = max(len(candidate_text), len(reference_text))
     if largest > MAX_COMPARISON_TEXT:
         return Comparison(
@@ -570,6 +588,16 @@ def compare_cross_text(
     serialize them differently. Parse each side with its own grammar, then
     remove SymPy-only assumption metadata before applying the declared bar.
     """
+    if candidate_text == reference_text:
+        return Comparison(AGREE)
+    if strictness == "plot":
+        return _compare_plot_text(
+            candidate_text,
+            candidate_syntax,
+            reference_text,
+            reference_syntax,
+            parsed_cache,
+        )
     largest = max(len(candidate_text), len(reference_text))
     if largest > MAX_COMPARISON_TEXT:
         return Comparison(
@@ -592,6 +620,88 @@ def compare_cross_text(
     except Exception as exc:
         return Comparison(ERROR, f"unparseable: {exc}")
     return compare(strip_assumptions(candidate), strip_assumptions(reference), strictness)
+
+
+def _compare_plot_text(
+    candidate_text: str,
+    candidate_syntax: str,
+    reference_text: str,
+    reference_syntax: str,
+    parsed_cache: dict | None = None,
+) -> Comparison:
+    """Bridge a native plot handle to the companion's source-level tree.
+
+    This is a representation check, not a claim that two renderings have
+    identical pixels. The companion is independently checked for the actual
+    vector field and ranges; this narrow policy only prevents the native
+    renderer's documented ``fortsym-plot-N.png`` handle from being mistaken
+    for an arbitrary symbolic value. It is enabled by a script's explicit
+    ``COMPARE`` metadata, never globally.
+    """
+    candidate_handle = bool(NATIVE_PLOT_HANDLE.fullmatch(candidate_text.strip()))
+    reference_handle = bool(NATIVE_PLOT_HANDLE.fullmatch(reference_text.strip()))
+
+    if candidate_handle and reference_handle:
+        return Comparison(AGREE if candidate_text == reference_text else DIFFER)
+
+    def parse_once(text: str, syntax: str):
+        if parsed_cache is None:
+            return parse(text, syntax)
+        key = (syntax, text)
+        if key not in parsed_cache:
+            parsed_cache[key] = parse(text, syntax)
+        return parsed_cache[key]
+
+    if candidate_handle:
+        try:
+            reference = parse_once(reference_text, reference_syntax)
+        except Exception as exc:
+            return Comparison(ERROR, f"unparseable plot reference: {exc}")
+        is_plot = _is_source_plot(reference)
+        return Comparison(
+            AGREE if is_plot else DIFFER,
+            "" if is_plot
+            else "native plot handle compared with a non-plot expression",
+        )
+
+    if reference_handle:
+        try:
+            candidate = parse_once(candidate_text, candidate_syntax)
+        except Exception as exc:
+            return Comparison(ERROR, f"unparseable plot candidate: {exc}")
+        is_plot = _is_source_plot(candidate)
+        return Comparison(
+            AGREE if is_plot else DIFFER,
+            "" if is_plot
+            else "native plot handle compared with a non-plot expression",
+        )
+
+    try:
+        candidate = parse_once(candidate_text, candidate_syntax)
+        reference = parse_once(reference_text, reference_syntax)
+    except Exception as exc:
+        return Comparison(ERROR, f"unparseable plot comparison: {exc}")
+    if _is_source_plot(candidate) and _is_source_plot(reference):
+        return compare(candidate, reference, "plot")
+    return Comparison(
+        DIFFER,
+        "plot policy requires a StreamPlot/Show expression or a native "
+        "plot handle",
+    )
+
+
+def _is_source_plot(expression) -> bool:
+    """Recognize only the source-level vector plot forms in this policy."""
+    import sympy
+
+    if not isinstance(expression, sympy.Basic):
+        return False
+    name = getattr(getattr(expression, "func", None), "__name__", "")
+    if name == "StreamPlot":
+        return True
+    if name == "Show":
+        return any(_is_source_plot(argument) for argument in expression.args)
+    return False
 
 
 def _normalize_subs(expr):
