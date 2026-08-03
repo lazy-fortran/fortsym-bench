@@ -216,10 +216,34 @@ _ASSIGNMENTS = [
 def results():
     values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math6-2y.wl')
 
+    # The native runner keeps this direct ParametricPlot3D source head when
+    # the later Graphics3D/Show assignments refuse rendering.  Preserve that
+    # last emitted binding instead of the earlier primitive-only p1 value left
+    # by the shared evaluator.
+    u = sp.Symbol('u')
+    rule = sp.Function('Rule')
+    values['p1'] = sp.Function('ParametricPlot3D')(
+        sp.Tuple(
+            sp.sin(8 * u) * sp.sin(u),
+            sp.cos(8 * u) * sp.sin(u),
+            sp.cos(u),
+        ),
+        sp.Tuple(u, 0, 2 * sp.pi),
+        rule(sp.Symbol('PlotPoints'), 200),
+    )
+
     # Recover the source's restricted-three-body example separately from its
     # plotting statements. These bindings are useful to consumers that do not
     # render the surrounding plots.
     x, y, mu = sp.symbols('x y μ')
+
+    # cna is assigned before the later torus example rebinds x and y.  Restore
+    # those source coordinates rather than exposing the evaluator's later
+    # substitutions inside this opaque plotting expression.
+    values['cna'] = sp.Function('Abs')(
+        sp.Function('JacobiCN')(x + sp.I * y, values['mm'])
+    )
+
     fu = (
         -mu / sp.sqrt(y**2 + (x + mu - 1) ** 2)
         + (mu - 1) / sp.sqrt(y**2 + (x + mu) ** 2)
