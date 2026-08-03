@@ -123,6 +123,21 @@ def test_math10y_gaussian_integral_matches_independent_numeric_boundaries():
     assert math.isclose(float(value.evalf()), math.sqrt(math.pi), rel_tol=1e-15)
 
 
+def test_math10y_rlc_transfer_binding_matches_independent_numeric_values():
+    value = math10y.results()['fi']
+    V0, R, L, C, s = sp.symbols('V0 R L C s')
+
+    assert value == V0 / (s * R + s**2 * L + C)
+    for sample in (
+        {V0: 10, R: 22, L: 110, C: 1, s: 0},
+        {V0: 10, R: 22, L: 110, C: 19, s: 1},
+    ):
+        denominator = (
+            sample[s] * sample[R] + sample[s] ** 2 * sample[L] + sample[C]
+        )
+        assert float(value.subs(sample)) == 10 / denominator
+
+
 def test_math10y_ellipsoid_bindings_match_independent_numeric_oracles():
     values = math10y.results()
     a, b, c, x, phi = sp.symbols('a b c x phi')
