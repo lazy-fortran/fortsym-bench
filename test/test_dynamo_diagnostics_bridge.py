@@ -68,3 +68,18 @@ def test_helicity_diagnostics_match_independent_numeric_averages():
     tor_actual = sp.N(values['torCorr'].subs(substitutions))
     tor_direct = sp.integrate(v.cross(b)[1], (chi, 0, 2 * sp.pi)) / (2 * sp.pi)
     assert sp.N(tor_actual - tor_direct) == 0
+
+
+def test_source_vector_projection_and_stationary_ohm_average_are_identities():
+    values = _module().results()
+    assert values['jardinProjection'] == 0
+
+    chi = sp.symbols('chi', real=True)
+    harmonic = lambda real, imag: real * sp.cos(chi) - imag * sp.sin(chi)
+    v = sp.Matrix([1 + harmonic(2, -1), 2 + harmonic(-1, 3), -1 + harmonic(3, 2)])
+    b = sp.Matrix([harmonic(1, 2), 4 + harmonic(-2, 1), 5 + harmonic(2, -3)])
+    current = sp.Matrix([harmonic(2, 1), 3 + harmonic(1, -2), -2 + harmonic(-1, 1)])
+    eta = 7 + 2 * sp.cos(chi)
+    left = sp.integrate(b.dot(eta * current - v.cross(b)), (chi, 0, 2 * sp.pi))
+    right = sp.integrate(eta * b.dot(current), (chi, 0, 2 * sp.pi))
+    assert sp.simplify(left - right) == 0

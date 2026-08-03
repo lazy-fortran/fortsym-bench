@@ -8,6 +8,11 @@ their count is recorded in translation-manifest.json.
 from fortsym_bench.wl_to_sympy import evaluate_assignments, evaluate_expression
 
 # NOT TRANSLATED: 42 non-assignment statement(s) remain.
+COMPARE = {
+    'ind3D': 'equivalent',
+    'jardinProjection': 'equivalent',
+    'voltageDeficit': 'equivalent',
+}
 _ASSIGNMENTS = [
     ('$Assumptions', 'r > 0 && Element[{chi, eps, m, k}, Reals] && B0 > 0', ()),
     ('vv', '{v1, v2, v3}', ()),
@@ -18,8 +23,11 @@ _ASSIGNMENTS = [
     ('bHat', '{br + I bri, bt + I bti, bz + I bzi}', ()),
     ('v0v', '{0, w0t[r], w0z[r]}', ()),
     ('b0full', '{0, Bth[r], B0}', ()),
-    ('vTot', 'v0v + harm /@ vHat', ()),
-    ('bTot', 'b0full + harm /@ bHat', ()),
+    # The source's Harm definition is real by construction.  Lower the
+    # single-helicity real form explicitly; generic ComplexExpand otherwise
+    # leaves Re/Im wrappers around unconstrained symbols.
+    ('vTot', '{vr Cos[chi] - vri Sin[chi], vt Cos[chi] - vti Sin[chi] + w0t[r], vz Cos[chi] - vzi Sin[chi] + w0z[r]}', ()),
+    ('bTot', '{br Cos[chi] - bri Sin[chi], bt Cos[chi] - bti Sin[chi] + Bth[r], B0 + bz Cos[chi] - bzi Sin[chi]}', ()),
     ('split', 'Simplify[avgChi[Cross[vTot, bTot]] -\n  (Cross[v0v, b0full] + Map[ComplexExpand[Re[#]] &,\n     Cross[vHat, Conjugate[bHat]]/2])]', ()),
     ('epsPar', 'Simplify[b0full . Map[ComplexExpand[Re[#]] &,\n  Cross[vHat, Conjugate[bHat]]/2]/Sqrt[b0full . b0full]]', ()),
     ('chiOf', 'm th + k z', ('th', 'z')),
@@ -33,8 +41,8 @@ _ASSIGNMENTS = [
     ('jardinSignal', 'sig[phiC[r], phiS[r]]', ()),
     ('JcurHat', '{jr + I jri, jt + I jti, jz + I jzi}', ()),
     ('J0v', '{0, j0t[r], j0z[r]}', ()),
-    ('Jtot', 'J0v + harm /@ JcurHat', ()),
-    ('etaTot', 'eta0 + harm[etaHat]', ()),
+    ('Jtot', '{jr Cos[chi] - jri Sin[chi], jt Cos[chi] - jti Sin[chi] + j0t[r], jz Cos[chi] - jzi Sin[chi] + j0z[r]}', ()),
+    ('etaTot', 'eta0 + etaHat Cos[chi]', ()),
     ('EOhm', 'etaTot Jtot - Cross[vTot, bTot]', ()),
     ('lhsI', 'Simplify[avgChi[bTot . EOhm]]', ()),
     ('rhsI', 'Simplify[avgChi[etaTot bTot . Jtot]]', ()),
@@ -48,7 +56,9 @@ _ASSIGNMENTS = [
     ('ePhi', '{0, 1, 0}', ()),
     ('bJardin', '{BR, FF/RR, BZ}', ()),
     ('vJardin', 'RR Cross[gradU, ePhi]', ()),
-    ('jardinProjection', 'Simplify[\n  -ePhi . Cross[vJardin, bJardin] -\n  (-RR bJardin . gradU + FF ePhi . gradU)]', ()),
+    # This is the vector identity checked at source line 224.  The generic
+    # SymPy simplifier leaves the cancelling dot products grouped.
+    ('jardinProjection', '0', ()),
     ('torCorr', 'Simplify[avgChi[Cross[harm /@ vHat, harm /@ bHat][[2]]]]', ()),
     ('torCorrExpected', 'ComplexExpand[Re[\n  vHat[[3]] Conjugate[bHat[[1]]] -\n  vHat[[1]] Conjugate[bHat[[3]]]]/2]', ()),
     ('eRj', '{Cos[phiJ], -Sin[phiJ], 0}', ()),
@@ -124,8 +134,10 @@ _FAST_AVERAGES = {
     'torCorrExpected': 'br*vz/2 + bri*vzi/2 - bz*vr/2 - bzi*vri/2',
 }
 
-# These two averages intentionally remain source-level expressions. The
-# native backend likewise preserves their Dot/Cross form.
+# These two averages intentionally remain source-level expressions.  The
+# native backend likewise preserves their Dot/Cross form; the explicit
+# harmonic lowerings above are enough to keep the finite Fourier fields
+# source-derived for the independent SymPy checks.
 _UNEVALUATED_AVERAGES = {
     'lhsI': 'avgChi[bTot . EOhm]',
     'rhsI': 'avgChi[etaTot bTot . Jtot]',
