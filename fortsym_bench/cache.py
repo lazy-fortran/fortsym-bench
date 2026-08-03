@@ -24,8 +24,10 @@ CACHE_VERSION = 1
 # Bump when comparison parsing/equivalence semantics change; raw backend rows
 # remain reusable while verdicts are recomputed from their cached operands.
 # Version 16 invalidates verdicts produced before Mathics precision markers
-# were stripped from InputForm numeric literals.
-COMPARISON_CACHE_VERSION = 16
+# were stripped from InputForm numeric literals. Version 17 rejects malformed
+# arithmetic trees that SymPy's Mathematica parser can otherwise construct
+# from list-valued Mathics output.
+COMPARISON_CACHE_VERSION = 17
 
 
 @dataclass(frozen=True)
