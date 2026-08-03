@@ -589,8 +589,44 @@ def compare_cross_text(
     return compare(strip_assumptions(candidate), strip_assumptions(reference), strictness)
 
 
+def _normalize_subs(expr):
+    """Inline explicit ``Subs`` nodes for the equivalent comparison policy.
+
+    The native Wolfram runner prints an already-substituted opaque derivative,
+    while SymPy preserves ``Subs[Derivative1[..., t, ...], t -> value]``.
+    This normalization is deliberately restricted to the opt-in equivalent
+    policy; structural comparison must continue to expose the representation
+    difference.  It also leaves unresolved or non-square substitutions alone.
+    """
+    import sympy
+
+    if isinstance(expr, sympy.Subs):
+        if len(expr.variables) == len(expr.point):
+            body = _normalize_subs(expr.expr)
+            replacements = dict(zip(expr.variables, expr.point))
+            try:
+                return _normalize_subs(body.xreplace(replacements))
+            except Exception:
+                return expr
+        return expr
+    if isinstance(expr, sympy.Tuple):
+        return sympy.Tuple(*(_normalize_subs(item) for item in expr))
+    if not isinstance(expr, sympy.Basic) or not expr.args:
+        return expr
+    arguments = tuple(_normalize_subs(argument) for argument in expr.args)
+    if arguments == expr.args:
+        return expr
+    try:
+        return expr.func(*arguments)
+    except Exception:
+        return expr
+
+
 def _equivalent(a, b) -> bool:
     import sympy
+
+    a = _normalize_subs(a)
+    b = _normalize_subs(b)
 
     if isinstance(a, sympy.Equality) or isinstance(b, sympy.Equality):
         if not isinstance(a, sympy.Equality) or not isinstance(b, sympy.Equality):

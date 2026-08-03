@@ -61,6 +61,7 @@ COMPARE = {
     'interiorEquation': 'equivalent',
     'jetA': 'equivalent',
     'jetB': 'equivalent',
+    'fixtureResults': 'equivalent',
 }
 
 def results():
