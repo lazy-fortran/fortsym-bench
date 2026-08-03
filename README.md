@@ -539,6 +539,15 @@ declared differences, 7 unsupported outcomes, 75 timeouts, 59 errors, 2
 unavailable oracle rows, 197 oracle disagreements, and 266 oracle-missing
 bindings across 4,879 emitted bindings from 375 translated sources out of 384
 corpus sources; it took 68.03 seconds and peaked at 542 MiB RSS.
+The v122 closeout audit, after the Flux44, separatrix, KiLCA collision,
+normal-stability, and Neort appA companion recoveries, advances the comparison
+cache to version 20. It reports 4,015 agreements, 400 declared differences,
+7 unsupported outcomes, 75 timeouts, 59 errors, 2 unavailable oracle rows,
+197 oracle disagreements, and 265 oracle-missing bindings across the same
+4,879 emitted bindings and 384 source files. The cached one-worker audit took
+16.99 seconds and peaked at 489 MiB RSS. The comparator now bounds expensive
+equivalence attempts by expression size, preventing a pathological SymPy
+simplification from hanging the corpus run.
 The preceding v74 cold one-worker
 pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
@@ -602,12 +611,12 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The v111 audit on 2026-08-03 produced 3,981 agreements, 433 declared
+place. The v122 audit on 2026-08-03 produced 4,015 agreements, 400 declared
 differences, 7 unsupported outcomes, 75 timeouts, 59 errors, 2 unavailable
-oracle rows, 197 oracle disagreements, and 266 oracle-missing bindings across
-4,879 emitted bindings from 375 translated sources out of 384 corpus sources.
-Mathics3 10.0.1 is installed with UV. The independent regression suites cover
-the v70 through v111 changes. Translation quality and
+oracle rows, 197 oracle disagreements, and 265 oracle-missing bindings across
+4,879 emitted bindings from 384 corpus sources. Mathics3 10.0.1 is installed
+with UV. The independent regression suites cover the v70 through v122 changes.
+Translation quality and
 the remaining backend parity work
 stay measured by the independent oracle report; the report is the source of
 truth for current counts.
