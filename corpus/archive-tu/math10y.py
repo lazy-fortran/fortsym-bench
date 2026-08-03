@@ -254,6 +254,10 @@ def _recovered_bindings():
         "h1": sp.diff(x * sp.asinh(a / x) + a * sp.asinh(x / a), x),
         "iaf": sp.Integer(0),
         "irf": sp.Integer(0),
+        # The late Gaussian integral is over [-1000, 1000].  Its omitted
+        # tails are below the requested 44-digit working precision, so the
+        # source-faithful closed form is Sqrt[Pi].
+        "in": sp.sqrt(sp.pi),
         "r": r,
         "rr": rr,
         "dy": dy,
