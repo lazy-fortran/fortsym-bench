@@ -295,6 +295,13 @@ def _recovered_bindings():
         "f2": sp.Function("Dt")(
             sp.Function("Dt")(set_value(y, z / v ** sp.Rational(1, 4)), x), x
         ),
+        # The following source assignment only multiplies the total
+        # derivative by v; retain that exact symbolic structure rather than
+        # imposing a particular v(x) dependency on Wolfram's Dt.
+        "ft2": v
+        * sp.Function("Dt")(
+            sp.Function("Dt")(set_value(y, z / v ** sp.Rational(1, 4)), x), x
+        ),
         # Final cheap source binding before the Laplace-transform examples.
         "ft1": sp.Piecewise((0, t <= a), (1, True)),
         "fu": t * unit(a + t) - t * unit(t - a),
