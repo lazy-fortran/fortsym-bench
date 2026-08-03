@@ -91,4 +91,20 @@ def results():
     # its expensive FindRoot section.
     bb = sp.Symbol('bb')
     values['aMaxSq'] = bb / 2 + sp.sqrt(2) * sp.sqrt(bb**2) / 2
+
+    # The source applies N[..., 20] after substituting the numerical xiOp.
+    # The generic Wolfram-to-SymPy lowering represents Erfc as an undefined
+    # function, so it otherwise leaves this source-numeric result symbolic.
+    xi_value = values['xiOp']
+    values['suppression'] = sp.N(
+        (
+            1
+            - sp.sqrt(sp.pi / 2)
+            * sp.exp(1 / (2 * xi_value**2))
+            * sp.erfc(1 / (xi_value * sp.sqrt(2)))
+            / xi_value
+        )
+        / xi_value**2,
+        20,
+    )
     return values
