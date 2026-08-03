@@ -165,6 +165,44 @@ def _recovered_minors(order):
     )
 
 
+def _recovered_final_bindings():
+    """Recover the named values from the final parseable source blocks."""
+    base = sp.Matrix([
+        [1, 2, 3, 4],
+        [2, 3, 0, -5],
+        [2, -1, 1, 1],
+        [-2, 2, 0, -5],
+    ])
+    final_g = base.copy()
+    final_g[0, :] = final_g[1, :]
+
+    eigen_matrix = sp.Matrix([
+        [1, 1, 2],
+        [1, 2, 1],
+        [2, 1, 1],
+    ])
+    complex_matrix = sp.Matrix([
+        [1, sp.I],
+        [2, sp.Float(1.0)],
+        [3, -sp.I],
+    ])
+    least_squares_matrix = sp.Matrix([
+        [1, -2],
+        [1, -2],
+        [1, 1],
+    ])
+    least_squares_rhs = sp.Matrix([-1, sp.Float(-3.95), 5])
+    return {
+        'G': sp.Tuple(*(sp.Tuple(*row) for row in final_g.tolist())),
+        'v': sp.Tuple(*(sp.Tuple(*vector)
+                        for vector in final_g.nullspace())),
+        'ceq': (eigen_matrix - sp.Symbol('x') * sp.eye(3)).det(),
+        'pa': sp.Tuple(*(sp.Tuple(*row)
+                         for row in complex_matrix.pinv().tolist())),
+        'pso': sp.Tuple(*least_squares_matrix.pinv() * least_squares_rhs),
+    }
+
+
 def results():
     values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math8y.wl')
     values['mi2'] = _recovered_minors(2)
@@ -178,18 +216,5 @@ def results():
         point(sp.Tuple(3, 2)), point(sp.Tuple(2, 3))
     )
 
-    # The final source block replaces the first row of A before taking its
-    # null space.  The generic assignment stream cannot represent that part
-    # assignment, so restore the final matrix and its deterministic basis.
-    matrix = sp.Matrix([
-        [1, 2, 3, 4],
-        [2, 3, 0, -5],
-        [2, -1, 1, 1],
-        [-2, 2, 0, -5],
-    ])
-    matrix[0, :] = matrix[1, :]
-    values['G'] = sp.Tuple(*(sp.Tuple(*row) for row in matrix.tolist()))
-    values['v'] = sp.Tuple(*(
-        sp.Tuple(*vector) for vector in matrix.nullspace()
-    ))
+    values.update(_recovered_final_bindings())
     return values
