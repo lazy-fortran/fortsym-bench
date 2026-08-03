@@ -296,6 +296,18 @@ def test_mathics_unicode_inputform_is_normalised_before_comparison():
     assert result.outcome == "agree"
 
 
+def test_mathics_precision_suffix_is_metadata_not_a_multiplication():
+    result = compare_cross_text(
+        "44209.70641441537104691215649236510056512`40.",
+        "inputform",
+        "Float('44209.70641441537104691215649236510056512783', precision=136)",
+        "srepr",
+        "numeric",
+    )
+
+    assert result.outcome == AGREE
+
+
 def test_unicode_phi_does_not_make_an_opaque_application_unparseable():
     result = compare_text(
         "{A[r, phi, z]}",

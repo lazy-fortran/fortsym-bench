@@ -23,7 +23,9 @@ from .backends import Backend, RunFailure
 CACHE_VERSION = 1
 # Bump when comparison parsing/equivalence semantics change; raw backend rows
 # remain reusable while verdicts are recomputed from their cached operands.
-COMPARISON_CACHE_VERSION = 15
+# Version 16 invalidates verdicts produced before Mathics precision markers
+# were stripped from InputForm numeric literals.
+COMPARISON_CACHE_VERSION = 16
 
 
 @dataclass(frozen=True)

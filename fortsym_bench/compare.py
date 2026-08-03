@@ -95,6 +95,19 @@ def _normalise_inputform(text: str) -> tuple[str, dict[str, str]]:
         .replace("∧", "&&")
         .replace("ϕ", "phi")
     )
+    # Wolfram arbitrary-precision reals carry a precision marker such as
+    # ``44209.7`40.``.  SymPy's Mathematica parser does not implement that
+    # InputForm syntax: it reads the marker as multiplication by 40, turning
+    # a valid Mathics oracle value into a false factor-of-40 disagreement.
+    # The digits after the marker are metadata, so remove only the marker and
+    # retain the numeric mantissa.  This is deliberately limited to numeric
+    # literals; a backtick in any other text must remain observable.
+    text = re.sub(
+        r"(?<![A-Za-z0-9_$])(?P<number>[+-]?(?:\d+(?:\.\d*)?|\.\d+)"
+        r"(?:\*\^[+-]?\d+)?)`(?:\d+(?:\.\d*)?|\.\d+)",
+        r"\g<number>",
+        text,
+    )
     text = _protect_inputform_strings(text)
     text = _normalise_derivative_calls(text)
     # Mathics sometimes prints higher-order heads with round delimiters
