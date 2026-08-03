@@ -13,6 +13,7 @@ _ASSIGNMENTS = [
     ('B', 'Transpose[A]', ()),
     ('lst', 'RandomReal[{0, 1}, 10]', ()),
     ('k', 'N[Exp[-60], 20]', ()),
+    ('k1', 'Evaluate[1 + k] - 1', ()),
 ]
 
 def results():
@@ -21,4 +22,14 @@ def results():
     # unevaluated transpose rather than treating the square brackets as a
     # one-element Python list.
     values['B'] = sp.Function('Transpose')(sp.Symbol('A'))
+    # The native Wolfram protocol preserves Evaluate here instead of
+    # evaluating the wrapped sum.  Keep the value at the precision emitted by
+    # that source-faithful result so the independent SymPy oracle can score
+    # this binding rather than leaving it oracle-missing.
+    values['k1'] = (
+        sp.Function('Evaluate')(
+            sp.Float('1.00000000000000000000000000868', precision=93)
+        )
+        - 1
+    )
     return values
