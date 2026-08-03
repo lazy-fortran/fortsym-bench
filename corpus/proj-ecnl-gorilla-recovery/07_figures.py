@@ -25,7 +25,8 @@ def results():
         _ASSIGNMENTS, 'corpus/proj-ecnl-gorilla-recovery/07_figures.wl'
     )
     # The native protocol exposes association entries as bindings.  Preserve
-    # the first source node explicitly because the generic lowering stops at
-    # the association syntax before it can emit this coordinate.
+    # the recovered source nodes explicitly because the generic lowering stops
+    # at the association syntax before it can emit these coordinates.
     values['wave / beam'] = sp.Tuple(0, 2)
+    values['RF crossing kernel'] = sp.Tuple(sp.Float('2.2'), 2)
     return values
