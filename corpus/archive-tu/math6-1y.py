@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 196 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
@@ -164,4 +165,13 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math6-1y.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math6-1y.wl')
+
+    # ``ListPlot`` is a rendering head, so the shared evaluator deliberately
+    # leaves it out of the serializable result mapping.  Preserve this source
+    # binding symbolically, including its option, instead of dropping it.
+    rule = sp.Function('Rule')
+    values['ps1'] = sp.Function('ListPlot')(
+        values['l1'], rule(sp.Symbol('PlotJoined'), True)
+    )
+    return values
