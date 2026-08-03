@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import math
 from pathlib import Path
 
 import sympy as sp
@@ -109,6 +110,17 @@ def test_math10y_theta_binding_matches_independent_numeric_oracle():
     x = sp.Symbol('x')
 
     assert [value.subs(x, sample) for sample in (-1, 0, 1)] == [0, sp.Rational(1, 2), 1]
+
+
+def test_math10y_gaussian_integral_matches_independent_numeric_boundaries():
+    value = math10y.results()['in']
+
+    # Use the standard-library Gaussian integral independently of SymPy's
+    # expression: the finite source interval has erf(±1000) = ±1 at machine
+    # precision, so its value is sqrt(pi).
+    expected = math.sqrt(math.pi) * (math.erf(1000.0) - math.erf(-1000.0)) / 2
+    assert math.isclose(float(value.evalf()), expected, rel_tol=1e-15)
+    assert math.isclose(float(value.evalf()), math.sqrt(math.pi), rel_tol=1e-15)
 
 
 def test_math10y_ellipsoid_bindings_match_independent_numeric_oracles():
