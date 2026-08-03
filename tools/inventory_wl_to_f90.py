@@ -18,6 +18,7 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -30,6 +31,11 @@ STATUSES = (
     "unavailable",
     "error",
 )
+TRANSLATION_MODES = ("native", "assignment-adapter")
+# Keep the standalone tools/inventory_wl_to_f90.py entry point usable without
+# relying on the repository root being on Python's import path.  The adapter
+# CLI has the same default.
+MAX_ADAPTER_SOURCE_BYTES = 1_048_576
 
 
 @dataclass(frozen=True)
@@ -191,20 +197,40 @@ def inventory(
     command: tuple[str, ...] = ("fortsym_wl_to_f90",),
     timeout: float = 30.0,
     compiler: tuple[str, ...] = ("gfortran",),
+    *,
+    mode: str = "native",
+    adapter_max_source_bytes: int = MAX_ADAPTER_SOURCE_BYTES,
 ) -> dict:
     """Translate every source serially and return a JSON-serializable report."""
 
+    if mode not in TRANSLATION_MODES:
+        raise ValueError(f"unsupported translation mode: {mode}")
+    if adapter_max_source_bytes <= 0:
+        raise ValueError("adapter_max_source_bytes must be positive")
     corpus = corpus.resolve()
     sources = discover_sources(corpus)
+    effective_command = command
+    command_cwd = corpus.parent
+    if mode == "assignment-adapter":
+        effective_command = (
+            sys.executable,
+            "-m",
+            "fortsym_bench.wl_to_fortran",
+            "--mode",
+            "assignment-adapter",
+            "--max-source-bytes",
+            str(adapter_max_source_bytes),
+        )
+        command_cwd = Path(__file__).resolve().parents[1]
     results: list[TranslationResult]
-    executable = shutil.which(command[0])
-    if executable is None and not Path(command[0]).exists():
+    executable = shutil.which(effective_command[0])
+    if executable is None and not Path(effective_command[0]).exists():
         results = [
             TranslationResult(
                 source=source.relative_to(corpus).as_posix(),
                 status="unavailable",
                 seconds=0.0,
-                detail=f"{command[0]} not found",
+                detail=f"{effective_command[0]} not found",
             )
             for source in sources
         ]
@@ -212,10 +238,10 @@ def inventory(
         results = [
             translate_one(
                 source,
-                command,
+                effective_command,
                 timeout,
                 corpus,
-                corpus.parent,
+                command_cwd,
                 compiler,
             )
             for source in sources
@@ -228,7 +254,8 @@ def inventory(
         "schema": "fortsym-bench/wl-to-f90-inventory-v2",
         "corpus": str(corpus),
         "source_count": len(sources),
-        "translator": list(command),
+        "translation_mode": mode,
+        "translator": list(effective_command),
         "fortran_compiler": list(compiler),
         "timeout_seconds": timeout,
         "acceptance_boundary": (
@@ -254,6 +281,21 @@ def main(argv: list[str] | None = None) -> int:
         default=["fortsym_wl_to_f90"],
         help="translator command followed by fixed arguments",
     )
+    parser.add_argument(
+        "--mode",
+        choices=TRANSLATION_MODES,
+        default="native",
+        help=(
+            "native invokes the command directly; assignment-adapter invokes "
+            "the safe file adapter on each real .wl source"
+        ),
+    )
+    parser.add_argument(
+        "--adapter-max-source-bytes",
+        type=int,
+        default=MAX_ADAPTER_SOURCE_BYTES,
+        help="maximum source size read by assignment-adapter mode",
+    )
     parser.add_argument("--timeout", type=float, default=30.0)
     parser.add_argument(
         "--fortran-compiler",
@@ -269,12 +311,16 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.timeout <= 0:
         parser.error("--timeout must be positive")
+    if args.adapter_max_source_bytes <= 0:
+        parser.error("--adapter-max-source-bytes must be positive")
 
     report = inventory(
         args.corpus,
         tuple(args.translator),
         args.timeout,
         tuple(args.fortran_compiler),
+        mode=args.mode,
+        adapter_max_source_bytes=args.adapter_max_source_bytes,
     )
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
