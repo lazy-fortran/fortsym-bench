@@ -29,31 +29,23 @@ def results():
         _ASSIGNMENTS, 'corpus/nc-stud-Master_Florian_Seeber/test_vector_torus.wl'
     )
 
-    # The source assumptions select the positive square-root branch.  The
-    # generic assignment evaluator deliberately does not apply assumptions to
-    # FullSimplify/Simplify, so recover the five v123 expressions here from
-    # their source-level algebra.
+    # Keep the source's explicit Sqrt[g11*g22*g33] tree.  On the regular part
+    # of the declared domain (a > 0, et >= 0, and Cosh[et] - Cos[th] > 0)
+    # this has the positive branch, but replacing the source tree with that
+    # branch would discard a structural distinction the native backend keeps.
     a, et, th, m = sp.symbols('a et th m')
     denominator = sp.cosh(et) - sp.cos(th)
-    sqg = a**3 * sp.sinh(et) / denominator**3
+    g11 = a**2 / denominator**2
+    g22 = g11
+    g33 = g11 * sp.sinh(et)**2
+    sqg = sp.sqrt(g11 * g22 * g33)
     values['sqg'] = sqg
 
     A = sp.Function('A')
     AR = sp.Function('AR')
-    values['eq1'] = sp.Eq(
-        m**2 * denominator * A(1) / (a * sp.sinh(et)),
-        0,
-    )
-    values['eq2'] = sp.Eq(
-        m**2 * denominator * A(2) / (a * sp.sinh(et)),
-        0,
-    )
-    values['eq1R'] = sp.Eq(
-        m**2 * denominator * AR(1) / (a * sp.sinh(et)),
-        0,
-    )
-    values['eq2R'] = sp.Eq(
-        m**2 * denominator * AR(2) / (a * sp.sinh(et)),
-        0,
-    )
+    coefficient = a**2 * m**2 / sqg / denominator**2
+    values['eq1'] = sp.Eq(coefficient * A(1), 0)
+    values['eq2'] = sp.Eq(coefficient * A(2), 0)
+    values['eq1R'] = sp.Eq(coefficient * AR(1), 0)
+    values['eq2R'] = sp.Eq(coefficient * AR(2), 0)
     return values
