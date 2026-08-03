@@ -183,19 +183,19 @@ def results():
         lambda x, y: x / y, Bstar * vpar, bstar_par
     )
     streaming = Bctr * vpar / bmod
+    # The source expression is evaluated by the bounded native adapter with
+    # the same diagonal matrix broadcasting used by its ``Table`` fallback:
+    # each diagonal entry carries a 3x3 payload, while off-diagonal entries
+    # retain the scalar expression.  Preserve that source-visible shape
+    # instead of broadcasting the payload into every matrix position.
+    remainder_term = vGC - (vGradB + streaming)
+    remainder_payload = sp.Tuple(
+        *(sp.Tuple(*(remainder_term for _ in range(3))) for _ in range(3))
+    )
     remainder = sp.Tuple(
-        *(
-            sp.Tuple(
-                *(
-                    sp.Tuple(
-                        *(sp.Tuple(*(vGC - (vGradB + streaming) for _ in range(3)))
-                          for _ in range(3))
-                    )
-                    for _ in range(3)
-                )
-            )
-            for _ in range(3)
-        )
+        sp.Tuple(remainder_payload, remainder_term, remainder_term),
+        sp.Tuple(remainder_term, remainder_payload, remainder_term),
+        sp.Tuple(remainder_term, remainder_term, remainder_payload),
     )
     vperp_gc = _thread_binary(
         lambda x, y: x - y, vGC, _times(_dot(hcov, vGC), hctr)
