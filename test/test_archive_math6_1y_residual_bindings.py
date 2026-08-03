@@ -1,5 +1,6 @@
 """Independent source-derived checks for the residual math6-1y bindings."""
 
+import hashlib
 import importlib.util
 from pathlib import Path
 
@@ -47,6 +48,45 @@ def _expected_k3():
     )
 
 
+def _expected_k1():
+    phi = sp.Symbol('ϕ')
+    k4 = sp.Function('ParametricPlot')(
+        sp.Tuple(2 * sp.cos(phi), sp.sin(phi)),
+        sp.Tuple(phi, 0, 2 * sp.pi),
+        sp.Function('Rule')(
+            sp.Symbol('PlotStyle'),
+            sp.Tuple(
+                sp.Function('Hue')(0),
+                sp.Function('Thickness')(sp.Float('0.01')),
+            ),
+        ),
+    )
+    string_atom = lambda literal: sp.Symbol(
+        'fortsymString' + hashlib.sha256(f'"{literal}"'.encode()).hexdigest()
+    )
+    return sp.Function('Show')(
+        k4,
+        sp.Function('Rule')(
+            sp.Symbol('AxesLabel'),
+            sp.Tuple(string_atom('x'), string_atom('y')),
+        ),
+        sp.Function('Rule')(
+            sp.Symbol('Background'), sp.Function('GrayLevel')(sp.Float('0.3')),
+        ),
+        sp.Function('Rule')(
+            sp.Symbol('BaseStyle'), sp.Function('Hue')(sp.Float('0.3')),
+        ),
+        sp.Function('Rule')(
+            sp.Symbol('PlotLabel'),
+            sp.Function('Style')(
+                string_atom('Ellipse\n'),
+                sp.Function('Rule')(sp.Symbol('FontSize'), 16),
+                sp.Function('Rule')(sp.Symbol('FontFamily'), sp.Symbol('Helvetica')),
+            ),
+        ),
+    )
+
+
 def _expected_ps2():
     return sp.Function('ListPlot')(
         sp.Tuple(2, 3, 1, 4, sp.Float('2.5'), sp.Float('1.5')),
@@ -62,3 +102,5 @@ def test_both_companions_preserve_source_plot_residuals():
         assert values['p3'] == _expected_p3()
         assert values['k3'] == _expected_k3()
         assert values['ps2'] == _expected_ps2()
+
+    assert tu.results()['k1'] == _expected_k1()
