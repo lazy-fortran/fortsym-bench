@@ -81,3 +81,34 @@ def test_source_full_operator_norm_and_step_are_numeric():
     assert all(abs(2.0 / norm - step) < 1e-12 for norm, step in zip(actual_norms, actual_steps))
     for actual, expected in zip(actual_steps, expected_steps):
         assert abs(actual - expected) / expected < 1e-8
+
+
+def test_source_residual_blocks_and_reduced_geometry_have_independent_values():
+    values = _module().results()
+    r, th, eps, vpar = sp.symbols("r th eps vpar")
+    metric = sp.diag(1, r**2, (3 + r * sp.cos(th))**2)
+    sqrt_metric = sp.sqrt(metric.det())
+    a = sp.Matrix([0, r**2 / 2 - r**3 * sp.cos(th) / 9, -(r**2 / 2 - r**4 / 4)])
+    b = sp.Matrix([sp.diff(a[2], th), -sp.diff(a[2], r), sp.diff(a[1], r)]) / sqrt_metric
+    b_cov = metric * b
+    bmag = sp.sqrt((b.T * metric * b)[0])
+    hcov = b_cov / bmag
+    hctr = b / bmag
+    grad = sp.Matrix([sp.diff(bmag, r), sp.diff(bmag, th), 0])
+    astar = a + eps * vpar * hcov
+    bstar = sp.Matrix([
+        sp.diff(astar[2], th), -sp.diff(astar[2], r), sp.diff(astar[1], r)
+    ]) / sqrt_metric
+    point = {r: sp.Rational(1, 2), th: sp.Rational(7, 10), eps: sp.Rational(1, 7), vpar: sp.Rational(3, 10)}
+
+    def close(actual, expected):
+        return abs(float(sp.N((actual - expected).subs(point), 20))) < 1e-12
+
+    assert all(close(actual, expected) for actual, expected in zip(values["BcovS"], b_cov))
+    assert close(values["BmagS"], bmag)
+    assert all(close(actual, expected) for actual, expected in zip(values["hcovS"], hcov))
+    assert all(close(actual, expected) for actual, expected in zip(values["hctrS"], hctr))
+    assert all(close(actual, expected) for actual, expected in zip(values["gradB"], grad))
+    assert all(close(actual, expected) for actual, expected in zip(values["Astar"], astar))
+    assert close(values["BstarPar"], (hcov.T * bstar)[0])
+    assert close(values["vpardot"], -sp.Rational(1, 10) * (hctr.T * grad)[0])
