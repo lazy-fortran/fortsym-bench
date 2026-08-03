@@ -133,12 +133,36 @@ def results():
         sp.diff(hamiltonian, R) / R,
     )
 
-    # The native subset keeps this symbolic source expression intact: its
-    # matrix lowering cannot invert the source-shaped Mtri definition. Keep
-    # that exact Wolfram head visible instead of silently dropping Minv.
-    values['Minv'] = sp.Function('Inverse')(sp.Symbol('Mtri'))
+    # ``node[[All, 1]]`` and ``node[[All, 2]]`` are columns in Wolfram, not
+    # rows.  The bounded assignment translator cannot lower that distinction
+    # for this source-shaped matrix, but the source matrix is an ordinary
+    # affine-triangle map and its inverse is unambiguous when S != 0.
+    x1, y1, x2, y2, x3, y3 = sp.symbols('x1 y1 x2 y2 x3 y3')
+    x, y = sp.symbols('x y')
+    mtri = sp.Matrix(((1, 1, 1), (x1, x2, x3), (y1, y2, y3)))
+    minv_matrix = mtri.inv()
+    values['Mtri'] = sp.Tuple(
+        sp.Tuple(1, 1, 1), sp.Tuple(x1, x2, x3), sp.Tuple(y1, y2, y3)
+    )
+    values['Minv'] = sp.Tuple(
+        *(sp.Tuple(*row) for row in minv_matrix.tolist())
+    )
+    barycentric = sp.Tuple(*(
+        sum(minv_matrix[i, j] * (1, x, y)[j] for j in range(3))
+        for i in range(3)
+    ))
+    values['L'] = barycentric
+    values['N12'] = sp.Tuple(
+        barycentric[0] * sp.diff(barycentric[1], y)
+        - barycentric[1] * sp.diff(barycentric[0], y),
+        barycentric[0] * sp.diff(barycentric[1], x)
+        - barycentric[1] * sp.diff(barycentric[0], x),
+    )
     # The native subset leaves the preceding ``Integrate`` binding opaque.
     # Preserve the source assignment ``Aphi = Aphsol2`` as that exact symbol
-    # instead of exposing a backend-specific closed form here.
+    # instead of exposing a backend-specific closed form here.  The explicit
+    # Aphsol2 expression above uses the principal real sqrt/atanh branch under
+    # ``ass`` (real R,Z and R > 0); it is used only for the repaired field and
+    # downstream identities.
     values['Aphi'] = sp.Symbol('Aphsol2')
     return values
