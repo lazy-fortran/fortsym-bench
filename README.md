@@ -517,6 +517,13 @@ Mathics arbitrary-precision InputForm parsing, invalidates stale comparison
 verdicts, and preserves compatible legacy Mathics cache rows; only 13
 Curl-sensitive rows required refresh. The benchmark harness now invalidates
 native cache rows at version 2 and comparison verdicts at version 16.
+The v108 one-worker native refresh took 121.39 seconds at a 1.61 GiB peak RSS;
+its all-warm UV pass took 1.10 seconds at about 500 MiB RSS. v108 adds native
+explicit-list `Position`/`Union`, accepts standalone source-to-Fortran `Null`
+separators, recovers the Bacc/Rosa/Posch derivation and Sympl3 orbit clusters,
+and advances the comparison cache to version 17. Malformed Mathics
+list-arithmetic trees are now reported as explicit differences rather than
+comparator errors.
 The preceding v74 cold one-worker
 pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
@@ -580,10 +587,11 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The v107 audit on 2026-08-03 produced 3,943 agreements, 471 declared
-differences, 7 unsupported outcomes, 75 timeouts, 60 errors, 194 oracle
-disagreements, and 274 oracle-missing bindings across 4,885 bindings. Mathics3
-10.0.1 is installed with UV. The independent regression suites cover the v70
-through v107 changes. Translation quality and the remaining backend parity work
+place. The v108 audit on 2026-08-03 produced 3,961 agreements, 457 declared
+differences, 7 unsupported outcomes, 75 timeouts, 59 errors, 192 oracle
+disagreements, and 268 oracle-missing bindings across 4,880 emitted bindings
+from 384 sources. Mathics3 10.0.1 is installed with UV. The independent
+regression suites cover the v70 through v108 changes. Translation quality and
+the remaining backend parity work
 stay measured by the independent oracle report; the report is the source of
 truth for current counts.
