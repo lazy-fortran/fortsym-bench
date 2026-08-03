@@ -115,4 +115,46 @@ def results():
         -btheta(r) * bz_prime
         + bz(r) * (btheta_prime + btheta(r) / r)
     )
+
+    # The source's density is a direct contraction of the already-defined
+    # perturbation fields.  Keep the source convention that all field
+    # amplitudes are real, while conjugating only the explicit phase and I.
+    # The generic SymPy translator cannot lower the source's local conj/Div
+    # definitions, so spell out the bounded cylindrical divergence here.
+    def _real_conjugate(expr):
+        result = sp.conjugate(expr)
+        return result.xreplace({atom: atom.args[0]
+                                for atom in result.atoms(sp.conjugate)})
+
+    phase_value = values['phase']
+    bmag_value = values['bMag']
+    xi_value = values['xiPerp']
+    current_value = values['current']
+    q_value = values['qField']
+    gradp_value = values['gradP']
+    m = sp.Symbol('m')
+    k = sp.Symbol('k')
+    xr = sp.Function('xr')
+    eta = sp.Function('eta')
+    divergence_value = (
+        (xr(r) + r * derivative1(sp.Symbol('xr'), 1, r))
+        * phase_value / r
+        + eta(r)
+        * (m * bz(r) / r - k * btheta(r))
+        * phase_value / bmag_value
+    )
+    values['density'] = (
+        sum(component * _real_conjugate(component)
+            for component in q_value) / mu0
+        - sum(
+            _real_conjugate(xi_component) * cross_component
+            for xi_component, cross_component in zip(
+                xi_value,
+                sp.Matrix(current_value).cross(sp.Matrix(q_value)),
+            )
+        )
+        + sum(xi_component * grad_component
+              for xi_component, grad_component in zip(xi_value, gradp_value))
+        * _real_conjugate(divergence_value)
+    )
     return values
