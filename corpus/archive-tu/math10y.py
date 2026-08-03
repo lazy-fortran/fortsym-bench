@@ -217,6 +217,11 @@ def _recovered_bindings():
         (2 - x, x >= 2),
         (x, x >= 1),
     )
+    theta = sp.Piecewise(
+        (1, x > 0),
+        (sp.Rational(1, 2), sp.Eq(x, 0)),
+        (0, x < 0),
+    )
     return {
         "fx": sp.cos(a * x) * sp.sin(b * x),
         # Late, inexpensive bindings whose Wolfram values are independent
@@ -267,6 +272,8 @@ def _recovered_bindings():
         "ft1": sp.Piecewise((0, t <= a), (1, True)),
         "fu": t * unit(a + t) - t * unit(t - a),
         "f": final_f,
+        # Final source binding from the two repeated ``Which`` examples.
+        "theta": theta,
         "k": -sp.sin(3 * x) * sp.cos(x) ** 2,
         # Literal rule assignments used by the surrounding plotting cells.
         # They are independent of the expensive transforms and integrations
