@@ -39,26 +39,35 @@ def parse(text: str, syntax: str):
     from sympy.parsing.mathematica import parse_mathematica
 
     if syntax == "srepr":
-        return _normalise_sympy_derivatives(sympy.sympify(text))
+        parsed = _normalise_sympy_derivatives(sympy.sympify(text))
+        _validate_sympy_tree(parsed)
+        return parsed
     if syntax == "inputform":
         normalised, restore = _normalise_inputform(text)
+
+        def parse_inputform(candidate: str):
+            parsed = parse_mathematica(candidate)
+            parsed = _restore_inputform_symbols(parsed, restore)
+            parsed = _normalise_sympy_derivatives(parsed)
+            _validate_sympy_tree(parsed)
+            return parsed
+
         try:
-            parsed = parse_mathematica(normalised)
+            return parse_inputform(normalised)
         except (AttributeError, TypeError, ValueError, RuntimeError):
             # SymPy's Mathematica parser eagerly maps List[...] to Tuple.
             # That is correct for a list on its own, but it can construct an
             # invalid non-Expr tree for list-valued arithmetic such as
-            # Sqrt[List[x, y]], raising while parsing rather than returning a
-            # value that the comparator can classify.  On this narrow retry,
-            # preserve List as an opaque head.  This is intentionally not a
-            # semantic threading rule: a native result containing list
-            # arithmetic must remain distinguishable from an elementwise
-            # SymPy result.
+            # Sqrt[List[x, y]], or return one that fails later during
+            # serialization. On this narrow retry, preserve List as an opaque
+            # head. This is intentionally not a semantic threading rule: a
+            # native result containing list arithmetic must remain
+            # distinguishable from an elementwise SymPy result.
             protected_lists = normalised.replace(
                 "List[", "fortsymInputOpaqueList["
             )
             try:
-                parsed = parse_mathematica(protected_lists)
+                return parse_inputform(protected_lists)
             except (AttributeError, TypeError, ValueError, RuntimeError):
                 if not any(
                     f"fortsymInputOpaque{name}" in normalised
@@ -73,9 +82,36 @@ def parse(text: str, syntax: str):
                 # semantic equivalence.
                 digest = hashlib.sha256(normalised.encode("utf-8")).hexdigest()
                 return sympy.Symbol("fortsymInputOpaqueExpression" + digest)
-        parsed = _restore_inputform_symbols(parsed, restore)
-        return _normalise_sympy_derivatives(parsed)
     raise ValueError(f"unknown syntax: {syntax}")
+
+
+def _validate_sympy_tree(expression) -> None:
+    """Reject SymPy trees that its printers and simplifiers cannot consume.
+
+    SymPy's Mathematica parser can construct deprecated arithmetic nodes with
+    a ``Tuple`` child when Mathics emits list-valued arithmetic. Such a tree
+    may parse successfully but fail much later in ``srepr`` with an unrelated
+    ``as_coeff_Mul`` error. Keep the malformed result observable as a bounded
+    parse failure instead of allowing it into the comparison cache.
+    """
+    import sympy
+
+    arithmetic_heads = (sympy.Add, sympy.Mul, sympy.Pow)
+
+    def visit(node) -> None:
+        if not isinstance(node, sympy.Basic):
+            return
+        if node.func in arithmetic_heads:
+            for argument in node.args:
+                if not isinstance(argument, sympy.Expr):
+                    raise ValueError(
+                        f"malformed SymPy {node.func.__name__}: "
+                        f"non-expression child {type(argument).__name__}"
+                    )
+        for argument in node.args:
+            visit(argument)
+
+    visit(expression)
 
 
 def _normalise_inputform(text: str) -> tuple[str, dict[str, str]]:
@@ -422,6 +458,12 @@ def compare(candidate, reference, strictness: str) -> Comparison:
     policy would hide precisely the differences worth knowing about.
     """
     import sympy
+
+    try:
+        _validate_sympy_tree(candidate)
+        _validate_sympy_tree(reference)
+    except (AttributeError, TypeError, ValueError) as exc:
+        return Comparison(ERROR, f"malformed comparison operand: {exc}")
 
     if strictness == "structural":
         try:
