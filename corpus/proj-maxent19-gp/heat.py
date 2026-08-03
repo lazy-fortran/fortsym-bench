@@ -37,6 +37,7 @@ _ASSIGNMENTS = [
 # formula remains available to the companion.
 _RECOVERED_ASSIGNMENTS = [
     ('k1', 'Simplify[(Erf[((-t1)*x0 - t0*x1 + (t0 + t1)*xa)/(2*Sqrt[t0]*Sqrt[t1]*Sqrt[t0 + t1])] + 1)/(E^((x0 - x1)^2/(4*(t0 + t1)))*(4*Sqrt[Pi]*Sqrt[t0 + t1]))]', ()),
+    ('k2', 'Simplify[(-Erf[((-t1)*x0 - t0*x1 + (t0 + t1)*xb)/(2*Sqrt[t0]*Sqrt[t1]*Sqrt[t0 + t1])] + 1)/(E^((x0 - x1)^2/(4*(t0 + t1)))*(4*Sqrt[Pi]*Sqrt[t0 + t1]))]', ()),
     ('k3', 'Simplify[(1 + 1)/(E^((x0 - x1)^2/(4*(t0 + t1)))*(4*Sqrt[Pi]*Sqrt[t0 + t1]))]', ()),
 ]
 
