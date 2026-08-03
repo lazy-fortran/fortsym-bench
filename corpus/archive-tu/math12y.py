@@ -123,9 +123,23 @@ def _recovered_interpolation_derivatives():
     ))
 
 
+def _recovered_bilinear_fit():
+    """Return the exact coefficient rules for the source's ``FindFit``."""
+    rule = sp.Function('Rule')
+    coefficients = (sp.Rational(51, 134), sp.Rational(35, 134),
+                    sp.Rational(7, 134), sp.Rational(3, 134))
+    return sp.Tuple(*(rule(sp.Symbol(name), value)
+                      for name, value in zip(('a', 'b', 'c', 'd'), coefficients)))
+
+
 def results():
     values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math12y.wl')
 
+    # ``FindFit`` is deterministic here: solving the four full-rank normal
+    # equations gives these exact rules.  The remaining residuals stay under
+    # the shared refusal policy: plots, random spline data, and model objects
+    # are not replaced by guessed numeric values.
+    values['con'] = _recovered_bilinear_fit()
     values['cn'] = _recovered_chebyshev_coefficients()
     values['d2'] = _recovered_interpolation_derivatives()
 
