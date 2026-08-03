@@ -126,3 +126,71 @@ def test_density_matches_the_direct_numeric_vector_contraction():
         + xi.dot(gradp) * sp.conjugate(div)
     )
     assert sp.simplify(observed - expected) == 0
+
+
+def test_physical_weighted_applies_source_phase_and_force_balance_numerically():
+    values = _load().results()
+    r = sp.Symbol('r')
+    btheta = sp.Function('btheta')
+    bz = sp.Function('bz')
+    derivative1 = sp.Function('Derivative1')
+
+    # These are the same local cylindrical fields as the source, evaluated
+    # independently rather than by reusing values['physicalWeighted'].
+    radius, length, mu0 = sp.Rational(2), sp.Rational(4), sp.Rational(2)
+    btheta_value, bz_value = sp.Rational(3), sp.Rational(5)
+    btheta_prime, bz_prime = sp.Rational(17), sp.Rational(19)
+    xr_value, xr_prime, eta_value = sp.Rational(7), sp.Rational(13), sp.Rational(11)
+    m, k = sp.Rational(1), sp.Rational(3)
+    bmag = sp.sqrt(btheta_value**2 + bz_value**2)
+    xi = sp.Matrix([
+        xr_value,
+        -sp.I * eta_value * bz_value / bmag,
+        sp.I * eta_value * btheta_value / bmag,
+    ])
+    current = sp.Matrix([
+        0,
+        -bz_prime / mu0,
+        (btheta_prime + btheta_value / radius) / mu0,
+    ])
+    q = sp.Matrix([
+        sp.I * (k * radius * bz_value * xr_value + m * btheta_value * xr_value) / radius,
+        k * eta_value * (btheta_value**2 + bz_value**2) / bmag
+        - btheta_prime * xr_value - btheta_value * xr_prime,
+        (-radius * bz_prime * xr_value - radius * bz_value * xr_prime
+         - bz_value * xr_value
+         - m * eta_value * (btheta_value**2 + bz_value**2) / bmag) / radius,
+    ])
+    divergence = (xr_value + radius * xr_prime) / radius + eta_value * (
+        m * bz_value / radius - k * btheta_value
+    ) / bmag
+    pressure_slope = (
+        -bz_prime * bz_value
+        - btheta_value * (btheta_value + radius * btheta_prime) / radius
+    ) / mu0
+    expected_density = (
+        q.dot(sp.conjugate(q)) / mu0
+        - sp.conjugate(xi).dot(current.cross(q))
+        + xi.dot(sp.Matrix([pressure_slope, 0, 0])) * sp.conjugate(divergence)
+    )
+    expected = 2 * sp.pi * length * radius * sp.re(expected_density)
+    observed = values['physicalWeighted'].subs({r: radius})
+    observed = observed.subs({
+        sp.Symbol('len'): length,
+        sp.Symbol('mu0'): mu0,
+        sp.Symbol('m'): m,
+        sp.Symbol('k'): k,
+        btheta(radius): btheta_value,
+        bz(radius): bz_value,
+        sp.Function('eta')(radius): eta_value,
+        derivative1(sp.Symbol('btheta'), 1, radius): btheta_prime,
+        derivative1(sp.Symbol('bz'), 1, radius): bz_prime,
+        sp.Function('xr')(radius): xr_value,
+        derivative1(sp.Symbol('xr'), 1, radius): xr_prime,
+        sp.Derivative(btheta(radius), r): btheta_prime,
+        sp.Derivative(bz(radius), r): bz_prime,
+        sp.Derivative(sp.Function('xr')(r), r).subs(r, radius): xr_prime,
+        sp.Subs(sp.Derivative(btheta(r), r), r, radius): btheta_prime,
+        sp.Subs(sp.Derivative(bz(r), r), r, radius): bz_prime,
+    })
+    assert sp.simplify(observed - expected) == 0
