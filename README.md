@@ -488,6 +488,11 @@ bounded `Do` source-to-Fortran adapter. The full adapter inventory emitted 1 of
 The v100 cache-preserving pass took 3.63 seconds at about 489 MiB RSS; its
 all-warm UV pass took 0.93 seconds at about 489 MiB RSS. The v100 cycle adds
 ECNL, `math13y`, `math15y`, and appA flux-coordinate recoveries.
+The v101 cache-preserving rebuild took 82.29 seconds at about 1.53 GiB RSS;
+its all-warm UV pass took 0.99 seconds at about 489 MiB RSS. The v101 cycle adds
+two-component `jDotB`, gvec Fourier headers, an archive `math6-1y` binding, and
+a bounded `While` adapter; the full adapter inventory remains 1 translated / 383
+refused with no compile errors or timeouts.
 The preceding v74 cold one-worker
 pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
@@ -551,10 +556,10 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The v100 audit on 2026-08-03 produced 3,922 agreements, 476 declared
+place. The v101 audit on 2026-08-03 produced 3,924 agreements, 477 declared
 differences, 7 unsupported outcomes, 75 timeouts, 61 errors, 197 oracle
-disagreements, and 287 oracle-missing bindings across 4,885 bindings. Mathics3
+disagreements, and 284 oracle-missing bindings across 4,885 bindings. Mathics3
 10.0.1 is installed with UV. The independent regression suites cover the v70
-through v100 changes. Translation quality and the remaining backend parity work
+through v101 changes. Translation quality and the remaining backend parity work
 stay measured by the independent oracle report; the report is the source of
 truth for current counts.
