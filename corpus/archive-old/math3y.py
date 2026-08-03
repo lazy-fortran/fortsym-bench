@@ -92,4 +92,24 @@ def results():
         sp.Eq(derivative1(x, 1, 0), 2),
         sp.Eq(derivative1(sp.Symbol('y'), 1, 0), 10),
     )
+    # The final ``sol`` is the source's NDSolve binding.  Keep its unevaluated
+    # Wolfram tree because the shared evaluator cannot represent an
+    # InterpolatingFunction result without inventing one.
+    join = sp.Function('Join')
+    ndsolve = sp.Function('NDSolve')
+    flatten = sp.Function('Flatten')
+    values['sol'] = flatten(
+        ndsolve(
+            join(values['sys'], values['anf']),
+            sp.Tuple(x, sp.Symbol('y')),
+            sp.Tuple(t, 0, 4),
+        )
+    )
+    # FindRoot is source-faithful here when each initial guess is retained.
+    # Solve independently so the companion does not retain the stale x = 3
+    # state left by the unsupported Clear cell.
+    values['so'] = sp.Tuple(
+        *(sp.Tuple(sp.Function('Rule')(x, sp.nsolve(x**3 + x + 1, x, guess, prec=50)))
+          for guess in (1, sp.I, -sp.I))
+    )
     return values
