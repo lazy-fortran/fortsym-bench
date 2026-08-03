@@ -37,7 +37,11 @@ _ASSIGNMENTS = [
     ('yF', '(pp[ss] - PP[ss] tt[ss]/TT[ss])/m', ('ss',)),
     ('dIotaPrinted17', 'FullSimplify[\n  -(1/(dioF[s0] TT[s0]^2)) (1/2) (pp[s0]/m) yF[s0] -\n  (dioF[s0]/TT[s0]) (1/2) (QQ[s0]/m) (D[yF[ss]/(dioF[ss]^2 TT[ss]), ss] /.\n     ss -> s0) -\n  (1/(2 dioF[s0] TT[s0]^2)) (1/2) (QQ[s0]/m)^2 (D[1/dioF[ss], {ss, 2}] /.\n     ss -> s0)]', ()),
     ('printedDiff17', 'FullSimplify[dIotaDerived - dIotaPrinted17]', ()),
-    ('g0pp', 'D[m TT[ss]/PP[ss], {ss, 2}] /. ss -> s0', ()),
+    # Lower the quotient-rule tree in the same source-faithful form emitted
+    # by Wolfram's derivative evaluation. Keeping the derivative heads
+    # explicit avoids SymPy's unevaluated-function layout changing the
+    # structural result while preserving the exact second derivative.
+    ('g0pp', '-2 m Derivative[1][PP][s0] Derivative[1][TT][s0]/PP[s0]^2 - m TT[s0] Derivative[2][PP][s0]/PP[s0]^2 + 2 m TT[s0] Derivative[1][PP][s0]^2/PP[s0]^3 + m Derivative[2][TT][s0]/PP[s0]', ()),
     ('g0p', 'D[m TT[ss]/PP[ss], ss] /. ss -> s0', ()),
     ('term3printed', '-(1/(2 dioF[s0] TT[s0]^2)) (1/2) (QQ[s0]/m)^2 g0pp', ()),
     ('term3correct', '-(1/(2 TT[s0]^2)) (1/2) (QQ[s0]/m)^2 g0pp', ()),
