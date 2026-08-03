@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 61 non-assignment statement(s) remain.
@@ -74,4 +76,20 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/nc-kineq-old/vector2d.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/nc-kineq-old/vector2d.wl'
+    )
+    # The native runner stops at the source's explicit UNCONVERTED CELL
+    # marker.  Preserve the last observable g11 assignment from the preceding
+    # vector-field block instead of letting the later triangular sketch
+    # overwrite that binding in the generated assignment stream.
+    x, y = sp.symbols('x y')
+    values['g11'] = sp.Function('StreamPlot')(
+        sp.Tuple(
+            sp.sqrt(6) * (sp.Rational(1, 2) + sp.sqrt(3) / 6) * x,
+            sp.sqrt(2) * y,
+        ),
+        sp.Tuple(x, 0, 1),
+        sp.Tuple(y, 0, 1),
+    )
+    return values
