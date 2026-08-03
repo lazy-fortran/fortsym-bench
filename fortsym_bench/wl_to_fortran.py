@@ -39,6 +39,15 @@ _BOUNDED_DO = re.compile(
     re.DOTALL | re.VERBOSE,
 )
 MAX_BOUNDED_DO_ITERATIONS = 128
+_BOUNDED_WHILE_STEP = re.compile(
+    r"""^While\[\s*
+        (?P<iterator>[A-Za-z][A-Za-z0-9_]*)\s*
+        (?P<operator><=|>=|<|>)\s*(?P<bound>[+-]?\d+)\s*,\s*
+        (?P<body>(?:\+\+|--)[A-Za-z][A-Za-z0-9_]*|[A-Za-z][A-Za-z0-9_]*(?:\+\+|--))\s*
+    \]$""",
+    re.DOTALL | re.VERBOSE,
+)
+MAX_BOUNDED_WHILE_BOUND = 128
 MAX_ADAPTER_SOURCE_BYTES = 1_048_576
 
 
@@ -169,7 +178,11 @@ def translate_wolfram_file_to_fortran(
         raise WolframFortranTranslationError(
             f"cannot read input source: {error}"
         ) from error
-    generated = translate_wolfram_to_fortran(source, translator)
+    normalized = normalize_assignment_stream(source).strip()
+    if _BOUNDED_WHILE_STEP.fullmatch(normalized) is not None:
+        generated = translate_bounded_while(normalized, translator)
+    else:
+        generated = translate_wolfram_to_fortran(source, translator)
     try:
         output_path.write_text(generated)
     except OSError as error:
@@ -244,6 +257,54 @@ def translate_bounded_do(
     if iterations > max_iterations:
         raise WolframFortranTranslationError(
             f"bounded Do exceeds the {max_iterations}-iteration limit"
+        )
+    return translate_wolfram_to_fortran(normalized, translator)
+
+
+def translate_bounded_while(
+    source: str,
+    translator: Sequence[str] = ("fortsym_wl_to_f90",),
+    max_bound: int = MAX_BOUNDED_WHILE_BOUND,
+) -> str:
+    """Translate a terminating scalar integer-step ``While`` statement.
+
+    The native backend emits the loop itself for the restricted forms
+    ``While[i < 4, i++]`` and ``While[i >= -2, i--]``.  Only a literal bound
+    and a matching unit step are admitted here, and the magnitude of that
+    bound is capped before the source reaches the native process.  Arbitrary
+    bodies, symbolic bounds, and direction mismatches remain refused.
+    """
+
+    if max_bound <= 0:
+        raise ValueError("max_bound must be positive")
+    normalized = normalize_assignment_stream(source).strip()
+    match = _BOUNDED_WHILE_STEP.fullmatch(normalized)
+    if match is None:
+        raise WolframFortranTranslationError(
+            "expected one bounded While with a literal scalar bound and "
+            "matching unit step"
+        )
+    iterator = match.group("iterator")
+    operator = match.group("operator")
+    bound = int(match.group("bound"))
+    body = match.group("body")
+    if abs(bound) > max_bound:
+        raise WolframFortranTranslationError(
+            f"bounded While bound exceeds the {max_bound} limit"
+        )
+    increment = body in (f"{iterator}++", f"++{iterator}")
+    decrement = body in (f"{iterator}--", f"--{iterator}")
+    if not increment and not decrement:
+        raise WolframFortranTranslationError(
+            "bounded While body must increment or decrement its condition target"
+        )
+    if increment and operator not in ("<", "<="):
+        raise WolframFortranTranslationError(
+            "bounded While increment requires a less-than condition"
+        )
+    if decrement and operator not in (">", ">="):
+        raise WolframFortranTranslationError(
+            "bounded While decrement requires a greater-than condition"
         )
     return translate_wolfram_to_fortran(normalized, translator)
 
