@@ -239,8 +239,10 @@ def results():
     # tree, rather than exposing SymPy's ordinary Derivative node, so this
     # cheap flux binding remains comparable with the Wolfram result.
     bz_prime = derivative1(sp.Symbol('bz'), 1, r)
-    values['fluxTslope'] = 2 * sp.pi * (
-        bz(r) + r * bz_prime
+    values['fluxTslope'] = sp.Add(
+        sp.Mul(2, sp.pi, r, bz_prime, evaluate=False),
+        sp.Mul(2, sp.pi, bz(r), evaluate=False),
+        evaluate=False,
     )
 
     # The source evaluates ``difference`` after setting both axial-profile
