@@ -217,4 +217,10 @@ def results():
         sp.Tuple(sp.Float('0.5') + sp.cos(t), 1 + sp.sin(t)),
         sp.Tuple(t, 0, 2 * sp.pi),
     )
+
+    # ``Clear[x, y, t]`` in the source removes the earlier global value of
+    # ``t`` before ``r = t``.  Preserve that cleared symbol rather than
+    # leaking the preceding ``(-8)^(1/3)`` assignment through the generated
+    # sequential evaluator.
+    values['r'] = sp.Symbol('t')
     return values
