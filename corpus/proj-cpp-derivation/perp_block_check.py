@@ -97,4 +97,15 @@ def results():
         sp.Tuple(0, 1 / r0**2, 0),
         sp.Tuple(0, 0, 1 / (R0 + r0 * sp.cos(th0))**2),
     )
+    # Preserve the source Dot form while Bc/Bn remain intentionally opaque in
+    # this bounded translation.  The native Wolfram path likewise leaves this
+    # contraction unevaluated, rather than collapsing it into Bc**2/Bn**2.
+    dot = sp.Function('Dot')
+    bctr = sp.Symbol('Bc') / sp.Symbol('Bn')
+    projection = dot(sp.Tuple(1, 0, 0), bctr)
+    values['e1raw'] = sp.Tuple(
+        1 - sp.Symbol('Bc') * projection / sp.Symbol('Bn'),
+        -sp.Symbol('Bc') * projection / sp.Symbol('Bn'),
+        -sp.Symbol('Bc') * projection / sp.Symbol('Bn'),
+    )
     return values
