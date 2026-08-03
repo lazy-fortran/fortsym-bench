@@ -115,11 +115,15 @@ def results():
     values.update(
         {
             "Bthctr": B0 * h0th / r / (r * c / R0 + 1),
-            "Bphcov": (R0 + r * c) ** 2
-            * B0
+            # Bphcov is evaluated after B0=R0=1, but gphph was assigned
+            # before those constants.  Preserve that Mathematica
+            # assignment-time asymmetry instead of cancelling the factors.
+            "Bphcov": R0**2
             * h0ph
-            * (r - c * r**2 / R0)
-            / (r * (R0 + r * c)),
+            * r**-1
+            * (1 + r * c / R0) ** 2
+            * (1 + r * c) ** -1
+            * (r - r**2 * c),
             "Bstarr": -h0ph * vp * s / R0 / (r * c / R0 + 1),
             "Bstarth": -h0ph * vp * c / R0 / r / (r * c / R0 + 1)
             + h0th / r / (r * c + 1),
