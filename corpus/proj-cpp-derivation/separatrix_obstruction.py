@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 87 non-assignment statement(s) remain.
@@ -78,4 +80,31 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-cpp-derivation/separatrix_obstruction.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-cpp-derivation/separatrix_obstruction.wl'
+    )
+
+    # The source's Range and Map are concrete list operations.  The bounded
+    # generic lowering intentionally leaves these heads inert, but doing so
+    # here would lose the actual sampled energies and phase points used by the
+    # gate.  Reconstruct the source values explicitly and retain its numeric
+    # evaluation boundaries (N inside lnInvE and dJsepdlam).
+    values['Egrid'] = sp.Tuple(*(-sp.Rational(1, 10**power) for power in range(1, 10)))
+    values['lnInvE'] = sp.Tuple(
+        *(sp.log(1 / abs(energy)) for energy in values['Egrid'])
+    )
+    values['xiScan'] = sp.Tuple(
+        *(sp.Rational(index, 100) for index in range(1, 100))
+    )
+    values['gVals'] = sp.Tuple(
+        *(-xi * sp.log(xi) - (1 - xi) * sp.log(1 - xi)
+          for xi in values['xiScan'])
+    )
+    values['phaseSpread'] = (
+        (sp.Max(*values['gVals']) - sp.Min(*values['gVals']))
+        * sp.Rational(1, 40) / (2 * sp.pi)
+        * sp.Function('Abs')(values['dJsepdlam'])
+    )
+    values['cLower'] = sp.Function('Abs')(sp.N(values['dJsepdlam'])) / (2 * sp.pi)
+    values['projError'] = sp.Function('Abs')(values['trueJump'] - values['projectedJump'])
+    return values
