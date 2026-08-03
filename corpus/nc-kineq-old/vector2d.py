@@ -92,4 +92,11 @@ def results():
         sp.Tuple(x, 0, 1),
         sp.Tuple(y, 0, 1),
     )
+    # The source's second field plot is also observable before the explicit
+    # UNCONVERTED CELL.  Do not let the later triangular sketch overwrite it.
+    values['g12'] = sp.Function('StreamPlot')(
+        values['phi12'],
+        sp.Tuple(x, 0, 1),
+        sp.Tuple(y, 0, 1),
+    )
     return values
