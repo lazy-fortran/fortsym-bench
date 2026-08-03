@@ -107,4 +107,29 @@ def results():
         / xi_value**2,
         20,
     )
+
+    # ``Erfc`` in the source is Mathematica's built-in special function.  The
+    # generic lowering intentionally keeps it opaque, which leaves the
+    # derivative in ``slopeKin`` unevaluated.  Rebuild this one source-faithful
+    # response with SymPy's built-in ``erfc`` before differentiating.
+    dv, dop = sp.symbols('dv dop')
+
+    def _kinetic_response(xi):
+        return (
+            1
+            - sp.sqrt(sp.pi / 2)
+            * sp.exp(1 / (2 * xi**2))
+            * sp.erfc(1 / (xi * sp.sqrt(2)))
+            / xi
+        ) / xi**2
+
+    psi_kin = (
+        dv
+        * _kinetic_response(dv * values['mfpOverR0'])
+        / (dop * _kinetic_response(dop * values['mfpOverR0']))
+    )
+    values['slopeKin'] = sp.N(
+        sp.diff(psi_kin, dv).subs({dv: sp.Rational(1, 100), dop: sp.Rational(1, 100)}),
+        20,
+    )
     return values
