@@ -184,6 +184,15 @@ def results():
     # the translator's eager replacement of the earlier ``t`` assignment.
     values['r'] = sp.Symbol('t')
 
+    # The source's ellipse plot uses a Greek parameter name.  The shared
+    # assignment evaluator leaves that plotting binding opaque, so preserve
+    # the source expression explicitly instead of dropping ``k``.
+    phi = sp.Symbol('ϕ')
+    values['k'] = sp.Function('ParametricPlot')(
+        sp.Tuple(2 * sp.cos(phi), sp.sin(phi)),
+        sp.Tuple(phi, 0, 2 * sp.pi),
+    )
+
     # The final source assignment is a finite Table of styled Plot heads.
     # The shared evaluator deliberately does not render graphics, so retain
     # the four source expressions as opaque SymPy trees instead of dropping
