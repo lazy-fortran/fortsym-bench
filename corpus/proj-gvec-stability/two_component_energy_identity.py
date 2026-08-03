@@ -197,4 +197,13 @@ def results():
     values['physicalWeighted'] = (
         2 * sp.pi * sp.Symbol('len') * r * physical_value
     )
+
+    # The source assignment ``D[2 Pi rr bz[rr], rr] /. rr -> r`` is a
+    # bounded radial derivative.  Keep the source's explicit Derivative1
+    # tree, rather than exposing SymPy's ordinary Derivative node, so this
+    # cheap flux binding remains comparable with the Wolfram result.
+    bz_prime = derivative1(sp.Symbol('bz'), 1, r)
+    values['fluxTslope'] = 2 * sp.pi * (
+        bz(r) + r * bz_prime
+    )
     return values
