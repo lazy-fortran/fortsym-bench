@@ -7,6 +7,8 @@ their count is recorded in translation-manifest.json.
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
+import sympy as sp
+
 # NOT TRANSLATED: 35 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('root', 'DirectoryName[DirectoryName[$InputFileName]]', ()),
@@ -81,4 +83,20 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/gh-krystophny-andreas-ntv/build_notebooks.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/gh-krystophny-andreas-ntv/build_notebooks.wl',
+    )
+    # The generic evaluator cannot call Wolfram's prime notation when the
+    # derivative is still symbolic.  Preserve the source tree explicitly;
+    # ``Derivative1`` is the companion's opaque spelling for ``f0'[j]``.
+    j = sp.Symbol('j')
+    delta = values['delta']
+    values['aCoef'] = (
+        sp.Symbol('m')
+        * sp.Function('h')(j)
+        * sp.Function('Derivative1')(sp.Symbol('f0'), sp.Integer(1), j)
+        * delta
+        / (delta**2 + sp.Symbol('nu')**2)
+    )
+    return values
