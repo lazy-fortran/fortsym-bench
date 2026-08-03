@@ -68,7 +68,7 @@ _ASSIGNMENTS = [
     ('greenPrintedResidual', "greenPrintedSecond + greenPrintedPrime/r -\n  (ell^2/r^2 + kappa^2) greenPrinted -\n  4 Pi signedK (r current'[r] + 2 current[r])/(cl signedM)", ()),
     ('momentRules', "{\n  lowerMoment'[r] -> r^(ell + 1) current[r],\n  lowerMoment''[r] -> (ell + 1) r^ell current[r] +\n    r^(ell + 1) current'[r],\n  upperMoment'[r] -> -r^(1 - ell) current[r],\n  upperMoment''[r] -> -(1 - ell) r^-ell current[r] -\n    r^(1 - ell) current'[r]}", ()),
     ('yLong', '2 Pi n/(cl signedM capR) (r^(-ell) * lowerMoment[r] -\n    r^ell * upperMoment[r])', ()),
-    ('brLong', '2 Pi I capR ell/(cl signedM r) (r^-ell lowerMoment[r] +\n    r^ell upperMoment[r])', ()),
+    ('brLong', '2 Pi I capR ell/(cl signedM r) (r^(-ell) * lowerMoment[r] +\n    r^ell * upperMoment[r])', ()),
     ('longRadialResidual', 'D[r D[yLong, r], r]/r - ell^2 yLong/r^2 -\n  4 Pi n D[r^2 current[r], r]/(cl signedM capR r)', ()),
     ('longAmpereResidual', 'capR^2 D[yLong, r] - I n brLong -\n  4 Pi n r capR current[r]/(cl signedM)', ()),
     ('fixtureCurrent', 's Exp[-s]', ('s',)),
