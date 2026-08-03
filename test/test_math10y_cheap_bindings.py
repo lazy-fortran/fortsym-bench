@@ -215,3 +215,39 @@ def test_math10y_ft0_matches_independent_numeric_boundaries():
         assert math.isclose(
             numeric, 4.0 / vfun(argument) ** 0.25, rel_tol=1.0e-6
         )
+
+
+def test_math10y_ft2_matches_independent_numeric_boundaries():
+    values = math10y.results()
+    value = values['ft2']
+    v, x, y, z = sp.symbols('v x y z')
+    expected = v * sp.Function('Dt')(
+        sp.Function('Dt')(
+            sp.Function('Set')(y, z / v ** sp.Rational(1, 4)), x
+        ),
+        x,
+    )
+    assert value == expected
+
+    # Independently evaluate v*f2 for v(x) = 16 + x and z = 8 at two
+    # samples.  The finite-difference derivative is deliberately computed
+    # without SymPy or the translated Wolfram expression.
+    def source_value(argument):
+        return 8.0 / (16.0 + argument) ** 0.25
+
+    def numeric_ft2(argument):
+        h = 1.0e-3
+        second = (
+            source_value(argument + h)
+            - 2.0 * source_value(argument)
+            + source_value(argument - h)
+        ) / h**2
+        return (16.0 + argument) * second
+
+    for argument in (0.0, 1.0):
+        expected_numeric = 5.0 * 8.0 / (
+            16.0 * (16.0 + argument) ** 1.25
+        )
+        assert math.isclose(
+            numeric_ft2(argument), expected_numeric, rel_tol=1.0e-6
+        )
