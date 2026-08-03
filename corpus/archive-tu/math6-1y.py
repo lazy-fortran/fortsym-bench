@@ -199,4 +199,13 @@ def results():
     # range, despite the earlier global assignment ``t = (-8)^(1/3)``.
     t = sp.Symbol('t')
     values['s'] = plot(sp.sin(t), sp.Tuple(t, 0, 2 * sp.pi))
+
+    # ``ParametricPlot`` has held, localized iterator semantics.  Preserve the
+    # source's Greek parameter and ellipse expression instead of exposing the
+    # native renderer's image filename for ``k``.
+    phi = sp.Symbol('ϕ')
+    values['k'] = sp.Function('ParametricPlot')(
+        sp.Tuple(2 * sp.cos(phi), sp.sin(phi)),
+        sp.Tuple(phi, 0, 2 * sp.pi),
+    )
     return values
