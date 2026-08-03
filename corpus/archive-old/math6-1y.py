@@ -183,4 +183,24 @@ def results():
     # the native Wolfram runner; preserve that binding rather than exposing
     # the translator's eager replacement of the earlier ``t`` assignment.
     values['r'] = sp.Symbol('t')
+
+    # The final source assignment is a finite Table of styled Plot heads.
+    # The shared evaluator deliberately does not render graphics, so retain
+    # the four source expressions as opaque SymPy trees instead of dropping
+    # the binding or substituting the native backend's image filenames.
+    x = sp.Symbol('x')
+    plot = sp.Function('Plot')
+    hue = sp.Function('Hue')
+    rule = sp.Function('Rule')
+    values['pi'] = sp.Tuple(*(
+        plot(
+            sp.sin(k * x),
+            sp.Tuple(x, 0, 2 * sp.pi),
+            rule(
+                sp.Symbol('PlotStyle'),
+                sp.Tuple(sp.Symbol('Thick'), hue(sp.Float(k * 0.25))),
+            ),
+        )
+        for k in range(1, 5)
+    ))
     return values
