@@ -68,3 +68,13 @@ def test_math10y_recovered_geometry_values_have_independent_numeric_oracles():
     }
     for name, expected in expected_corners.items():
         assert abs(values[name] - expected) < sp.Float('1e-14')
+
+
+def test_math10y_step_binding_matches_independent_numeric_oracle():
+    values = math10y.results()
+    step = values['ft1']
+    t, a = sp.symbols('t a')
+
+    assert step.subs({t: -1, a: 0}) == 0
+    assert step.subs({t: 0, a: 0}) == 0
+    assert step.subs({t: 1, a: 0}) == 1
