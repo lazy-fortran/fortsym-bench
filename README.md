@@ -480,6 +480,14 @@ The v98 cache-preserving pass took 6.24 seconds at about 489 MiB RSS; its
 all-warm UV pass took 0.93 seconds at about 489 MiB RSS. The v98 cycle adds
 gvec `II_tt`, two-component `qField`, and another `math10y` binding; the
 archive plot recovery remains a declared native-serialization difference.
+The v99 cache-preserving pass took 1.01 seconds at about 489 MiB RSS; its
+all-warm UV pass also took 1.01 seconds at about 489 MiB RSS. The v99 cycle adds
+gvec `II_zz`, two-component `fluxTslope`, another `math11y` binding, and the
+bounded `Do` source-to-Fortran adapter. The full adapter inventory emitted 1 of
+384 sources and refused 383, with no compile errors or timeouts.
+The v100 cache-preserving pass took 3.63 seconds at about 489 MiB RSS; its
+all-warm UV pass took 0.93 seconds at about 489 MiB RSS. The v100 cycle adds
+ECNL, `math13y`, `math15y`, and appA flux-coordinate recoveries.
 The preceding v74 cold one-worker
 pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
@@ -494,8 +502,8 @@ matrix contractions in the generated gc-drift companion, and the named-blank
 native rule path.
 
 The bounded Fortran inventory in `tools/inventory_wl_to_f90.py` inspected all
-384 `.wl` sources on 2026-08-02 with a serial five-second limit. It emitted
-0 Fortran files and explicitly refused 384; there were no compile errors,
+384 `.wl` sources on 2026-08-03 in explicit `assignment-adapter` mode. It
+emitted 1 Fortran file and explicitly refused 383; there were no compile errors,
 timeouts, or runner errors. The inventory is an acceptance report only: emitted
 text is not yet executed or compared semantically against the source.
 
@@ -543,10 +551,10 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The v98 audit on 2026-08-03 produced 3,915 agreements, 479 declared
+place. The v100 audit on 2026-08-03 produced 3,922 agreements, 476 declared
 differences, 7 unsupported outcomes, 75 timeouts, 61 errors, 197 oracle
-disagreements, and 291 oracle-missing bindings across 4,885 bindings. Mathics3
+disagreements, and 287 oracle-missing bindings across 4,885 bindings. Mathics3
 10.0.1 is installed with UV. The independent regression suites cover the v70
-through v98 changes. Translation quality and the remaining backend parity work
+through v100 changes. Translation quality and the remaining backend parity work
 stay measured by the independent oracle report; the report is the source of
 truth for current counts.
