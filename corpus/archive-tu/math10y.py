@@ -247,6 +247,8 @@ def _recovered_bindings():
         "fss": unit(a + t) + unit(a - t) - 1,
         "fst": unit(t) + unit(a - t) - 1,
         "ft": 1 / (t**2 + a**2),
+        # Final cheap source binding before the Laplace-transform examples.
+        "ft1": sp.Piecewise((0, t <= a), (1, True)),
         "fu": t * unit(a + t) - t * unit(t - a),
         "k": -sp.sin(3 * x) * sp.cos(x) ** 2,
         # Literal rule assignments used by the surrounding plotting cells.
