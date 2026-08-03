@@ -1,4 +1,4 @@
-"""Independent check for the project NTV Maxwellian logarithmic gradient."""
+"""Independent check for the project NTV damped response coefficient."""
 
 import importlib.util
 from pathlib import Path
@@ -13,6 +13,33 @@ def _module():
     assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
+
+
+def test_b_coef_matches_independent_damped_response_formula():
+    value = _module().results()["bCoef"]
+    j = sp.Symbol("j")
+    m = sp.Symbol("m")
+    omega = sp.Symbol("omega")
+    nu = sp.Symbol("nu")
+    capital_omega = sp.Function("capitalOmega")
+    h = sp.Function("h")
+    derivative = sp.Function("Derivative1")(
+        sp.Symbol("f0"), sp.Integer(1), j
+    )
+    sample = {
+        m: 2,
+        h(j): 3,
+        derivative: 5,
+        capital_omega(j): 7,
+        omega: 1,
+        nu: 4,
+    }
+
+    # Recompute the imaginary response coefficient independently of the
+    # translated detuning and intermediate assignments.
+    detuning = m * capital_omega(j) - omega
+    expected = m * h(j) * derivative * nu / (detuning**2 + nu**2)
+    assert value.subs(sample) == expected.subs(sample)
 
 
 def test_maxwellian_gradient_is_independent_log_derivative():
