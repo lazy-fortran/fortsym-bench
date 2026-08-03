@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 42 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
@@ -44,4 +45,23 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math11u.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math11u.wl')
+
+    # The final source ``sol`` is an Array populated by two NDSolve calls.
+    # Keep those calls opaque: preserving their equations, initial data, and
+    # interval is source-faithful, while inventing sampled trajectories would
+    # turn a refused numerical solve into a guessed result.
+    x = sp.Function('x')
+    t = sp.Symbol('t')
+    derivative1 = sp.Function('Derivative1')
+    ndsolve = sp.Function('NDSolve')
+    initial = lambda velocity: sp.Tuple(
+        sp.Eq(x(0), 0),
+        sp.Eq(derivative1(sp.Symbol('x'), 1, 0), velocity),
+    )
+    values['sol'] = sp.Tuple(*(
+        ndsolve(sp.Tuple(values['eq'], *initial(velocity)),
+                sp.Symbol('x'), sp.Tuple(t, 0, 3))
+        for velocity in (1, sp.Float('1.1'))
+    ))
+    return values
