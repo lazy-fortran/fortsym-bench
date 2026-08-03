@@ -188,6 +188,9 @@ def _recovered_bindings():
     a, b, c, d, t, v, x, y, z, alpha, omega = sp.symbols(
         "a b c d t v x y z alpha omega"
     )
+    s, v0, resistance, inductance, capacitance = sp.symbols(
+        "s V0 R L C"
+    )
     # ``wl_to_sympy`` uses ``phi`` as the stable parser spelling for Wolfram's
     # variant phi character; the cross-language comparator applies the same
     # normalization to the native ``ϕ`` output.
@@ -304,6 +307,20 @@ def _recovered_bindings():
         ),
         # Final cheap source binding before the Laplace-transform examples.
         "ft1": sp.Piecewise((0, t <= a), (1, True)),
+        # Mathics does not emit this transform binding, and the native
+        # Wolfram runner preserves the unsupported transform head. Retain
+        # the exact source tree so the SymPy translation remains useful
+        # without pretending that the inverse transform was evaluated.
+        "ti": sp.Function("InverseLaplaceTransform")(
+            v0
+            / (
+                resistance * s
+                + inductance * s**2
+                + capacitance
+            ),
+            s,
+            t,
+        ),
         "fu": t * unit(a + t) - t * unit(t - a),
         "f": final_f,
         # Final source binding from the two repeated ``Which`` examples.

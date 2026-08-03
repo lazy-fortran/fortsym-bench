@@ -251,3 +251,47 @@ def test_math10y_ft2_matches_independent_numeric_boundaries():
         assert math.isclose(
             numeric_ft2(argument), expected_numeric, rel_tol=1.0e-6
         )
+
+
+def test_math10y_inverse_laplace_binding_matches_independent_rlc_response():
+    value = math10y.results()['ti']
+    s, t = sp.symbols('s t')
+    v0, resistance, inductance, capacitance = sp.symbols('V0 R L C')
+
+    assert value.func == sp.Function('InverseLaplaceTransform')
+    transfer, transform_variable, time_variable = value.args
+    assert transform_variable == s
+    assert time_variable == t
+    assert transfer == v0 / (
+        resistance * s + inductance * s**2 + capacitance
+    )
+
+    # Evaluate the recovered transform through SymPy, then compare at one
+    # point with the independently derived RLC impulse response.  The latter
+    # is computed from the two quadratic poles, not from the translated tree.
+    response = sp.inverse_laplace_transform(transfer, s, t)
+    parameters = {
+        v0: 3.0,
+        resistance: 3.0,
+        inductance: 1.0,
+        capacitance: 1.0,
+        t: 0.7,
+    }
+    discriminant = parameters[resistance] ** 2 - 4 * parameters[inductance] * parameters[capacitance]
+    expected = (
+        2
+        * parameters[v0]
+        * math.exp(
+            -parameters[resistance]
+            * parameters[t]
+            / (2 * parameters[inductance])
+        )
+        * math.sinh(
+            math.sqrt(discriminant)
+            * parameters[t]
+            / (2 * parameters[inductance])
+        )
+        / (parameters[inductance] * math.sqrt(discriminant))
+    )
+    actual = float(response.subs(parameters).doit().evalf())
+    assert math.isclose(actual, expected, rel_tol=1e-12)
