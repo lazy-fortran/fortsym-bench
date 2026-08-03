@@ -76,6 +76,63 @@ def results():
     values = evaluate_assignments(
         _ASSIGNMENTS, 'corpus/nc-kineq-old/geomint2d.wl'
     )
+
+    # The source's ``ass`` is used by FullSimplify only for the cylindrical
+    # curl.  With real R, Z and R > 0, write the derivative of the explicit
+    # antiderivative before forming the curl.  This keeps the source field
+    # visible; the native subset currently leaves this Curl binding at zero.
+    R = sp.Symbol('R')
+    Z = sp.Symbol('Z')
+    r2 = (R - 1)**2 + Z**2
+    radial_root = sp.sqrt(1 - r2)
+    aphi = (
+        -radial_root / 4
+        + sp.sqrt(5) * sp.atanh(2 * sp.sqrt(5) * radial_root / 5) / 40
+    )
+    bsol2 = sp.Tuple(
+        -Z * r2 / (R * radial_root * (1 + 4 * r2)),
+        (R - 1) * r2 / (R * radial_root * (1 + 4 * r2)),
+    )
+    bmag = sp.sqrt(bsol2[0]**2 + bsol2[1]**2 + 1 / R**2)
+
+    values['Aphsol2'] = aphi
+    values['Bsol2'] = bsol2
+    values['Bvec'] = bsol2
+    values['B'] = bmag
+
+    # Re-evaluate the downstream assignments from the repaired source field.
+    # ``w`` is exact in the Wolfram source, while ``mu = w*1.`` is machine
+    # precision; the point used for pphi is machine precision as well.
+    e = values['e']
+    c = values['c']
+    m = values['m']
+    w = values['w']
+    mu = values['mu']
+    bphi = values['Bphi']
+    vpar = sp.sqrt((2 / m) * (w - mu * bmag))
+    vperp = sp.sqrt((2 / m) * bmag * mu)
+    values['vpar'] = vpar
+    values['vperp'] = vperp
+    values['v'] = sp.sqrt(vpar**2 + vperp**2)
+
+    point = {R: values['R0'], Z: values['Z0']}
+    b0 = bmag.subs(point)
+    vpar0 = vpar.subs(point)
+    pphi = sp.simplify(
+        m * vpar0 * (bphi / b0) + (e / c) * aphi.subs(point)
+    )
+    values['pphi'] = pphi
+    hamiltonian = (
+        c * (bphi / e) * (w / bmag**2 - mu / bmag)
+        - (e / (2 * m * c * bphi)) * (aphi - (c / e) * pphi)**2
+    )
+    values['H'] = hamiltonian
+    values['H0'] = hamiltonian.subs(point)
+    values['Bstar'] = sp.Tuple(
+        -sp.diff(hamiltonian, Z) / R,
+        sp.diff(hamiltonian, R) / R,
+    )
+
     # The native subset keeps this symbolic source expression intact: its
     # matrix lowering cannot invert the source-shaped Mtri definition. Keep
     # that exact Wolfram head visible instead of silently dropping Minv.
