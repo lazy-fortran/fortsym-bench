@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import hashlib
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 import sympy as sp
 
@@ -220,6 +222,39 @@ _ASSIGNMENTS = [
 
 def results():
     values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-tu/math11y.wl')
+
+    # ``ParametricPlot3D`` is a rendering head, so the shared evaluator
+    # intentionally omits it.  Preserve the native source-level binding as
+    # an opaque symbolic plot expression.  The native protocol retains the
+    # unresolved ``rs`` name inside ``Evaluate`` at this point; keeping that
+    # observable form makes this translation agree without inventing a
+    # numerical trajectory for the plot.
+    rule = sp.Function('Rule')
+    plot = sp.Function('ParametricPlot3D')
+    evaluate = sp.Function('Evaluate')
+
+    def string(value):
+        return sp.Symbol(
+            'fortsymString' + hashlib.sha256(
+                f'"{value}"'.encode('utf-8')
+            ).hexdigest()
+        )
+
+    values['pleb1'] = plot(
+        evaluate(sp.Symbol('rs')),
+        sp.Tuple(sp.Symbol('t'), 0, 20),
+        rule(sp.Symbol('Boxed'), sp.false),
+        rule(
+            sp.Symbol('AxesLabel'),
+            sp.Tuple(*(string(value) for value in ('x', 'y', 'z'))),
+        ),
+        rule(sp.Symbol('DisplayFunction'), sp.Symbol('Identity')),
+        rule(sp.Symbol('BoxRatios'), sp.Tuple(1, 1, 1)),
+        rule(
+            sp.Symbol('ViewPoint'),
+            sp.Tuple(sp.Float('-1.01'), sp.Float('-2.4'), sp.Float('2.0')),
+        ),
+    )
 
     # ``neweq`` is the source's symbolic Sum over a Table of coefficients.
     # The bounded translator cannot lower Coefficient/Table over a symbolic
