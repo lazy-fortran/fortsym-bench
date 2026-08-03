@@ -87,6 +87,30 @@ def _expected_k1():
     )
 
 
+def _expected_k4():
+    phi = sp.Symbol('ϕ')
+    return sp.Function('ParametricPlot')(
+        sp.Tuple(2 * sp.cos(phi), sp.sin(phi)),
+        sp.Tuple(phi, 0, 2 * sp.pi),
+        sp.Function('Rule')(
+            sp.Symbol('PlotStyle'),
+            sp.Tuple(
+                sp.Function('Hue')(0),
+                sp.Function('Thickness')(sp.Float('0.01')),
+            ),
+        ),
+    )
+
+
+def _expected_pp():
+    x = sp.Symbol('x')
+    return sp.Function('Plot')(
+        sp.sin(x),
+        sp.Tuple(x, 0, 3 * sp.pi),
+        sp.Function('Rule')(sp.Symbol('ImageSize'), 174),
+    )
+
+
 def _expected_ps2():
     return sp.Function('ListPlot')(
         sp.Tuple(2, 3, 1, 4, sp.Float('2.5'), sp.Float('1.5')),
@@ -101,6 +125,9 @@ def test_both_companions_preserve_source_plot_residuals():
     for values in (old.results(), tu.results()):
         assert values['p3'] == _expected_p3()
         assert values['k3'] == _expected_k3()
+        assert values['k4'] == _expected_k4()
+        assert values['pp'] == _expected_pp()
         assert values['ps2'] == _expected_ps2()
 
+    assert old.results()['k1'] == _expected_k1()
     assert tu.results()['k1'] == _expected_k1()

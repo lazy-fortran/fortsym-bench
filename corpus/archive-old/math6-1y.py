@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import hashlib
+
 import sympy as sp
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
@@ -173,6 +175,7 @@ def results():
     # keeping the source head and option makes these bindings available without
     # pretending to render graphics in SymPy.
     rule = sp.Function('Rule')
+    hue = sp.Function('Hue')
     values['ps1'] = sp.Function('ListPlot')(
         values['l1'], rule(sp.Symbol('PlotJoined'), True)
     )
@@ -216,13 +219,54 @@ def results():
         rule(sp.Symbol('PlotStyle'), sp.Tuple(sp.Symbol('Red'))),
     )
 
-    # The source's local ellipse assignment is the last lowerable ``k1``
-    # binding.  Preserve its iterator instead of leaking the earlier global
-    # ``t = (-8)^(1/3)`` through the sequential evaluator.
-    t = sp.Symbol('t')
-    values['k1'] = sp.Function('ParametricPlot')(
-        sp.Tuple(sp.Float('0.5') + sp.cos(t), 1 + sp.sin(t)),
-        sp.Tuple(t, 0, 2 * sp.pi),
+    # The source's final ``k4`` is a bounded symbolic plot description.  Keep
+    # its geometry and style as an opaque ParametricPlot head; rendering stays
+    # explicitly outside this companion's scope.
+    parametric_plot = sp.Function('ParametricPlot')
+    values['k4'] = parametric_plot(
+        sp.Tuple(2 * sp.cos(phi), sp.sin(phi)),
+        sp.Tuple(phi, 0, 2 * sp.pi),
+        rule(
+            sp.Symbol('PlotStyle'),
+            sp.Tuple(
+                sp.Function('Hue')(0),
+                sp.Function('Thickness')(sp.Float('0.01')),
+            ),
+        ),
+    )
+
+    # ``k1`` is overwritten by the source's final ``Show[k4, ...]``.  Keep
+    # that held rendering expression, including its labels and style options,
+    # rather than exposing the earlier local-ellipse assignment.
+    string_atom = lambda literal: sp.Symbol(
+        'fortsymString' + hashlib.sha256(f'"{literal}"'.encode()).hexdigest()
+    )
+    values['k1'] = sp.Function('Show')(
+        values['k4'],
+        rule(
+            sp.Symbol('AxesLabel'),
+            sp.Tuple(string_atom('x'), string_atom('y')),
+        ),
+        rule(sp.Symbol('Background'), sp.Function('GrayLevel')(sp.Float('0.3'))),
+        rule(sp.Symbol('BaseStyle'), hue(sp.Float('0.3'))),
+        rule(
+            sp.Symbol('PlotLabel'),
+            sp.Function('Style')(
+                string_atom('Ellipse\n'),
+                rule(sp.Symbol('FontSize'), 16),
+                rule(sp.Symbol('FontFamily'), sp.Symbol('Helvetica')),
+            ),
+        ),
+    )
+
+    # ``pp := ...`` is delayed in the Wolfram source and reads ``xcm`` only
+    # after the later ``xcm = 6`` assignment.  Preserve that final held plot
+    # symbolically, including the resolved bounded image-size option.
+    x = sp.Symbol('x')
+    values['pp'] = sp.Function('Plot')(
+        sp.sin(x),
+        sp.Tuple(x, 0, 3 * sp.pi),
+        rule(sp.Symbol('ImageSize'), 29 * 6),
     )
 
     # The final source ``p3`` plot is held by the rendering evaluator, so keep

@@ -64,3 +64,19 @@ def test_last_emitted_p1_keeps_the_source_parametric_plot_head():
     )
 
     assert values['p1'] == expected
+
+
+def test_parametric_surface_keeps_its_source_ranges_and_options():
+    values = _module().results()
+    x, y = sp.symbols('x y')
+    expected = sp.Function('ParametricPlot3D')(
+        sp.Tuple(x, y, sp.sin(x * y)),
+        sp.Tuple(x, 1, 2),
+        sp.Tuple(y, 1, 2),
+        sp.Function('Rule')(sp.Symbol('PlotPoints'), 4),
+        sp.Function('Rule')(
+            sp.Symbol('BoxRatios'), sp.Tuple(1, 1, sp.Float('0.4'))
+        ),
+    )
+
+    assert values['pa'] == expected
