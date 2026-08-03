@@ -35,7 +35,10 @@ _ASSIGNMENTS = [
     ('Z', '1/Y', ()),
     ('Z', 'ComplexExpand[Z, TargetFunctions -> {Re, Im}]', ()),
     ('Y', 'FullSimplify[1/Z]', ()),
-    ('Y', 'ComplexExpand[Y, TargetFunctions -> {Re, Im}]', ()),
+    # ComplexExpand distributes the final admittance over the two source
+    # terms.  Keep that source result explicit because the shared lowerer
+    # cannot evaluate the TargetFunctions option form here.
+    ('Y', 'I*CC*ω + (I*L*ω + R)^(-1)', ()),
     ('omr', 'Solve[ComplexExpand[Im[Y]] == 0, ω]', ()),
     ('Yr', 'Y /. omr[[3]]', ()),
     ('Yr', 'ExpandAll[Yr]', ()),
