@@ -169,7 +169,7 @@ at 337 MiB RSS, with no backend subprocesses started. The full v60 refresh
 took 2:14.26 at a 1.61 GiB peak RSS with one worker. The
 version-9 SymPy refresh needed for the LegendreP translator took 6:59.96 and
 peaked at 3.86 GiB; that cold oracle refresh is not part of the warm path.
-The SymPy cache is now version 27: Unicode `λ`, the user symbol `CC`, bounded
+The SymPy cache is now version 29: Unicode `λ`, the user symbol `CC`, bounded
 `Curl`, and
 bounded `With`/`Do` forms are
 protected while parsing
@@ -548,6 +548,16 @@ cache to version 20. It reports 4,015 agreements, 400 declared differences,
 16.99 seconds and peaked at 489 MiB RSS. The comparator now bounds expensive
 equivalence attempts by expression size, preventing a pathological SymPy
 simplification from hanging the corpus run.
+The v124 stable audit uses native commit `2f3c34b` and Mathics3 10.0.1 installed
+through UV. It reports 4,024 agreements, 386 declared differences, 7
+unsupported outcomes, 74 timeouts, 59 errors, 2 unavailable rows, 205 oracle
+disagreements, and 262 oracle-missing bindings across 4,879 emitted bindings
+from all 384 sources. Refreshing the native-fingerprint rows took 100.03
+seconds at 803 MiB RSS; the following cache-only pass took 0.98 seconds at
+489 MiB RSS. The attempted broader native Solve/Part/Integrate expansion was
+reverted after exceeding the bounded audit limit, so it is not represented as
+parity. Raw SymPy, Mathics, native, and comparison results remain cached for
+warm runs.
 The preceding v74 cold one-worker
 pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
