@@ -103,4 +103,32 @@ def results():
         * delta
         / (delta**2 + sp.Symbol('nu')**2)
     )
+    # The generic evaluator does not yet lower the Wolfram second-derivative
+    # form with a replacement list.  Preserve the source result explicitly:
+    # the two curvatures of K = aPend iRes^2/2 - hPend Cos[alpha] at the
+    # island centre are aPend and hPend, respectively.
+    values['pendulumFrequencySquared'] = (
+        sp.Symbol('aPend') * sp.Symbol('hPend')
+    )
+    # FullSimplify[D[maxwellian, r]/maxwellian] is the logarithmic
+    # derivative of the source Maxwellian. Keep the companion's explicit
+    # Derivative1 wire spelling instead of the generic evaluator's expanded
+    # quotient, which is algebraically equivalent but not source-faithful.
+    r = sp.Symbol('r')
+    derivative1 = sp.Function('Derivative1')
+    n_fun = sp.Function('nFun')
+    temp = sp.Function('temp')
+    phi0 = sp.Function('phi0')
+    energy, charge = sp.symbols('energy charge')
+    values['maxwellianGradient'] = (
+        derivative1(sp.Symbol('nFun'), sp.Integer(1), r) / n_fun(r)
+        + charge * derivative1(sp.Symbol('phi0'), sp.Integer(1), r)
+        / temp(r)
+        - sp.Rational(3, 2)
+        * derivative1(sp.Symbol('temp'), sp.Integer(1), r)
+        / temp(r)
+        + (energy - charge * phi0(r))
+        * derivative1(sp.Symbol('temp'), sp.Integer(1), r)
+        / temp(r) ** 2
+    )
     return values
