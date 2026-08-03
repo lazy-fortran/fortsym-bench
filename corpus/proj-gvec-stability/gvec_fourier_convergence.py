@@ -36,7 +36,7 @@ _ASSIGNMENTS = [
     ('plotData', 'groupData /@ groups[[All, 2]]', ()),
     ('acceptanceData', 'Transpose[{\n    truncations, ConstantArray[acceptanceTolerance, Length[truncations]]}]', ()),
     ('convergencePlot', 'ListLogPlot[\n  Append[plotData, acceptanceData],\n  Frame -> True,\n  FrameLabel -> {\n    Style["Fourier truncation  M = N", 12],\n    Style["Maximum relative reconstruction error", 12]},\n  PlotStyle -> {\n    Directive[RGBColor[0.10, 0.35, 0.70], Thick],\n    Directive[Black, Thick, Dashed],\n    Directive[RGBColor[0.65, 0.20, 0.12], Thick, DotDashed],\n    Directive[RGBColor[0.10, 0.45, 0.25], Thick, Dotted],\n    Directive[GrayLevel[0.45], Thin, Dashed]},\n  Joined -> True,\n  PlotMarkers -> {\n    {Automatic, 7}, {Automatic, 7}, {Automatic, 7}, {Automatic, 7}, None},\n  PlotLegends -> Placed[\n    LineLegend[Append[\n      groups[[All, 1]], Row[{"acceptance  ", Superscript["10", "-3"]}]]],\n    Below],\n  PlotRange -> {{2, 48}, {10^-7, 1}},\n  FrameTicks -> {{\n    Table[{10^exponent, Superscript["10", ToString[exponent]]},\n      {exponent, -7, 0}], None}, {Automatic, None}},\n  GridLines -> {None, {acceptanceTolerance}},\n  GridLinesStyle -> Directive[GrayLevel[0.65], Dashed],\n  ImageSize -> 520,\n  BaseStyle -> {FontFamily -> "Latin Modern Roman", 11}]', ()),
-    ('fieldTeX', '<|\n  "II_tz" -> "\\\\mathrm{II}_{\\\\vartheta\\\\zeta}"', ()),
+    ('fieldTeX', '<|\n  "II_tz" -> "\\\\mathrm{II}_{\\\\vartheta\\\\zeta}",\n  "II_tt" -> "\\\\mathrm{II}_{\\\\vartheta\\\\vartheta}"', ()),
     ('worstFieldTeX', 'Lookup[fieldTeX, worstRow[[2]], "\\\\texttt{" <>\n    StringReplace[worstRow[[2]], "_" -> "\\\\_"] <> "}"]', ()),
     ('numberText', 'StringRiffle[{\n  "\\\\newcommand{\\\\GVECFourierHighestTruncation}{" <>\n    ToString[Last[truncations]] <> "}",\n  "\\\\newcommand{\\\\GVECFourierAcceptanceTolerance}{" <>\n    scientificTeX[acceptanceTolerance, 2] <> "}",\n  "\\\\newcommand{\\\\GVECFourierWorstField}{" <> worstFieldTeX <> "}",\n  "\\\\newcommand{\\\\GVECFourierWorstRelativeError}{" <>\n    scientificTeX[worstRow[[4]], 4] <> "}",\n  "\\\\newcommand{\\\\GVECFourierPointCount}{" <>\n    ToString[4 Last[truncations] + 1] <> "}"}, "\\n"]', ()),
 ]
@@ -55,8 +55,9 @@ def results():
         _ASSIGNMENTS,
         'corpus/proj-gvec-stability/gvec_fourier_convergence.wl',
     )
-    # The source association contains this exact exported label.  Recover the
-    # scalar even though the generic assignment pass leaves associations
-    # opaque; the validation CSV is intentionally not needed for this binding.
+    # The source association contains these exact exported labels.  Recover the
+    # scalars even though the generic assignment pass leaves associations
+    # opaque; the validation CSV is intentionally not needed for these bindings.
     values['II_tz'] = _field_tex_atom(r'\mathrm{II}_{\vartheta\zeta}')
+    values['II_tt'] = _field_tex_atom(r'\mathrm{II}_{\vartheta\vartheta}')
     return values
