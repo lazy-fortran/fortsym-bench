@@ -10,6 +10,11 @@ import itertools
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 import sympy as sp
 
+# ``pa`` is formed after a machine-precision entry (``1.``) enters ``ma``;
+# compare its numeric matrix value rather than backend-specific decimal
+# presentation.  The policy is checked by the focused source-formula tests.
+COMPARE = {'pa': 'numeric'}
+
 # NOT TRANSLATED: 291 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('A', '{{1, 2, 3, 4}, {2, 3, 0, -5}, {2, -1, 1, 1}, {-2, 2, 0, -5}}', ()),

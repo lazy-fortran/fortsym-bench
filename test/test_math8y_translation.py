@@ -71,3 +71,31 @@ def test_math8y_recovers_source_bindings_and_opaque_det():
         sp.Function('Point')(sp.Tuple(3, 2)),
         sp.Function('Point')(sp.Tuple(2, 3)),
     )
+
+
+def test_rank_block_bindings_satisfy_source_matrix_identities():
+    values = _MODULE.results()
+    matrix = sp.Matrix([
+        [1, 2, 3, 4],
+        [2, 3, 0, -5],
+        [2, -1, 1, 1],
+        [1, 2, 3, 4],
+    ])
+    reduced = matrix.copy()
+    reduced[2, :] = 2 * matrix[0, :]
+    assert values['rg'] == matrix.rank()
+    assert values['rh'] == reduced.rank()
+    null_vectors = [sp.Matrix(vector) for vector in values['ns']]
+    left_null_vectors = [sp.Matrix(vector) for vector in values['nt']]
+    assert values['ns'] == sp.Tuple(
+        sp.Tuple(9, -6, 1, 0), sp.Tuple(22, -13, 0, 1)
+    )
+    assert values['nt'] == sp.Tuple(
+        sp.Tuple(-2, 0, 1, 0), sp.Tuple(-1, 0, 0, 1)
+    )
+    assert all(reduced * vector == sp.zeros(4, 1)
+               for vector in null_vectors)
+    assert all(reduced.T * vector == sp.zeros(4, 1)
+               for vector in left_null_vectors)
+    assert values['v'] == sp.Tuple(sp.Rational(28, 25), sp.Rational(23, 25),
+                                   sp.Rational(-58, 25), 1)

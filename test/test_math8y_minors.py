@@ -48,4 +48,52 @@ def test_recovered_final_null_space_annihilates_the_source_matrix():
     ])
     vector = sp.Matrix(values['v'][0])
     assert matrix * vector == sp.zeros(4, 1)
+    assert vector == sp.Matrix([-sp.Rational(1, 2), 2, 2, 1])
     assert vector != sp.zeros(4, 1)
+
+
+def test_recovered_final_row_assignment_and_plot_points_match_source():
+    values = _MODULE.results()
+    source_matrix = sp.Matrix([
+        [1, 2, 3, 4],
+        [2, 3, 0, -5],
+        [2, -1, 1, 1],
+        [-2, 2, 0, -5],
+    ])
+    source_matrix[0, :] = source_matrix[1, :]
+    assert values['G'] == sp.Tuple(*(sp.Tuple(*row)
+                                     for row in source_matrix.tolist()))
+    assert values['cp'] == sp.Tuple(
+        sp.Function('Point')(sp.Tuple(3, 2)),
+        sp.Function('Point')(sp.Tuple(2, 3)),
+    )
+
+
+def test_recovered_least_squares_point_satisfies_source_normal_equations():
+    values = _MODULE.results()
+    matrix = sp.Matrix([[1, -2], [1, -2], [1, 1]])
+    rhs = sp.Matrix([-1, sp.Rational(-79, 20), 5])
+    point = sp.Matrix(values['pso'])
+    residual = matrix.T * (matrix * point - rhs)
+    assert max(abs(float(value)) for value in residual) < 1e-12
+    assert abs(float(point[0]) - 2.5083333333333333) < 1e-12
+    assert abs(float(point[1]) - 2.4916666666666667) < 1e-12
+
+
+def test_recovered_complex_pseudoinverse_satisfies_source_identity():
+    values = _MODULE.results()
+    matrix = sp.Matrix([
+        [1, sp.I],
+        [2, sp.Float(1.0)],
+        [3, -sp.I],
+    ])
+    pseudoinverse = sp.Matrix(values['pa'])
+    error = matrix * pseudoinverse * matrix - matrix
+    assert max(abs(complex(value.evalf())) for value in error) < 1e-12
+
+
+def test_recovered_cubic_determinant_is_the_source_formula():
+    values = _MODULE.results()
+    x = sp.Symbol('x')
+    matrix = sp.Matrix([[1, 1, 2], [1, 2, 1], [2, 1, 1]])
+    assert values['ceq'] == (matrix - x * sp.eye(3)).det()
