@@ -124,6 +124,15 @@ def results():
     # here rather than relying on the generic indexed-list lowering.  This
     # preserves the source's sampled polynomial in the cyclotron parameter.
     r, th, ph, p1, p2, p3 = sp.symbols("r th ph p1 p2 p3")
+    # Wolfram Language keeps the diagonal inverse in factored source form:
+    # the toroidal entry is (r Cos[th] + R0)^(-2), rather than an expanded
+    # reciprocal polynomial.  Preserve that form so this foundational metric
+    # binding compares structurally with the native result.
+    values["gIS"] = sp.Tuple(
+        sp.Tuple(1, 0, 0),
+        sp.Tuple(0, r**-2, 0),
+        sp.Tuple(0, 0, (r * sp.cos(th) + 3) ** -2),
+    )
     sample = {
         r: sp.Rational(1, 2),
         th: sp.Rational(7, 10),
