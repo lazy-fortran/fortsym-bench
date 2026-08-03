@@ -5,7 +5,9 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
-from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
+
+from fortsym_bench.wl_to_sympy import evaluate_assignments, evaluate_expression
 
 # NOT TRANSLATED: 245 non-assignment statement(s) remain.
 COMPARE = {
@@ -112,4 +114,19 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/code-KiLCA/coll.wl')
+    values = evaluate_assignments(_ASSIGNMENTS, 'corpus/code-KiLCA/coll.wl')
+    # The notebook explicitly replaces the exploratory Limit result with
+    # this closed form later in the same cell stream.  ``beta`` is a SymPy
+    # parser builtin, so protect that source symbol while parsing.
+    symbols = {
+        name: sp.Symbol(name if name != 'bet' else 'beta')
+        for name in ('alpha', 'bet', 'omega', 'omega0', 'kp', 'Vt')
+    }
+    values['JLimT'] = evaluate_expression(
+        'Sqrt[2*Pi]*Vt*((E^(((omega - omega0)*(-omega + omega0 + '
+        '2*(alpha + bet)*kp*Vt^2))/(2*kp^2*Vt^2))*Sqrt[Pi/2]*'
+        '(1 - I*Erfi[((-omega + omega0 + (alpha + bet)*kp*Vt^2)*'
+        'Abs[kp])/(Sqrt[2]*kp^2*Vt)]))/(Vt*Abs[kp]))',
+        symbols,
+    )
+    return values
