@@ -18,10 +18,34 @@ def _module():
 def test_minv_preserves_the_source_symbolic_inverse_head():
     values = _module().results()
 
-    expected = sp.Function('Inverse')(sp.Symbol('Mtri'))
-    assert values['Minv'] == expected
-    assert values['Minv'].func == sp.Function('Inverse')
-    assert values['Minv'].args == (sp.Symbol('Mtri'),)
+    x1, y1, x2, y2, x3, y3 = sp.symbols('x1 y1 x2 y2 x3 y3')
+    expected = sp.Matrix(((1, 1, 1), (x1, x2, x3), (y1, y2, y3))).inv()
+    assert sp.Matrix(values['Minv']) == expected
+
+
+def test_affine_triangle_bindings_reconstruct_coordinates():
+    values = _module().results()
+    x1, y1, x2, y2, x3, y3, x, y = sp.symbols(
+        'x1 y1 x2 y2 x3 y3 x y'
+    )
+    node = sp.Matrix(((x1, y1), (x2, y2), (x3, y3)))
+    coordinates = sp.Matrix(values['L'])
+
+    reconstructed = sp.Matrix(values['Mtri']) * coordinates
+    assert reconstructed.applyfunc(sp.simplify) == sp.Matrix((1, x, y))
+    assert sp.simplify(coordinates.dot(sp.ones(3, 1)) - 1) == 0
+    assert (node.T * coordinates).applyfunc(sp.simplify) == sp.Matrix((x, y))
+
+
+def test_n12_is_the_source_antisymmetric_barycentric_gradient():
+    values = _module().results()
+    x, y = sp.symbols('x y')
+    l1, l2, _ = values['L']
+    expected = sp.Tuple(
+        l1 * sp.diff(l2, y) - l2 * sp.diff(l1, y),
+        l1 * sp.diff(l2, x) - l2 * sp.diff(l1, x),
+    )
+    assert values['N12'] == expected
 
 
 def test_cylindrical_curl_recovers_the_nonzero_source_field():
