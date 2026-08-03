@@ -418,7 +418,10 @@ cache-preserving pass took 6.07 seconds at about 487 MiB RSS; its all-warm
 compact-cache pass took 1.10 seconds at about 488 MiB RSS. The v79 cycle adds
 source-faithful `jDotB` and memo34 radial-product bindings. The v80 cycle adds
 final `math10y` `Which` coverage and large-step recurrence bindings; they pass
-focused tests but do not change the scored tally. The
+focused tests but do not change the scored tally. The v81 native fingerprint
+refresh took 92.48 seconds at about 1.54 GiB RSS; its all-warm UV pass took 1.06
+seconds at about 488 MiB RSS. The v81 cycle adds six `vector2d` fields and a
+flux access-condition correction. The
 preceding v74 cold one-worker
 pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
@@ -482,10 +485,10 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The v80 audit on 2026-08-03 produced 3,866 agreements, 482 declared
+place. The v81 audit on 2026-08-03 produced 3,874 agreements, 481 declared
 differences, 7 unsupported outcomes, 76 timeouts, 61 errors, 200 oracle
-disagreements, and 333 oracle-missing bindings across 4,884 bindings. Mathics3
+disagreements, and 327 oracle-missing bindings across 4,885 bindings. Mathics3
 10.0.1 is installed with UV. The independent regression suites cover the v70
-through v80 changes. Translation quality and the remaining backend parity work
+through v81 changes. Translation quality and the remaining backend parity work
 stay measured by the independent oracle report; the report is the source of
 truth for current counts.
