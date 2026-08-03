@@ -428,13 +428,19 @@ class ReferenceCache:
         if (
             backend.name == "mathics"
             and backend.cache_version == 6
-            and version in (4, 5)
+            and version in (3, 4, 5)
         ):
             source = entry.get("source")
             if not isinstance(source, str):
                 return False
             try:
-                return "Curl[" not in Path(source).read_text()
+                source_text = Path(source).read_text()
+                if "Curl[" in source_text:
+                    return False
+                if entry.get("outcome") == "failure":
+                    detail = entry.get("failure", {}).get("detail", "")
+                    return not detail.startswith("no results parsed")
+                return True
             except (OSError, UnicodeError):
                 return False
         if (

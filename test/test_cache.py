@@ -207,6 +207,22 @@ def test_mathics_cylindrical_curl_upgrade_reuses_unrelated_results(tmp_path):
     assert cached.results == {"answer": "1"}
 
 
+def test_mathics_protocol_v3_failure_is_reused_by_current_runner(tmp_path):
+    source = tmp_path / "case.wl"
+    source.write_text("answer = 1\n")
+    cache = ReferenceCache(tmp_path / "reference.json")
+    old = Backend("mathics", ".wl", "inputform", cache_version=3)
+    current = Backend("mathics", ".wl", "inputform", cache_version=6)
+
+    cache.put_failure(old, source, 15.0, RunFailure("timeout", "exceeded 15s"))
+
+    cached = cache.get(current, source, 15.0)
+
+    assert cached is not None
+    assert cached.failure is not None
+    assert cached.failure.kind == "timeout"
+
+
 def test_native_runner_version_invalidates_old_results(tmp_path):
     source = tmp_path / "case.wl"
     source.write_text("answer = 2\n")
