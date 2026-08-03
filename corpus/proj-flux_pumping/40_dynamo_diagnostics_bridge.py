@@ -131,6 +131,16 @@ _UNEVALUATED_AVERAGES = {
     'rhsI': 'avgChi[etaTot bTot . Jtot]',
 }
 
+# The source applies ``Expand`` to this difference.  SymPy otherwise keeps the
+# two product terms grouped, while Mathics and the native backend emit the
+# expanded source form; retain that exact source-derived lowering here.
+_SOURCE_FAITHFUL = {
+    'zhangDifference': (
+        '-dEta dJ - dEta j2d + dEta sj - dJ eta2d + '
+        'emfFluc + emfMean - eta1j1'
+    ),
+}
+
 # Associations are flattened by the native Wolfram protocol. Mathics keeps
 # this association nested, so emit the same source-level ledger names from
 # the Python oracle for every equation without changing comparison rules.
@@ -165,6 +175,10 @@ def results():
     values.update(
         (name, evaluate_expression(rhs))
         for name, rhs in _UNEVALUATED_AVERAGES.items()
+    )
+    values.update(
+        (name, evaluate_expression(rhs))
+        for name, rhs in _SOURCE_FAITHFUL.items()
     )
     values.update(
         (name, evaluate_expression(rhs)) for name, rhs in _LEDGER.items()
