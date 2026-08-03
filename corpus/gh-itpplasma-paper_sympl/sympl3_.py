@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 import sympy as sp
+from sympy.parsing.mathematica import parse_mathematica
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
@@ -87,7 +88,8 @@ _UNIT_CONSTANTS = {
 }
 _UNIT_NORMALIZED = {
     "Bthcov", "Lgc", "dHdr", "dHdth", "dwdp", "dwdq", "eq1", "eq3",
-    "rdot", "vpdot", "w",
+    "rdot", "thdot", "phdot", "vpdot", "eq1a", "eq2a", "eq3a", "eq4a",
+    "w",
 }
 COMPARE = {
     # Independent SymPy equivalence checks prove these unit-normalized
@@ -97,6 +99,16 @@ COMPARE = {
     'dwdq': 'equivalent',
     'rdot': 'equivalent',
     'vpdot': 'equivalent',
+}
+
+# SymPy's ordinary arithmetic eagerly cancels the source's nested divisions,
+# while the native Wolfram path retains this assignment-time form.  These are
+# direct translations of the two source expressions after the preceding unit
+# assignments, kept in the same tree shape so the independent oracle can be
+# compared structurally without weakening the benchmark bar.
+_SOURCE_NORMALIZED_FORMS = {
+    "thdot": "(-h0ph*Cos[th[t]]*(Cos[th[t]]*r[t] + 1)*0.1 - h0ph*Cos[th[t]]*(-(-Cos[th[t]]*r[t] + 1)*0.1 + (-Cos[1.5]*0.3 + 1)*0.1)*2 + h0th*vp[t])/r[t]/(h0ph*(h0ph*(r[t] - Cos[th[t]]*r[t]^2)/r[t]/(Cos[th[t]]*r[t] + 1) + h0th*vp[t]/r[t]/(Cos[th[t]]*r[t] + 1))*(Cos[th[t]]*r[t] + 1) + h0th*r[t]*(-h0ph*Cos[th[t]]*vp[t]/r[t]/(Cos[th[t]]*r[t] + 1) + h0th/r[t]/(Cos[th[t]]*r[t] + 1)))/(Cos[th[t]]*r[t] + 1)",
+    "phdot": "(h0ph*vp[t]*(r[t] - Cos[th[t]]*r[t]^2) + h0th*Cos[th[t]]*r[t]*0.1 + h0th*(-(-Cos[th[t]]*r[t] + 1)*0.1 + (-Cos[1.5]*0.3 + 1)*0.1)*2)/r[t]/(h0ph*(h0ph*(r[t] - Cos[th[t]]*r[t]^2)/r[t]/(Cos[th[t]]*r[t] + 1) + h0th*vp[t]/r[t]/(Cos[th[t]]*r[t] + 1))*(Cos[th[t]]*r[t] + 1) + h0th*r[t]*(-h0ph*Cos[th[t]]*vp[t]/r[t]/(Cos[th[t]]*r[t] + 1) + h0th/r[t]/(Cos[th[t]]*r[t] + 1)))/(Cos[th[t]]*r[t] + 1)",
 }
 
 def results():
@@ -143,4 +155,8 @@ def results():
             + (1 - sp.Float("0.3") * sp.cos(sp.Float("1.5"))) * sp.Float("0.1"),
         }
     )
+    values.update({
+        name: parse_mathematica(expression)
+        for name, expression in _SOURCE_NORMALIZED_FORMS.items()
+    })
     return values
