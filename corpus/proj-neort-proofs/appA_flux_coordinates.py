@@ -24,6 +24,10 @@ COMPARE = {
     'gradr': 'equivalent',
     'gradph': 'equivalent',
     'gradth': 'equivalent',
+    # Mathematica keeps the cross product in a compact factored form while
+    # SymPy expands the reciprocal-basis products.  The independent v99 test
+    # checks the resulting vector from the coordinate map and scalar gradient.
+    'Bclebsch': 'equivalent',
 }
 _ASSIGNMENTS = [
     ('xmap', '{\n   (R0 + r Cos[th]) Cos[ph],\n   -(R0 + r Cos[th]) Sin[ph],\n   r Sin[th] + eps r^2 Sin[ph]}', ('r', 'ph', 'th')),
