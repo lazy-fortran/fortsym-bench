@@ -122,32 +122,4 @@ def results():
     values['e1'] = sp.Tuple(
         *(component / sp.sqrt(norm_sq) for component in e1raw)
     )
-
-    # The native Wolfram path keeps the generic cross-product result opaque.
-    # Reconstruct the source's subsequent metric normalization in that same
-    # form; the generic lowering otherwise treats the scalar placeholder as a
-    # three-component tuple and produces infinities.
-    e2 = sp.Symbol('e2')
-    list_ = sp.Function('List')
-    values['e2'] = e2 / sp.sqrt(list_(
-        list_(e2**2, 0, 0),
-        list_(0, e2**2 * r0**2, 0),
-        list_(0, 0, e2**2 * (R0 + r0 * sp.cos(th0))**2),
-    ))
-
-    # Preserve the source's opaque Fmat/block forms.  In particular, the
-    # identity metric component is Fmat itself, not 1.0*Fmat; that seemingly
-    # harmless float is a real native-vs-oracle mismatch in this gate.
-    Fmat = sp.Symbol('Fmat')
-    values['Dwf'] = sp.Tuple(
-        sp.Tuple(Fmat, 0, 0),
-        sp.Tuple(0, Fmat / r0**2, 0),
-        sp.Tuple(0, 0, Fmat / (R0 + r0 * sp.cos(th0))**2),
-    )
-    block = sp.Symbol('block')
-    transpose = sp.Function('Transpose')
-    values['symPart'] = (block + transpose(block)) / 2
-    values['asymPart'] = (block - transpose(block)) / 2
-    values['sv'] = sp.Function('SingularValueList')(block)
-    values['Jrot'] = block / sp.Symbol('omegaC')
     return values

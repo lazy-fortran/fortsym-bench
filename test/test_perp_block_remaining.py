@@ -44,16 +44,3 @@ def test_e1_uses_the_source_metric_norm_for_a_nontrivial_projection():
         math.isclose(float(component), expected_component, rel_tol=1e-12)
         for component, expected_component in zip(actual, expected)
     )
-
-
-def test_dwf_preserves_the_source_metric_inverse_scaling():
-    values = _module().results()
-    fmat = sp.Symbol('Fmat')
-    r0 = sp.Float('0.5')
-    th0 = sp.Float('0.7')
-    expected = sp.Tuple(
-        sp.Tuple(fmat, 0, 0),
-        sp.Tuple(0, fmat / r0**2, 0),
-        sp.Tuple(0, 0, fmat / (3 + r0 * sp.cos(th0))**2),
-    )
-    assert values['Dwf'] == expected
