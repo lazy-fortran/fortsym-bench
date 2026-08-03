@@ -161,6 +161,31 @@ def results():
         'corpus/proj-gvec-stability/cylinder_compressional_spectrum.wl',
     )
 
+    # ``phaseAverage`` is defined in the source as TrigReduce followed by
+    # removal of every non-constant Fourier mode.  The bounded translator
+    # keeps that user-defined head opaque, but this kernel is quadratic in
+    # sin(phi) and cos(phi), so its exact average is recovered by the four
+    # axis evaluations below.  Linear and mixed terms cancel, while each
+    # squared trigonometric term contributes one half.
+    phi = sp.Symbol('phi')
+    phase_s, phase_c = sp.symbols('_phase_s _phase_c')
+    kernel_density = values['sqg'] * (
+        values['wKernelDensity'] - sp.Symbol('w2') * values['mKernelDensity']
+    )
+    phase_polynomial = kernel_density.xreplace({
+        sp.sin(phi): phase_s,
+        sp.cos(phi): phase_c,
+    })
+    values['lagKernel'] = sum(
+        phase_polynomial.subs(substitution)
+        for substitution in (
+            {phase_s: 1, phase_c: 0},
+            {phase_s: -1, phase_c: 0},
+            {phase_s: 0, phase_c: 1},
+            {phase_s: 0, phase_c: -1},
+        )
+    ) / 4
+
     # The source's 17 check statements are side effects, so the shared
     # assignment translator leaves their counter updates out of the generated
     # assignment stream.  Preserve the deterministic summary emitted by the
