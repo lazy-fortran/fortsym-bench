@@ -472,6 +472,10 @@ The v96 cache-preserving pass took 2.29 seconds at about 489 MiB RSS; its
 all-warm UV pass took 0.89 seconds at about 489 MiB RSS. The v96 cycle adds
 geomint and flux-pumping agreements plus source-faithful vector2d, Bacc, and
 cylinder-kernel corrections; one oracle disagreement is newly exposed.
+The v97 cache-preserving pass took 1.72 seconds at about 489 MiB RSS; its
+all-warm UV pass took 0.86 seconds at about 489 MiB RSS. The v97 cycle adds a
+`math10y` Fourier binding, two flux44 bindings, two symbolic parity fixes, and
+a memo37 difference reduction; the latter exposes one oracle disagreement.
 The preceding v74 cold one-worker
 pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
@@ -535,10 +539,10 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The v96 audit on 2026-08-03 produced 3,907 agreements, 484 declared
-differences, 7 unsupported outcomes, 75 timeouts, 61 errors, 196 oracle
-disagreements, and 295 oracle-missing bindings across 4,885 bindings. Mathics3
+place. The v97 audit on 2026-08-03 produced 3,912 agreements, 479 declared
+differences, 7 unsupported outcomes, 75 timeouts, 61 errors, 197 oracle
+disagreements, and 294 oracle-missing bindings across 4,885 bindings. Mathics3
 10.0.1 is installed with UV. The independent regression suites cover the v70
-through v96 changes. Translation quality and the remaining backend parity work
+through v97 changes. Translation quality and the remaining backend parity work
 stay measured by the independent oracle report; the report is the source of
 truth for current counts.
