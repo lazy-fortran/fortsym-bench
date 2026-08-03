@@ -29,6 +29,15 @@ _BOUNDED_FOR = re.compile(
     re.DOTALL | re.VERBOSE,
 )
 MAX_BOUNDED_FOR_ITERATIONS = 128
+_BOUNDED_DO = re.compile(
+    r"""^Do\[\s*
+        (?P<target>[A-Za-z][A-Za-z0-9_]*)\s*=\s*(?P<expression>.+?)\s*,\s*
+        \{\s*(?P<iterator>[A-Za-z][A-Za-z0-9_]*)\s*,\s*
+        (?P<start>[+-]?\d+)\s*,\s*(?P<stop>[+-]?\d+)\s*\}\s*
+    \]$""",
+    re.DOTALL | re.VERBOSE,
+)
+MAX_BOUNDED_DO_ITERATIONS = 128
 
 
 def normalize_assignment_stream(source: str) -> str:
@@ -156,5 +165,41 @@ def translate_bounded_for(
     if iterations > max_iterations:
         raise WolframFortranTranslationError(
             f"bounded For exceeds the {max_iterations}-iteration limit"
+        )
+    return translate_wolfram_to_fortran(normalized, translator)
+
+
+def translate_bounded_do(
+    source: str,
+    translator: Sequence[str] = ("fortsym_wl_to_f90",),
+    max_iterations: int = MAX_BOUNDED_DO_ITERATIONS,
+) -> str:
+    """Translate one safe scalar ``Do`` assignment using native semantics.
+
+    The accepted form is the explicit integer range
+    ``Do[target = expression, {iterator, start, stop}]``.  The native
+    translator lowers this stateless loop to the final assignment, so the
+    wrapper only admits a nonempty range within a fixed resource bound before
+    handing the source to it.  Recursive assignments, symbolic bounds, and
+    stepped or shorthand ranges remain outside this deliberately small slice.
+    """
+
+    if max_iterations <= 0:
+        raise ValueError("max_iterations must be positive")
+    normalized = normalize_assignment_stream(source).strip()
+    match = _BOUNDED_DO.fullmatch(normalized)
+    if match is None:
+        raise WolframFortranTranslationError(
+            "expected one bounded Do with an integer three-item range and "
+            "scalar assignment body"
+        )
+    start = int(match.group("start"))
+    stop = int(match.group("stop"))
+    iterations = stop - start + 1
+    if iterations <= 0:
+        raise WolframFortranTranslationError("bounded Do range is empty")
+    if iterations > max_iterations:
+        raise WolframFortranTranslationError(
+            f"bounded Do exceeds the {max_iterations}-iteration limit"
         )
     return translate_wolfram_to_fortran(normalized, translator)
