@@ -35,3 +35,32 @@ def test_recovered_marker_coordinates_are_source_values():
         sp.Tuple(-sp.Rational(1, 4), sp.Float(0.15)),
         sp.Tuple(sp.Rational(3, 4), sp.Float(0.15)),
     )
+
+
+def test_clipping_binding_keeps_coordinates_from_its_source_assignment():
+    values = _module().results()
+    x, y = sp.symbols('x y')
+    expected = sp.Function('Abs')(
+        sp.Function('JacobiCN')(
+            x + sp.I * y,
+            sp.Float('0.8') ** 2,
+        )
+    )
+
+    assert values['cna'] == expected
+
+
+def test_last_emitted_p1_keeps_the_source_parametric_plot_head():
+    values = _module().results()
+    u = sp.Symbol('u')
+    expected = sp.Function('ParametricPlot3D')(
+        sp.Tuple(
+            sp.sin(8 * u) * sp.sin(u),
+            sp.cos(8 * u) * sp.sin(u),
+            sp.cos(u),
+        ),
+        sp.Tuple(u, 0, 2 * sp.pi),
+        sp.Function('Rule')(sp.Symbol('PlotPoints'), 200),
+    )
+
+    assert values['p1'] == expected
