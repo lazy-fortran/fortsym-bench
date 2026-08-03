@@ -174,4 +174,23 @@ def results():
     values['ps1'] = sp.Function('ListPlot')(
         values['l1'], rule(sp.Symbol('PlotJoined'), True)
     )
+
+    # ``Table`` of ``Plot`` heads is a finite symbolic result, even though the
+    # shared evaluator deliberately does not render graphics.  Preserve the
+    # four source expressions and their per-plot style options instead of
+    # exposing a backend image name or dropping the binding.
+    x = sp.Symbol('x')
+    plot = sp.Function('Plot')
+    hue = sp.Function('Hue')
+    values['pi'] = sp.Tuple(*(
+        plot(
+            sp.sin(k * x),
+            sp.Tuple(x, 0, 2 * sp.pi),
+            rule(
+                sp.Symbol('PlotStyle'),
+                sp.Tuple(sp.Symbol('Thick'), hue(sp.Float(k * 0.25))),
+            ),
+        )
+        for k in range(1, 5)
+    ))
     return values
