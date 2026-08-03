@@ -38,3 +38,28 @@ def test_memo37_derived_fixture_matches_an_independent_exact_value():
     expected = -sp.Rational(7013593, 1286250000)
 
     assert abs(sp.N(values["derivedFixture"], 30) - sp.N(expected, 30)) < sp.Rational(1, 10**18)
+
+
+def test_memo37_fixture_rules_preserve_the_source_flux_derivative_pair():
+    values = _load().results()
+    rule = sp.Function("Rule")
+    derivative1 = sp.Function("Derivative1")
+    s0 = sp.Symbol("s0")
+    s0v = sp.Symbol("s0v")
+    rules = {
+        item.args[0]: item.args[1]
+        for item in values["fixtureRules"]
+        if item.func == rule
+    }
+
+    # Independent exact evaluation of the source's x = Sqrt[2 s0v] fixture:
+    # detExpr = 1/5 + iotaBackgroundExpr/5 and QQ = x fExpr.
+    x = sp.Symbol("x")
+    radial = sp.sqrt(2 * s0v)
+    expected_det = sp.Rational(1, 5) + (-sp.Rational(3, 4) + sp.Rational(3, 100) * radial**2) / 5
+    expected_qq = radial * radial**2 * (3 * radial**2 + 125) / 37500
+    qq_x = x * x**2 * (3 * x**2 + 125) / 37500
+    expected_qq2 = (sp.diff(sp.diff(qq_x, x) / x, x) / x).subs(x, radial)
+    assert sp.simplify(rules[sp.Function("PP")(s0)] - expected_det) == 0
+    assert sp.simplify(rules[derivative1(sp.Symbol("QQ"), 2, s0)] - expected_qq2) == 0
+    assert sp.simplify(rules[sp.Function("QQ")(s0)] - expected_qq) == 0
