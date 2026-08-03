@@ -29,3 +29,11 @@ def test_source_slow_third_map_is_numeric_and_eps_independent():
     assert values["thirdVals"] == (expected,) * 5
     assert values["lteOverDt3"] == (expected,) * 5
 
+
+def test_source_free_of_fast_binding_is_an_independent_boolean_result():
+    values = _module().results()
+    qc, wc, eps = sp.symbols("qc wc eps")
+    expected = not values["lteCoeff3"].has(qc, wc, eps)
+
+    assert expected is True
+    assert values["freeOfFast"] is True
