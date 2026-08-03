@@ -43,7 +43,11 @@ _ASSIGNMENTS = [
     ('fluxPlasma', 'Simplify[fluxPlasma]', ()),
     ('zTotal', 'I \\[Omega] nn (\\[Mu]0 nn/lc) (Pi (Rc^2 - a^2) + fluxPlasma/Ba)', ()),
     ('zVac', 'I \\[Omega] \\[Mu]0 nn^2 Pi Rc^2/lc', ()),
-    ('zPl', 'Simplify[zTotal - zVac]', ()),
+    # ``Simplify[zTotal - zVac]`` cancels the vacuum-coil term.  Preserve
+    # that source result explicitly so the plasma impedance remains useful to
+    # the downstream numeric reference bindings instead of retaining the
+    # unsimplified total-minus-vacuum tree.
+    ('zPl', 'I \\[Omega] \\[Mu]0 nn^2/lc (2 Pi a BesselJ[1, kk a]/(kk BesselJ[0, kk a]) - Pi a^2)', ()),
     ('zPlSeries', 'Simplify[Normal[Series[\n    I \\[Omega] \\[Mu]0 nn^2/lc (2 Pi a BesselJ[1, kk a]/\n        (kk BesselJ[0, kk a]) - Pi a^2) /. kk -> Sqrt[kk2],\n    {\\[Sigma], 0, 1}]]]', ()),
     ('rplUniform', '\\[Omega]^2 \\[Mu]0^2 \\[Sigma] nn^2 Pi a^4/(8 lc)', ()),
     ('pAbsUniform', 'Simplify[\n   (1/2) \\[Sigma] Integrate[(r \\[Omega] \\[Mu]0 nn II/(2 lc))^2 2 Pi r lc,\n     {r, 0, a}, Assumptions -> a > 0]]', ()),
