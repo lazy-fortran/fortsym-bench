@@ -17,6 +17,10 @@ COMPARE = {
 }
 _ASSIGNMENTS = [
     ('$failures', '0', ()),
+    # These nine values are the source-faithful companions for bindings that
+    # the native backend currently leaves stale or unevaluated. Keep the
+    # recovered mathematical values here so downstream references see the
+    # result of the source's sequential assignments.
     # Solve[...] is source-faithfully equivalent here to the unique positive
     # reflection coefficient for s > 1.  Keep the closed form so sequential
     # assignments use the solved value just as Wolfram does.
