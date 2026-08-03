@@ -444,7 +444,10 @@ v87 cycle adds a Gaussian-integral `math10y` binding, the heat-kernel `k3`, and
 a `gc_drift` Christoffel tensor. The v88 cache-preserving pass took 3.47 seconds
 at about 488 MiB RSS; its all-warm UV pass took 0.93 seconds at about 489 MiB
 RSS. The v88 cycle adds the `math10y` derivative binding and `gc_drift`
-`gradBmod`. The preceding v74 cold one-worker
+`gradBmod`. The v89 cache-preserving pass took 3.03 seconds at about 489 MiB
+RSS; its all-warm UV pass took 0.96 seconds at about 489 MiB RSS. The v89 cycle
+adds second-derivative `math10y` coverage, a source-faithful pressure slope,
+and scalar reassignment codegen. The preceding v74 cold one-worker
 pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
 lowering; the v71 cycle adds bounded `Do` assignment loops and six
@@ -507,10 +510,10 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The v88 audit on 2026-08-03 produced 3,881 agreements, 487 declared
+place. The v89 audit on 2026-08-03 produced 3,883 agreements, 486 declared
 differences, 7 unsupported outcomes, 75 timeouts, 61 errors, 195 oracle
-disagreements, and 319 oracle-missing bindings across 4,885 bindings. Mathics3
+disagreements, and 318 oracle-missing bindings across 4,885 bindings. Mathics3
 10.0.1 is installed with UV. The independent regression suites cover the v70
-through v88 changes. Translation quality and the remaining backend parity work
+through v89 changes. Translation quality and the remaining backend parity work
 stay measured by the independent oracle report; the report is the source of
 truth for current counts.
