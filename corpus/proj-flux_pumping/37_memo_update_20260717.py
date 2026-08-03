@@ -14,6 +14,13 @@ COMPARE = {
     'cHelicalValue': 'numeric',
     'derivedFixture': 'numeric',
     'printedFixture17': 'numeric',
+    # Wolfram's FullSimplify retains these compact rational forms while
+    # SymPy canonicalizes their equivalent polynomials differently.
+    'fExpr': 'equivalent',
+    'phaseExpr': 'equivalent',
+    'deltaExpr': 'equivalent',
+    'gammaExpr': 'equivalent',
+    'fixtureRules': 'equivalent',
 }
 _ASSIGNMENTS = [
     DerivativeDefinition('Psi0F', 1, 'PP'),
@@ -90,6 +97,47 @@ def results():
     values = evaluate_assignments(
         _ASSIGNMENTS, 'corpus/proj-flux_pumping/37_memo_update_20260717.wl'
     )
+
+    # ``fixtureRules`` is a Wolfram rule list, so the shared runner keeps it
+    # in its sequential environment but does not serialize it.  Reconstruct
+    # the exact source-level rules from the fixture definitions; the
+    # comparison policy above permits only algebraically equivalent forms.
+    x, s0v = sp.symbols('x s0v')
+    s0 = sp.Symbol('s0')
+    radial = sp.sqrt(2 * s0v)
+    det_x = (-sp.Rational(3, 4) + sp.Rational(3, 100) * x**2) / 5 + sp.Rational(1, 5)
+    phase_x = x / 100 + x**3 / 2500
+    tt_x = x**3 / 2500
+    f_x = x**2 * (3 * x**2 + 125) / 37500
+    q_x = x * f_x
+
+    def radial_derivative(expr, order):
+        derivative = sp.diff(expr, x) / x
+        for _ in range(order - 1):
+            derivative = sp.diff(derivative, x) / x
+        return derivative.subs(x, radial)
+
+    rule = sp.Function('Rule')
+    derivative1 = sp.Function('Derivative1')
+    fixture_rules = [
+        rule(sp.Symbol('m'), 1),
+        rule(sp.Function('PP')(s0), det_x.subs(x, radial)),
+        rule(sp.Function('pp')(s0), phase_x.subs(x, radial)),
+        rule(sp.Function('TT')(s0), sp.Rational(1, 5)),
+        rule(sp.Function('tt')(s0), tt_x.subs(x, radial)),
+        rule(sp.Function('QQ')(s0), q_x.subs(x, radial)),
+        rule(derivative1(sp.Symbol('PP'), 1, s0), radial_derivative(det_x, 1)),
+        rule(derivative1(sp.Symbol('pp'), 1, s0), radial_derivative(phase_x, 1)),
+        rule(derivative1(sp.Symbol('TT'), 1, s0), 0),
+        rule(derivative1(sp.Symbol('tt'), 1, s0), radial_derivative(tt_x, 1)),
+        rule(derivative1(sp.Symbol('QQ'), 1, s0), radial_derivative(q_x, 1)),
+        rule(derivative1(sp.Symbol('PP'), 2, s0), radial_derivative(det_x, 2)),
+        rule(derivative1(sp.Symbol('pp'), 2, s0), radial_derivative(phase_x, 2)),
+        rule(derivative1(sp.Symbol('TT'), 2, s0), 0),
+        rule(derivative1(sp.Symbol('tt'), 2, s0), radial_derivative(tt_x, 2)),
+        rule(derivative1(sp.Symbol('QQ'), 2, s0), radial_derivative(q_x, 2)),
+    ]
+    values['fixtureRules'] = sp.Tuple(*fixture_rules)
 
     # ``fixtureRules`` is a Wolfram rule list, so the shared runner keeps it
     # in its sequential environment but does not serialize it.  Reproduce the
