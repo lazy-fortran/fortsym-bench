@@ -89,3 +89,27 @@ def test_christoffel_tensor_matches_independent_metric_derivatives():
         sp.N(actual.subs(point) - reference.subs(point)) == 0
         for actual, reference in zip(leaves(values["chr"]), leaves(expected))
     )
+
+
+def test_grad_bmod_matches_independent_derivative_of_field_norm():
+    values = _module().results()
+    r, th, ph = sp.symbols("r th ph")
+    R0, B0, iota0, r0a = sp.symbols("R0 B0 iota0 r0a")
+    Rr = R0 + r * sp.cos(th)
+    ath_r = B0 * (r - r**2 * sp.cos(th) / R0)
+    aph_r = -B0 * iota0 * (r - r**3 / r0a**2)
+    field_norm = ath_r**2 / r**2 + aph_r**2 / Rr**2
+    expected = sp.Tuple(*(
+        sp.diff(sp.sqrt(field_norm), coordinate)
+        for coordinate in (r, th, ph)
+    ))
+
+    assert all(
+        sp.simplify(actual - reference) == 0
+        for actual, reference in zip(values["gradBmod"], expected)
+    )
+    point = {R0: 10, B0: 3, iota0: 2, r0a: 7, r: 2, th: sp.Rational(1, 5)}
+    assert all(
+        sp.N(actual.subs(point) - reference.subs(point)) == 0
+        for actual, reference in zip(values["gradBmod"], expected)
+    )

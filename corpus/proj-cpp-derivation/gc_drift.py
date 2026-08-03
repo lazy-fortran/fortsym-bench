@@ -200,6 +200,14 @@ def results():
     vperp_gc = _thread_binary(
         lambda x, y: x - y, vGC, _times(_dot(hcov, vGC), hctr)
     )
+    # ``gradBmod`` is the source's coordinate derivative of ``Bmod``.  The
+    # generic Table with a symbolic coordinate index is intentionally not
+    # delegated to the shared evaluator, but this scalar is fully determined
+    # by the already recovered exact field norm ``Wcl = |B|^2``.
+    grad_bmod = sp.Tuple(*(
+        sp.diff(sp.sqrt(values["Wcl"]), coordinate)
+        for coordinate in (r, th, sp.symbols("ph"))
+    ))
     # Christoffel symbols of the source metric
     #   g = diag(1, r^2, (R0 + r cos(th))^2).
     # This is the bounded, source-faithful expansion of the final Table/Sum;
@@ -243,6 +251,7 @@ def results():
             "remainder": _list_head(remainder),
             "vPerpGC": _list_head(vperp_gc),
             "vPerpGC0": _list_head(vperp_gc),
+            "gradBmod": grad_bmod,
             "chr": christoffel,
         }
     )
