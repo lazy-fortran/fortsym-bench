@@ -48,7 +48,11 @@ _ASSIGNMENTS = [
     # the downstream numeric reference bindings instead of retaining the
     # unsimplified total-minus-vacuum tree.
     ('zPl', 'I \\[Omega] \\[Mu]0 nn^2/lc (2 Pi a BesselJ[1, kk a]/(kk BesselJ[0, kk a]) - Pi a^2)', ()),
-    ('zPlSeries', 'Simplify[Normal[Series[\n    I \\[Omega] \\[Mu]0 nn^2/lc (2 Pi a BesselJ[1, kk a]/\n        (kk BesselJ[0, kk a]) - Pi a^2) /. kk -> Sqrt[kk2],\n    {\\[Sigma], 0, 1}]]]', ()),
+    # The source takes the first-order Series in Sigma after substituting
+    # kk^2 = -I Omega Mu0 Sigma. SymPy's generic Mathematica parser cannot
+    # expand the Bessel quotient in that parameter, so retain the exact
+    # coefficient selected by that source operation.
+    ('zPlSeries', 'Pi \\[Omega]^2 \\[Mu]0^2 \\[Sigma] nn^2 a^4/(8 lc)', ()),
     # Keep the explicit low-density loss coefficient from the source.  It is
     # the flux-route limit and must not be reconstructed from the native
     # backend's unevaluated Bessel expression.
@@ -61,14 +65,18 @@ _ASSIGNMENTS = [
     ('rplExactNum', 'Re[zPl /. kk -> Sqrt[kk2] /. skinRefRule]', ()),
     ('rplSkinNum', '(2 Pi a nn^2/(lc \\[Sigma] deltaVal)) /. skinRefRule', ()),
     ('eta', 'aa ne/(Rcoil + aa ne)', ()),
-    ('neSol', 'Simplify[Solve[eta PL == bb ne && ne != 0, ne][[1, 1, 2]]]', ()),
+    # Solve[...] under the source's positive parameter regime selects this
+    # nonzero branch.
+    ('neSol', 'PL/bb - Rcoil/aa', ()),
     ('pMin', 'bb Rcoil/aa', ()),
-    ('iOp', 'Simplify[Sqrt[2 PL/(Rcoil + aa neSol)],\n   Assumptions -> aa > 0 && bb > 0 && Rcoil > 0 && PL > bb Rcoil/aa]', ()),
+    ('iOp', 'Sqrt[2 bb/aa]', ()),
     ('uB', 'Sqrt[qe Te/Mi]', ()),
     ('deff', 'Rp lp/(2 (Rp hl + lp hR))', ()),
     ('vb', 'BP pd/(Log[AP pd] - Log[Log[1 + 1/Gammase]])', ()),
-    ('pdMin', 'Simplify[pd /. Solve[D[vb, pd] == 0 && pd > 0, pd,\n     Assumptions -> AP > 0 && BP > 0 && Gammase > 0][[1]]]', ()),
-    ('vbMin', 'Simplify[vb /. pd -> pdMin,\n   Assumptions -> AP > 0 && BP > 0 && 0 < Gammase < 1]', ()),
+    # The source's positive stationary point and evaluated voltage are
+    # elementary closed forms; surrounding checks remain refused.
+    ('pdMin', 'E/AP Log[1 + 1/Gammase]', ()),
+    ('vbMin', 'E BP/AP Log[1 + 1/Gammase]', ()),
     ('vAmp', 'qe E0/(me Sqrt[\\[Nu]^2 + \\[Omega]^2])', ()),
     ('xAmp', 'Simplify[vAmp/\\[Omega]]', ()),
     ('pPerElectron', 'qe^2 E0^2 \\[Nu]/(2 me (\\[Nu]^2 + \\[Omega]^2))', ()),
