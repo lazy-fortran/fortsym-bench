@@ -52,3 +52,12 @@ def test_slope_kin_matches_independent_kinetic_response_oracle():
 
     assert slope < 0
     assert slope == pytest.approx(expected, abs=2e-7)
+
+
+def test_kinetic_feedback_uses_the_source_evaluated_slope():
+    values = _values()
+    kk_aug_real = 172817679558011 / 100000000000000
+    a_star_sq_aug = 1 / 100 + 0.1057289002557545
+    expected = -kk_aug_real * a_star_sq_aug * float(values['slopeKin'])
+
+    assert float(values['eEffKinetic']) == pytest.approx(expected, rel=1e-15)

@@ -19,6 +19,12 @@ COMPARE = {
     'suppression': 'numeric',
     'teKev': 'numeric',
     'vte': 'numeric',
+    'hopfQuadratic': 'equivalent',
+    'lambdaMfp': 'numeric',
+    'mfpOverR0': 'numeric',
+    'traceDim': 'equivalent',
+    'detDim': 'equivalent',
+    'xiOp': 'numeric',
 }
 _ASSIGNMENTS = [
     ('$Assumptions', 'g0 > 0 && al > 0 && ka > 0 && tR > 0 && Ga > 0 && Kk > 0 &&', ()),
@@ -131,6 +137,14 @@ def results():
     values['slopeKin'] = sp.N(
         sp.diff(psi_kin, dv).subs({dv: sp.Rational(1, 100), dop: sp.Rational(1, 100)}),
         20,
+    )
+
+    # The source defines the closure feedback from the evaluated kinetic
+    # slope; do not carry the generic evaluator's opaque Erfc derivative into
+    # this numeric result.
+    values['eEffKinetic'] = sp.N(
+        -values['kkAugReal'] * values['aStarSqAug'] * values['slopeKin'],
+        16,
     )
 
     # The source identity is 2 Ga X (Kk - 2 Ga X).  The native Wolfram-path

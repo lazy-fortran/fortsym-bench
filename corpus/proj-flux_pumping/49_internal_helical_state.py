@@ -6,9 +6,13 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 16 non-assignment statement(s) remain.
 COMPARE = {
+    'aTarget': 'numeric',
+    'bthetaAxisCoeff': 'equivalent',
+    'iotaAxis': 'equivalent',
     'lambda50': 'numeric',
 }
 _ASSIGNMENTS = [
@@ -29,4 +33,13 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/49_internal_helical_state.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/proj-flux_pumping/49_internal_helical_state.wl',
+    )
+
+    # The source's Block/Limit check fixes this axis value even though the
+    # generic lowering leaves those control heads opaque.
+    c2, d1 = sp.symbols('c2 d1')
+    values['deltaAxis'] = -d1 / (2 * c2)
+    return values

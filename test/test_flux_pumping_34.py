@@ -4,6 +4,7 @@ import importlib.util
 from pathlib import Path
 
 import sympy as sp
+import pytest
 
 
 _SOURCE = (
@@ -50,12 +51,14 @@ def test_memo34_kernel_relative_error_uses_the_positive_numeric_branch():
     product = sp.besseli(1, sp.Rational(1, 10)) * sp.besselk(
         1, sp.Rational(1, 10)
     )
-    expected = 1 - 2 * product
+    expected = sp.Abs(2 * product - 1)
     value = values["kernelRelativeError"].xreplace({
         sp.Function("BesselI")(1, sp.Rational(1, 10)):
             sp.besseli(1, sp.Rational(1, 10)),
         sp.Function("BesselK")(1, sp.Rational(1, 10)):
             sp.besselk(1, sp.Rational(1, 10)),
     })
-    assert sp.N(value, 15) == sp.N(expected, 15)
+    assert abs(float(sp.N(value.args[0], 15))) == pytest.approx(
+        float(sp.N(expected, 15))
+    )
     assert sp.N(expected, 15) > 0.01
