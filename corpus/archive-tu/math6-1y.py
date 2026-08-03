@@ -174,6 +174,9 @@ def results():
     values['ps1'] = sp.Function('ListPlot')(
         values['l1'], rule(sp.Symbol('PlotJoined'), True)
     )
+    values['ps2'] = sp.Function('ListPlot')(
+        values['l2'], rule(sp.Symbol('PlotJoined'), True)
+    )
 
     # ``Table`` of ``Plot`` heads is a finite symbolic result, even though the
     # shared evaluator deliberately does not render graphics.  Preserve the
@@ -216,6 +219,32 @@ def results():
     values['k1'] = parametric_plot(
         sp.Tuple(sp.Float('0.5') + sp.cos(t), 1 + sp.sin(t)),
         sp.Tuple(t, 0, 2 * sp.pi),
+    )
+
+    # The later styled ellipse is another rendering binding omitted by the
+    # shared evaluator.  Preserve the source geometry and options explicitly.
+    rgb = sp.Function('RGBColor')
+    values['k3'] = parametric_plot(
+        sp.Tuple(2 * sp.cos(phi), sp.sin(phi)),
+        sp.Tuple(phi, 0, 2 * sp.pi),
+        rule(
+            sp.Symbol('Background'),
+            rgb(sp.Float('0.0'), sp.Float('0.999'), sp.Float('0.0')),
+        ),
+        rule(sp.Symbol('PlotStyle'), sp.Tuple(sp.Symbol('Red'))),
+    )
+
+    # The final source ``p3`` plot is held by the rendering evaluator, so keep
+    # its source expression and style rule rather than the earlier log plot.
+    values['p3'] = plot(
+        sp.sin(sp.Symbol('x')),
+        sp.Tuple(sp.Symbol('x'), 0, 10),
+        rule(
+            sp.Symbol('TicksStyle'),
+            sp.Function('Directive')(
+                sp.Symbol('Thick'), sp.Symbol('Orange'), 14
+            ),
+        ),
     )
 
     # ``Clear[x, y, t]`` in the source removes the earlier global value of

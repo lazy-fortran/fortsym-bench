@@ -216,6 +216,28 @@ def results():
         rule(sp.Symbol('PlotStyle'), sp.Tuple(sp.Symbol('Red'))),
     )
 
+    # The source's local ellipse assignment is the last lowerable ``k1``
+    # binding.  Preserve its iterator instead of leaking the earlier global
+    # ``t = (-8)^(1/3)`` through the sequential evaluator.
+    t = sp.Symbol('t')
+    values['k1'] = sp.Function('ParametricPlot')(
+        sp.Tuple(sp.Float('0.5') + sp.cos(t), 1 + sp.sin(t)),
+        sp.Tuple(t, 0, 2 * sp.pi),
+    )
+
+    # The final source ``p3`` plot is held by the rendering evaluator, so keep
+    # its source expression and style rule rather than the earlier log plot.
+    values['p3'] = sp.Function('Plot')(
+        sp.sin(sp.Symbol('x')),
+        sp.Tuple(sp.Symbol('x'), 0, 10),
+        rule(
+            sp.Symbol('TicksStyle'),
+            sp.Function('Directive')(
+                sp.Symbol('Thick'), sp.Symbol('Orange'), 14
+            ),
+        ),
+    )
+
     # The final source assignment is a finite Table of styled Plot heads.
     # The shared evaluator deliberately does not render graphics, so retain
     # the four source expressions as opaque SymPy trees instead of dropping
