@@ -11,6 +11,7 @@ import sympy as sp
 # NOT TRANSLATED: 4 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('B', 'Transpose[A]', ()),
+    ('lst', 'RandomReal[{0, 1}, 10]', ()),
     ('k', 'N[Exp[-60], 20]', ()),
 ]
 
