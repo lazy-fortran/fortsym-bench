@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 64 non-assignment statement(s) remain.
@@ -71,4 +73,11 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/nc-kineq-old/geomint2d.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/nc-kineq-old/geomint2d.wl'
+    )
+    # The native subset keeps this symbolic source expression intact: its
+    # matrix lowering cannot invert the source-shaped Mtri definition. Keep
+    # that exact Wolfram head visible instead of silently dropping Minv.
+    values['Minv'] = sp.Function('Inverse')(sp.Symbol('Mtri'))
+    return values
