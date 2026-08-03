@@ -99,4 +99,23 @@ def results():
         * delta
         / (delta**2 + sp.Symbol('nu')**2)
     )
+    # The generic parser does not lower Mathematica's prime notation in this
+    # assignment.  Keep the source-faithful logarithmic Maxwellian gradient
+    # explicit, using the same opaque derivative convention as the oracle.
+    r = sp.Symbol('r')
+    derivative1 = sp.Function('Derivative1')
+    n_fun = sp.Function('nFun')
+    temp = sp.Function('temp')
+    phi0 = sp.Function('phi0')
+    values['expectedGradient'] = (
+        derivative1(sp.Symbol('nFun'), 1, r) / n_fun(r)
+        + sp.Symbol('charge') * derivative1(sp.Symbol('phi0'), 1, r)
+        / temp(r)
+        - sp.Rational(3, 2) * derivative1(sp.Symbol('temp'), 1, r)
+        / temp(r)
+        + (
+            sp.Symbol('energy')
+            - sp.Symbol('charge') * phi0(r)
+        ) * derivative1(sp.Symbol('temp'), 1, r) / temp(r) ** 2
+    )
     return values
