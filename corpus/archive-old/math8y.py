@@ -11,6 +11,13 @@ import sympy as sp
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
+# The source keeps exact algebraic expressions for ``ceq`` while the native
+# evaluator may leave the determinant factored.  ``pa`` is formed after a
+# machine-precision entry (``1.``) enters ``ma``, so its decimal presentation
+# is backend-dependent.  Both policies are narrower than changing the source
+# value and are checked by the focused tests.
+COMPARE = {'ceq': 'equivalent', 'pa': 'numeric'}
+
 # NOT TRANSLATED: 280 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('A', '{{1, 2, 3, 4}, {2, 3, 0, -5}, {2, -1, 1, 1}, {-2, 2, 0, -5}}', ()),
@@ -163,6 +170,13 @@ def results():
     values['mi2'] = _recovered_minors(2)
     values['mi3'] = _recovered_minors(3)
     values['mi1'] = sp.Function('MatrixForm')(_recovered_minors(1))
+
+    # ``cp`` is overwritten by the final plotting block in the source; it is
+    # no longer the characteristic polynomial assigned earlier.
+    point = sp.Function('Point')
+    values['cp'] = sp.Tuple(
+        point(sp.Tuple(3, 2)), point(sp.Tuple(2, 3))
+    )
 
     # The final source block replaces the first row of A before taking its
     # null space.  The generic assignment stream cannot represent that part
