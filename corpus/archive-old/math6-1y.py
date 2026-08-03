@@ -202,6 +202,20 @@ def results():
         sp.Tuple(phi, 0, 2 * sp.pi),
     )
 
+    # The source's final ``k3`` assignment is a styled ellipse.  Preserve the
+    # held plotting expression and its options instead of dropping the
+    # binding or exposing the native renderer's image filename.
+    rgb = sp.Function('RGBColor')
+    values['k3'] = sp.Function('ParametricPlot')(
+        sp.Tuple(2 * sp.cos(phi), sp.sin(phi)),
+        sp.Tuple(phi, 0, 2 * sp.pi),
+        rule(
+            sp.Symbol('Background'),
+            rgb(sp.Float(0.0), sp.Float(0.999), sp.Float(0.0)),
+        ),
+        rule(sp.Symbol('PlotStyle'), sp.Tuple(sp.Symbol('Red'))),
+    )
+
     # The final source assignment is a finite Table of styled Plot heads.
     # The shared evaluator deliberately does not render graphics, so retain
     # the four source expressions as opaque SymPy trees instead of dropping
