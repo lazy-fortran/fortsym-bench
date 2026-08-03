@@ -58,3 +58,10 @@ def test_remainder_preserves_the_native_diagonal_broadcast_shape():
     assert remainder.args[1].args[0] == expected
     assert remainder.args[2].args[1] == expected
     assert remainder.args[0].args[0].args[0].args[0] == expected
+    for index in range(3):
+        payload = remainder.args[index].args[index]
+        assert all(
+            cell == expected
+            for row in payload.args
+            for cell in row.args
+        )
