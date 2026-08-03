@@ -282,6 +282,42 @@ def results():
         ),
     )
 
+    # Keep the source's held frame-tick examples as plots, including their
+    # explicit tick specifications.  They are plotting semantics, not values
+    # to be replaced by a renderer filename.
+    values['bp1'] = sp.Function('Plot')(
+        sp.sin(sp.Symbol('x')), sp.Tuple(sp.Symbol('x'), 0, 10),
+        rule(sp.Symbol('Frame'), True),
+        rule(sp.Symbol('FrameTicks'), sp.Tuple(sp.pi * sp.Function('Range')(0, 6) / 2, sp.Symbol('Automatic'), None, None)),
+    )
+    values['bp2'] = sp.Function('Plot')(
+        sp.sin(sp.Symbol('x')), sp.Tuple(sp.Symbol('x'), 0, 10),
+        rule(sp.Symbol('Frame'), True),
+        rule(sp.Symbol('FrameTicks'), sp.Tuple(
+        sp.Tuple(0, sp.Tuple(sp.pi / 2, sp.Symbol('fortsymEmptyString')), sp.pi,
+                     sp.Tuple(3 * sp.pi / 2, sp.Symbol('fortsymEmptyString')), sp.Tuple(sp.Float('4.5'), 'λ', sp.Tuple(sp.Float('0.05'), sp.Float('0.02'))),
+                     2 * sp.pi, sp.Tuple(5 * sp.pi / 2, sp.Symbol('fortsymEmptyString')), 3 * sp.pi),
+            sp.Symbol('Automatic'), sp.Tuple(sp.Tuple(sp.Float('7.6'), 'μ', sp.Tuple(sp.Float('0.05'), sp.Float('0.01')))), None)),
+    )
+    values['k2'] = sp.Function('ParametricPlot')(
+        sp.Tuple(2 * sp.cos(phi), sp.sin(phi)), sp.Tuple(phi, 0, 2 * sp.pi),
+        rule(sp.Symbol('Background'), sp.Function('GrayLevel')(0)),
+        rule(sp.Symbol('PlotStyle'), sp.Tuple(sp.Symbol('Thick'), sp.Function('GrayLevel')(1))),
+        rule(sp.Symbol('BaseStyle'), sp.Function('GrayLevel')(1)),
+    )
+    values['p4'] = sp.Function('Graphics')(
+        sp.Tuple(sp.Function('Circle')(), rule(sp.Symbol('Axes'), True),
+                 rule(sp.Symbol('AxesLabel'), sp.Tuple(sp.cos(sp.Symbol('θ')), sp.sin(sp.Symbol('θ')))),
+                 rule(sp.Symbol('FormatType'), sp.Symbol('StandardForm'))),
+    )
+    values['pr'] = sp.Function('Plot')(
+        sp.sqrt(sp.Symbol('x')), sp.Tuple(sp.Symbol('x'), 0, 4),
+        rule(sp.Symbol('Frame'), True),
+        rule(sp.Symbol('FrameLabel'), sp.Tuple(sp.Symbol('x'), sp.sqrt(sp.Symbol('x')), sp.Symbol('x'), 'x^(1/2)')),
+        rule(sp.Symbol('PlotRegion'), sp.Tuple(sp.Tuple(sp.Float('0.2'), sp.Float('0.8')), sp.Tuple(sp.Float('0.2'), sp.Float('0.8')))),
+        rule(sp.Symbol('ImageSize'), 300),
+    )
+
     # The final source assignment is a finite Table of styled Plot heads.
     # The shared evaluator deliberately does not render graphics, so retain
     # the four source expressions as opaque SymPy trees instead of dropping
