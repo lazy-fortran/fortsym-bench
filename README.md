@@ -512,6 +512,11 @@ project/GH notebook coefficients, gvec Fourier/validation bindings, and the
 The v106 cache-preserving pass took 1.96 seconds at about 489 MiB RSS; its
 all-warm UV pass took 0.87 seconds at about 489 MiB RSS. The v106 cycle resolves
 four oracle disagreements across memo37, cylinder, peng, and math5y bindings.
+The v107 all-warm UV pass took 1.02 seconds at about 500 MiB RSS. It fixes
+Mathics arbitrary-precision InputForm parsing, invalidates stale comparison
+verdicts, and preserves compatible legacy Mathics cache rows; only 13
+Curl-sensitive rows required refresh. The benchmark harness now invalidates
+native cache rows at version 2 and comparison verdicts at version 16.
 The preceding v74 cold one-worker
 pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
@@ -575,10 +580,10 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The v106 audit on 2026-08-03 produced 3,943 agreements, 472 declared
-differences, 7 unsupported outcomes, 75 timeouts, 61 errors, 193 oracle
+place. The v107 audit on 2026-08-03 produced 3,943 agreements, 471 declared
+differences, 7 unsupported outcomes, 75 timeouts, 60 errors, 194 oracle
 disagreements, and 274 oracle-missing bindings across 4,885 bindings. Mathics3
 10.0.1 is installed with UV. The independent regression suites cover the v70
-through v106 changes. Translation quality and the remaining backend parity work
+through v107 changes. Translation quality and the remaining backend parity work
 stay measured by the independent oracle report; the report is the source of
 truth for current counts.
