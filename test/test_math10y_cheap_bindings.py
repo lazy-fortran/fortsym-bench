@@ -190,3 +190,28 @@ def test_math10y_ellipsoid_bindings_match_independent_numeric_oracles():
     assert values['vy'].subs(sample) == (
         sp.pi * 3 * 4 * (1 - sp.Rational(1, 2) ** 2 / 2**2) / 4
     )
+
+
+def test_math10y_ft0_matches_independent_numeric_boundaries():
+    values = math10y.results()
+    value = values['ft0']
+    v, x, y, z = sp.symbols('v x y z')
+    expected = sp.Function('Dt')(v, sp.Tuple(x, 2)) * sp.Function('Set')(
+        y, z / v ** sp.Rational(1, 4)
+    ) / 4
+    assert value == expected
+
+    # Independently evaluate the source formula for v(x) = 16 + x^2 and
+    # z = 8.  Here v'' = 2, so ft0 is f0/2 at both boundary samples.
+    for argument in (0.0, 1.0):
+        h = 1.0e-4
+        vfun = lambda q: 16.0 + q**2
+        second = (
+            vfun(argument + h) - 2.0 * vfun(argument)
+            + vfun(argument - h)
+        ) / h**2
+        f0 = 8.0 / vfun(argument) ** 0.25
+        numeric = second * f0 / 4.0
+        assert math.isclose(
+            numeric, 4.0 / vfun(argument) ** 0.25, rel_tol=1.0e-6
+        )

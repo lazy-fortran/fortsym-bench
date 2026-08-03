@@ -270,6 +270,12 @@ def _recovered_bindings():
         "vy": sp.pi * b * c * (1 - x**2 / a**2) / 4,
         "v": sp.pi * a * b * c / 6,
         "gn": g331,
+        # Direct source binding from the early total-derivative example.
+        # Keep Dt and Set opaque: v and y have Wolfram total-derivative
+        # semantics that are intentionally not guessed by the Python oracle.
+        "ft0": sp.Function("Dt")(v, sp.Tuple(x, 2))
+        * set_value(y, z / v ** sp.Rational(1, 4))
+        / 4,
         "g11": sp.N(g331.subs({x: sp.Float("0.9"), y: sp.Float("0.7")}), 16),
         "g01": sp.N(g331.subs({x: sp.Float("0.2"), y: sp.Float("0.7")}), 16),
         "g10": sp.N(g331.subs({x: sp.Float("0.9"), y: sp.Float("0.1")}), 16),
