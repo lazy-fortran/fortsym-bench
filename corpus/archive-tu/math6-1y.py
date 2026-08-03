@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import hashlib
 import sympy as sp
 
 # NOT TRANSLATED: 196 non-assignment statement(s) remain.
@@ -212,17 +213,9 @@ def results():
         sp.Tuple(phi, 0, 2 * sp.pi),
     )
 
-    # ``ParametricPlot`` also has HoldAll semantics for its iterator.  The
-    # later ``k1`` assignment therefore keeps its local ``t`` instead of
-    # inheriting the earlier global value assigned to ``t``.
-    parametric_plot = sp.Function('ParametricPlot')
-    values['k1'] = parametric_plot(
-        sp.Tuple(sp.Float('0.5') + sp.cos(t), 1 + sp.sin(t)),
-        sp.Tuple(t, 0, 2 * sp.pi),
-    )
-
     # The later styled ellipse is another rendering binding omitted by the
     # shared evaluator.  Preserve the source geometry and options explicitly.
+    parametric_plot = sp.Function('ParametricPlot')
     rgb = sp.Function('RGBColor')
     values['k3'] = parametric_plot(
         sp.Tuple(2 * sp.cos(phi), sp.sin(phi)),
@@ -245,6 +238,30 @@ def results():
             sp.Tuple(
                 sp.Function('Hue')(0),
                 sp.Function('Thickness')(sp.Float('0.01')),
+            ),
+        ),
+    )
+
+    # ``k1`` is overwritten by the source's final ``Show[k4, ...]``.  Keep
+    # that held rendering expression, including its labels and style options,
+    # rather than exposing the earlier local-ellipse assignment.
+    string_atom = lambda literal: sp.Symbol(
+        'fortsymString' + hashlib.sha256(f'"{literal}"'.encode()).hexdigest()
+    )
+    values['k1'] = sp.Function('Show')(
+        values['k4'],
+        rule(
+            sp.Symbol('AxesLabel'),
+            sp.Tuple(string_atom('x'), string_atom('y')),
+        ),
+        rule(sp.Symbol('Background'), sp.Function('GrayLevel')(sp.Float('0.3'))),
+        rule(sp.Symbol('BaseStyle'), hue(sp.Float('0.3'))),
+        rule(
+            sp.Symbol('PlotLabel'),
+            sp.Function('Style')(
+                string_atom('Ellipse\n'),
+                rule(sp.Symbol('FontSize'), 16),
+                rule(sp.Symbol('FontFamily'), sp.Symbol('Helvetica')),
             ),
         ),
     )
