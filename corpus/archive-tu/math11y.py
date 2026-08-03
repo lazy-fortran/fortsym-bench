@@ -255,6 +255,16 @@ def results():
     values['d'] = sp.Symbol('d')
     values['f'] = sp.Symbol('f')
 
+    # The native Wolfram path preserves the notebook's previous-output token
+    # in ``anfr = %*{1, 1, -1, -1}`` because the preceding numerical output is
+    # not available to this bounded translation.  Keep that source-level
+    # result rather than substituting a guessed trajectory or energy value.
+    previous_output = sp.Symbol('%')
+    values['anfr'] = sp.Tuple(*(
+        factor * previous_output
+        for factor in (1, 1, -1, -1)
+    ))
+
     # These option assignments are literal rules in the source.  The shared
     # evaluator intentionally does not guess option semantics, so preserve
     # their Wolfram values explicitly for the independent oracle.
