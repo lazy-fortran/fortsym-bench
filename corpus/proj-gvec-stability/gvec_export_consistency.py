@@ -72,6 +72,10 @@ def results():
     # generic assignment pass intentionally leaves associations opaque, so
     # recover these cheap scalar bindings without pretending to load the
     # unavailable validation CSV.
+    # The validation CSV is not present in this corpus checkout.  Preserve
+    # the native source-level First[fourierTable] binding instead of
+    # fabricating a header that the source could not observe here.
+    values['fourierHeader'] = sp.Function('First')(sp.Symbol('fourierTable'))
     values['II_tz'] = _field_tex_atom(r'\mathrm{II}_{\vartheta\zeta}')
     values['II_tt'] = _field_tex_atom(r'\mathrm{II}_{\vartheta\vartheta}')
     values['II_zz'] = _field_tex_atom(r'\mathrm{II}_{\zeta\zeta}')
