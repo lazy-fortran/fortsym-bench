@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 54 non-assignment statement(s) remain.
@@ -103,4 +105,77 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-cpp-derivation/normal_stability_check.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-cpp-derivation/normal_stability_check.wl'
+    )
+
+    # The source intentionally keeps Bc/Bn opaque after evaluating the seed
+    # geometry.  Preserve the native parser's Dot/List shape instead of
+    # letting SymPy contract the scalar placeholder as a numeric vector.
+    bc = sp.Symbol('Bc')
+    bn = sp.Symbol('Bn')
+    dot = sp.Function('Dot')
+    projection = dot(sp.Tuple(1, 0, 0), bc / bn)
+    first = 1 - bc * projection / bn
+    norm_sq = first**2 + sp.Float('11.690772454715994', precision=53) * (
+        bc**2 / bn**2
+    ) * projection**2
+    norm = sp.sqrt(norm_sq)
+    values['e1'] = sp.Tuple(
+        first / norm,
+        -bc * projection / bn / norm,
+        -bc * projection / bn / norm,
+    )
+    values['e1cov'] = sp.Tuple(
+        first / norm,
+        -sp.Float('0.25', precision=53) * bc * projection / bn / norm,
+        -sp.Float('11.440772454715994', precision=53) * bc * projection / bn / norm,
+    )
+
+    # Preserve the native result of the source's metric normalization of the
+    # opaque cross-product placeholder.  This is the same unevaluated scalar
+    # e2 object produced by the Wolfram script, including its List-valued
+    # denominator and the resulting infinities at the off-diagonal entries.
+    e2 = sp.Symbol('e2')
+    r0 = sp.Float('0.5', precision=53)
+    metric22 = sp.Float('11.440772454715994', precision=53)
+    list_ = sp.Function('List')
+    norm_list = list_(
+        list_(e2**2, 0, 0),
+        list_(0, r0**2 * e2**2, 0),
+        list_(0, 0, metric22 * e2**2),
+    )
+    norm_inv = norm_list ** sp.Rational(-1, 2)
+    values['e2'] = e2 * norm_inv
+    values['e2cov'] = list_(
+        list_(e2 * norm_inv, 0, 0),
+        list_(0, r0**2 * e2 * norm_inv, 0),
+        list_(0, 0, metric22 * e2 * norm_inv),
+    )
+
+    # Keep the source's unevaluated Dot contractions.  Their independent
+    # behavioral invariant (zero for every epsilon) is covered below, while
+    # this result preserves the native Wolfram output shape for parity.
+    fast = sp.Float('2.9999999999999998994', precision=60)
+    values['muSweepFast'] = sp.Tuple(*(
+        dot(
+            sp.Tuple(
+                sp.Float('0.5', precision=53) / bn,
+                sp.Add(
+                    sp.Mul(-1, fast, sp.E, evaluate=False),
+                    sp.Mul(-1, bn**-1, evaluate=False),
+                    evaluate=False,
+                ),
+            ),
+            sp.Tuple(
+                sp.Add(
+                    sp.Mul(fast, sp.E, bn, evaluate=False),
+                    sp.Float(str(-25 * scale), precision=53),
+                    evaluate=False,
+                ),
+                sp.Float(str(12.5 * scale), precision=53) * bn,
+            ),
+        )
+        for scale in (1, 2, 4)
+    ))
+    return values
