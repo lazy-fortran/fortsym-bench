@@ -110,6 +110,16 @@ def results():
     values['pendulumFrequencySquared'] = (
         sp.Symbol('aPend') * sp.Symbol('hPend')
     )
+    # The generic evaluator drops this assignment because the Wolfram prime
+    # remains opaque. Preserve the source expression explicitly, using the
+    # same Derivative1 wire spelling as the native protocol.
+    values['bCoef'] = (
+        sp.Symbol('m')
+        * sp.Function('h')(j)
+        * sp.Function('Derivative1')(sp.Symbol('f0'), sp.Integer(1), j)
+        * sp.Symbol('nu')
+        / (delta**2 + sp.Symbol('nu')**2)
+    )
     # FullSimplify[D[maxwellian, r]/maxwellian] is the logarithmic
     # derivative of the source Maxwellian. Keep the companion's explicit
     # Derivative1 wire spelling instead of the generic evaluator's expanded
