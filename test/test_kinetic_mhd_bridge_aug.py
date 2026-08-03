@@ -54,9 +54,7 @@ def test_kinetic_bridge_corrugation_chain_preserves_the_source_abs_detuning():
     eta0 = 2.41e-9
     j_core = 2.5e6
     abs_detuning = sp.Function("Abs")(sp.Float("0.01"))
-    resolved = {
-        abs_detuning: sp.Float("0.01"),
-    }
+    resolved = {abs_detuning: sp.Float("0.01")}
     d_over_b = float(sp.N(values["dOverB"].xreplace(resolved), 15))
     deficit = float(sp.N(values["deficitCorr"].xreplace(resolved), 15))
     field = float(sp.N(values["eDynCorr"].xreplace(resolved), 15))

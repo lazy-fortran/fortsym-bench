@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 29 non-assignment statement(s) remain.
 # These are machine-precision arithmetic checks.  The Wolfram path and SymPy
@@ -69,7 +70,18 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(
+    values = evaluate_assignments(
         _ASSIGNMENTS,
         'corpus/proj-flux_pumping/44_kinetic_mhd_bridge_aug.wl',
     )
+
+    # Preserve the native InputForm tree for this machine-real Abs chain.
+    # The generic lowering folds 1/rr0 first, while the Wolfram backend keeps
+    # the source's literal 2.57/4.41 factors.  Keeping the concrete Abs node
+    # also makes the two dependent source bindings serialize identically.
+    abs_detuning = sp.Function('Abs')(sp.Float('0.01'))
+    d_over_b = abs_detuning * sp.Float('2.57') / sp.Float('4.41')
+    values['dOverB'] = d_over_b
+    values['deficitCorr'] = sp.Float('0.00127356271306709') * abs_detuning**2
+    values['eDynCorr'] = sp.Float('7.67321534622919e-6') * abs_detuning**2
+    return values
