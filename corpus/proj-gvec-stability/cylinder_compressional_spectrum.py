@@ -209,4 +209,37 @@ def results():
     values['lagTP'] = dot(
         dot(vector, sp.Symbol('schurPhysical')), vector
     )
+
+    # The source cTwo expression is already fully bounded.  Keep its
+    # profile derivatives in the same explicit Derivative1 tree emitted by
+    # the Wolfram/native backend; using SymPy's ordinary Derivative nodes
+    # here leaves an algebraically identical expression as an oracle
+    # disagreement.  This is the source formula, with only the bounded
+    # cylindrical current contraction written out.
+    r = sp.Symbol('r')
+    k = sp.Symbol('k')
+    len_ = sp.Symbol('len')
+    m = sp.Symbol('m')
+    mu0 = sp.Symbol('mu0')
+    phi = sp.Symbol('phi')
+    btheta_r = sp.Function('btheta')(r)
+    bz_r = sp.Function('bz')(r)
+    et_r = sp.Function('et')(r)
+    xr_r = sp.Function('xr')(r)
+    btheta_prime = derivative1(sp.Symbol('btheta'), 1, r)
+    bz_prime = derivative1(sp.Symbol('bz'), 1, r)
+    cos_phi = sp.cos(phi)
+    jdotb_source = (
+        -bz_prime * btheta_r / mu0
+        + bz_r * (btheta_r + r * btheta_prime) / (mu0 * r)
+    )
+    values['cTwo'] = -(
+        2 * sp.pi * k * len_ * r * bz_r * et_r * cos_phi
+        + 2 * sp.pi * len_ * m * btheta_r * et_r * cos_phi
+        + 2 * sp.pi * len_ * mu0 * r * jdotb_source * xr_r * cos_phi
+        - (
+            2 * sp.pi * len_ * r * btheta_prime * bz_r
+            - len_ * btheta_r * (2 * sp.pi * r * bz_prime + 2 * sp.pi * bz_r)
+        ) * xr_r * cos_phi
+    ) / (2 * sp.pi * len_ * r * sp.sqrt(btheta_r**2 + bz_r**2))
     return values
