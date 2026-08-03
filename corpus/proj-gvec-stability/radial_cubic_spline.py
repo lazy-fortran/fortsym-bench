@@ -54,5 +54,14 @@ _ASSIGNMENTS = [
     ('jetB', 'segmentJet[yB0, yB1, mB0, mB1]', ()),
 ]
 
+# These are the same spline identities with harmless algebraic rearrangement
+# from the native Wolfram evaluator. Keep the default structural bar for the
+# remaining values, including the fixture derivative forms.
+COMPARE = {
+    'interiorEquation': 'equivalent',
+    'jetA': 'equivalent',
+    'jetB': 'equivalent',
+}
+
 def results():
     return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/radial_cubic_spline.wl')
