@@ -49,7 +49,10 @@ _ASSIGNMENTS = [
     # unsimplified total-minus-vacuum tree.
     ('zPl', 'I \\[Omega] \\[Mu]0 nn^2/lc (2 Pi a BesselJ[1, kk a]/(kk BesselJ[0, kk a]) - Pi a^2)', ()),
     ('zPlSeries', 'Simplify[Normal[Series[\n    I \\[Omega] \\[Mu]0 nn^2/lc (2 Pi a BesselJ[1, kk a]/\n        (kk BesselJ[0, kk a]) - Pi a^2) /. kk -> Sqrt[kk2],\n    {\\[Sigma], 0, 1}]]]', ()),
-    ('rplUniform', '\\[Omega]^2 \\[Mu]0^2 \\[Sigma] nn^2 Pi a^4/(8 lc)', ()),
+    # Keep the explicit low-density loss coefficient from the source.  It is
+    # the flux-route limit and must not be reconstructed from the native
+    # backend's unevaluated Bessel expression.
+    ('rplUniform', 'Pi \\[Omega]^2 \\[Mu]0^2 \\[Sigma] nn^2 a^4/(8 lc)', ()),
     ('pAbsUniform', 'Simplify[\n   (1/2) \\[Sigma] Integrate[(r \\[Omega] \\[Mu]0 nn II/(2 lc))^2 2 Pi r lc,\n     {r, 0, a}, Assumptions -> a > 0]]', ()),
     ('kgeo', 'lc/Sqrt[lc^2 + 4 Rc^2]', ()),
     ('pAbsFinite', 'Simplify[\n   (1/2) \\[Sigma] Integrate[\n     (r \\[Omega] bCenter/2)^2 2 Pi r lc, {r, 0, a},\n     Assumptions -> a > 0 && Rc > 0 && lc > 0]]', ()),
