@@ -412,7 +412,10 @@ seconds at about 488 MiB RSS. The v78 cache-preserving pass took 4.03 seconds
 at about 489 MiB RSS; its all-warm compact-cache pass took 1.00 second at about
 488 MiB RSS. The v77 cycle adds a source-faithful `math15y` recovery, and the
 v78 cycle adds three source-faithful `math10y` bindings plus a cylinder-spectrum
-recovery. The preceding v74 cold one-worker
+recovery. The v79 cache-preserving pass took 4.29 seconds at about 489 MiB RSS;
+its all-warm compact-cache pass took 1.33 seconds at about 489 MiB RSS. The v79
+cycle adds source-faithful `jDotB` and memo34 radial-product bindings. The
+preceding v74 cold one-worker
 pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
 lowering; the v71 cycle adds bounded `Do` assignment loops and six
@@ -475,10 +478,10 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The v78 audit on 2026-08-03 produced 3,865 agreements, 481 declared
-differences, 7 unsupported outcomes, 76 timeouts, 61 errors, 201 oracle
-disagreements, and 334 oracle-missing bindings across 4,884 bindings. Mathics3
+place. The v79 audit on 2026-08-03 produced 3,866 agreements, 482 declared
+differences, 7 unsupported outcomes, 76 timeouts, 61 errors, 200 oracle
+disagreements, and 333 oracle-missing bindings across 4,884 bindings. Mathics3
 10.0.1 is installed with UV. The independent regression suites cover the v70
-through v78 changes. Translation quality and the remaining backend parity work
+through v79 changes. Translation quality and the remaining backend parity work
 stay measured by the independent oracle report; the report is the source of
 truth for current counts.
