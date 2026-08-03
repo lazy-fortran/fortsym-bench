@@ -649,6 +649,18 @@ def _equivalent(a, b) -> bool:
         )
     if not isinstance(a, sympy.Basic) or not isinstance(b, sympy.Basic):
         return False
+    # Opaque Wolfram heads such as Rule and Derivative1 are represented as
+    # undefined SymPy functions.  Once a companion opts into algebraic
+    # equivalence, compare their children recursively instead of attempting
+    # arithmetic on the function applications themselves.
+    if (
+        getattr(a, "is_Function", False)
+        and getattr(b, "is_Function", False)
+        and a.func == b.func
+    ):
+        return len(a.args) == len(b.args) and all(
+            _equivalent(left, right) for left, right in zip(a.args, b.args)
+        )
     try:
         return bool(sympy.simplify(a - b) == 0)
     except Exception:
@@ -720,12 +732,18 @@ def _numeric_leaf_equivalent(a, b) -> bool:
         for precision in (getattr(value, "_prec", None),)
         if isinstance(precision, int) and precision > 0
     ]
-    if not precisions:
-        return _equivalent(a, b)
-
-    bits = min(precisions)
-    decimal_digits = max(1, int(bits / 3.321928094887362) - 2)
-    work_prec = max(80, bits + 32)
+    if precisions:
+        bits = min(precisions)
+        decimal_digits = max(1, int(bits / 3.321928094887362) - 2)
+        work_prec = max(80, bits + 32)
+    else:
+        # Composite numeric expressions (for example an exact sqrt multiplied
+        # by a machine complex coefficient) do not carry SymPy's leaf _prec.
+        # Treat them as ordinary machine-precision results instead of falling
+        # back to structural equivalence, which rejects harmless guard-digit
+        # differences.
+        decimal_digits = 14
+        work_prec = 80
     tolerance = sympy.Float(10) ** (-decimal_digits)
     try:
         difference = sympy.Abs(sympy.N(a - b, work_prec))

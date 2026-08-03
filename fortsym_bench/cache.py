@@ -27,8 +27,9 @@ CACHE_VERSION = 1
 # were stripped from InputForm numeric literals. Version 17 rejects malformed
 # arithmetic trees that SymPy's Mathematica parser can otherwise construct
 # from list-valued Mathics output. Version 18 adds equation-aware algebraic
-# equivalence for explicitly declared ``equivalent`` comparisons.
-COMPARISON_CACHE_VERSION = 18
+# equivalence for explicitly declared ``equivalent`` comparisons. Version 19
+# adds default machine-precision tolerance for numeric composite expressions.
+COMPARISON_CACHE_VERSION = 19
 
 
 @dataclass(frozen=True)
