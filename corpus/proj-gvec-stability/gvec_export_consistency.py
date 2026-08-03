@@ -5,6 +5,11 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import hashlib
+import json
+
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 19 non-assignment statement(s) remain.
@@ -49,5 +54,23 @@ _ASSIGNMENTS = [
     ('numberText', 'StringRiffle[{\n  "\\\\newcommand{\\\\GVECDerivativeAcceptanceTolerance}{" <>\n    scientificTeX[derivativeTolerance, 2] <> "}",\n  "\\\\newcommand{\\\\GVECDerivativeWorstField}{" <> worstFieldTeX <> "}",\n  "\\\\newcommand{\\\\GVECDerivativeWorstDirection}{" <> directionTeX <> "}",\n  "\\\\newcommand{\\\\GVECDerivativeWorstRelativeError}{" <>\n    scientificTeX[worstDerivative[[3]], 4] <> "}",\n  "\\\\newcommand{\\\\GVECSignedPeriodVolume}{" <>\n    scientificTeX[finalVolume[[2]], 8] <> "}",\n  "\\\\newcommand{\\\\GVECReferenceVolume}{" <>\n    scientificTeX[finalVolume[[4]], 8] <> "}",\n  "\\\\newcommand{\\\\GVECVolumeRelativeError}{" <>\n    scientificTeX[finalVolume[[5]], 4] <> "}"}, "\\n"]', ()),
 ]
 
+
+def _field_tex_atom(literal: str):
+    """Return the collision-safe SymPy atom for the source's TeX string."""
+
+    digest = hashlib.sha256(
+        json.dumps(literal, ensure_ascii=False).encode('utf-8')
+    ).hexdigest()
+    return sp.Symbol('fortsymString' + digest)
+
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-gvec-stability/gvec_export_consistency.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/proj-gvec-stability/gvec_export_consistency.wl',
+    )
+    # The source association contains this exact exported label.  The
+    # generic assignment pass intentionally leaves associations opaque, so
+    # recover this cheap scalar binding without pretending to load the
+    # unavailable validation CSV.
+    values['II_tz'] = _field_tex_atom(r'\mathrm{II}_{\vartheta\zeta}')
+    return values
