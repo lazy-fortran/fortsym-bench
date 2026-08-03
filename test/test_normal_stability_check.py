@@ -22,3 +22,20 @@ def test_inverse_metric_is_the_inverse_of_the_seed_metric():
         abs(float(metric[i][i] * inverse[i][i]) - 1.0) < 1e-12
         for i in range(3)
     )
+
+
+def test_fast_rotation_preserves_the_perpendicular_moment():
+    import sympy as sp
+
+    values = _module().results()
+    vector = sp.Matrix([sp.Rational(1, 2), -sp.Rational(3, 10)])
+    rotation = sp.Matrix(values["Jrot"])
+    assert sp.simplify(vector.dot(rotation * vector)) == 0
+    assert len(values["muSweepFast"]) == 3
+
+
+def test_seed_frame_covector_preserves_the_projected_first_component():
+    values = _module().results()
+    # The covector is the metric lowering of the contravariant frame vector.
+    # With the opaque native Dot form, check the unambiguous first component.
+    assert values["e1cov"][0] == values["e1"][0]
