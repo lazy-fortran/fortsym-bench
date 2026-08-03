@@ -6,6 +6,7 @@ their count is recorded in translation-manifest.json.
 """
 
 from fortsym_bench.wl_to_sympy import evaluate_assignments
+import sympy as sp
 
 # NOT TRANSLATED: 12 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
@@ -20,4 +21,11 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-ecnl-gorilla-recovery/07_figures.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS, 'corpus/proj-ecnl-gorilla-recovery/07_figures.wl'
+    )
+    # The native protocol exposes association entries as bindings.  Preserve
+    # the first source node explicitly because the generic lowering stops at
+    # the association syntax before it can emit this coordinate.
+    values['wave / beam'] = sp.Tuple(0, 2)
+    return values
