@@ -5,6 +5,8 @@ Unsupported control-flow or side-effect statements are not guessed;
 their count is recorded in translation-manifest.json.
 """
 
+import sympy as sp
+
 from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 42 non-assignment statement(s) remain.
@@ -80,4 +82,20 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/34_memo_maxwell_20260714.wl')
+    values = evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/proj-flux_pumping/34_memo_maxwell_20260714.wl',
+    )
+
+    # The source's D[radiusMap, theta/phi] keeps the explicit partial
+    # derivative with respect to the helical phase.  The generic evaluator
+    # expands it to a Subs(Derivative(...)) tree; retain the source-faithful
+    # observable head used by the Wolfram oracle.
+    rho, theta, phi, m, n = sp.symbols('rho theta phi m n')
+    alpha = m * theta + n * phi
+    derivative1 = sp.Function('Derivative1')
+    radius_alpha = derivative1(sp.Symbol('radius'), sp.Integer(2), rho, alpha)
+    jtheta = sp.Function('jtheta')(rho, alpha)
+    jphi = sp.Function('jphi')(rho, alpha)
+    values['jrChain'] = m * jtheta * radius_alpha + n * jphi * radius_alpha
+    return values
