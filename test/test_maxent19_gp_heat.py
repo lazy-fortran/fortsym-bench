@@ -23,7 +23,7 @@ def test_recovered_k3_is_the_full_line_heat_kernel_convolution():
         2 * sp.sqrt(sp.pi) * sp.sqrt(t0 + t1)
     )
 
-    assert set(values) == {"k0", "k1", "k2", "k3"}
+    assert set(values) == {"k0", "k0a", "k1", "k2", "k3"}
     assert sp.simplify(values["k3"] - expected) == 0
 
 
@@ -85,5 +85,23 @@ def test_recovered_k0_matches_independent_numeric_two_tail_convolution():
     integrand = lambda xi: gaussian(1, 1, xi) * gaussian(0, 2, xi)
     expected = mpmath.quad(integrand, [-mpmath.inf, 0]) + mpmath.quad(
         integrand, [1, mpmath.inf]
+    )
+    assert abs(mpmath.mpf(str(candidate)) - expected) < mpmath.mpf("1e-25")
+
+
+def test_recovered_k0a_matches_independent_numeric_two_tail_convolution():
+    value = _module().results()["k0a"]
+    sample = {"x0": 1, "x1": 0, "t0": 1, "t1": 2, "xa": sp.Rational(1, 3), "xb": sp.Rational(4, 5)}
+    candidate = value.subs(sample).replace(
+        lambda expression: expression.func.__name__ == "Erf",
+        lambda expression: sp.erf(*expression.args),
+    ).evalf(30)
+
+    def gaussian(x, t, xi):
+        return mpmath.exp(-(x - xi) ** 2 / (4 * t)) / mpmath.sqrt(4 * mpmath.pi * t)
+
+    integrand = lambda xi: gaussian(1, 1, xi) * gaussian(0, 2, xi)
+    expected = mpmath.quad(integrand, [-mpmath.inf, mpmath.mpf(1) / 3]) + mpmath.quad(
+        integrand, [mpmath.mpf(4) / 5, mpmath.inf]
     )
     assert abs(mpmath.mpf(str(candidate)) - expected) < mpmath.mpf("1e-25")
