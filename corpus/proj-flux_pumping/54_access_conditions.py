@@ -132,4 +132,11 @@ def results():
         sp.diff(psi_kin, dv).subs({dv: sp.Rational(1, 100), dop: sp.Rational(1, 100)}),
         20,
     )
+
+    # The source identity is 2 Ga X (Kk - 2 Ga X).  The native Wolfram-path
+    # result is emitted as its expanded InputForm polynomial, while the
+    # generic lowering retains the equivalent factored tree.  Preserve the
+    # source value with the native parity tree after the shared pass.
+    Ga, Kk, xx = sp.symbols('Ga Kk xx')
+    values['hopfDetAtRoot'] = sp.expand(2 * Ga * xx * (Kk - 2 * Ga * xx))
     return values
