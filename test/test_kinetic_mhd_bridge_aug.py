@@ -5,6 +5,8 @@ import importlib.util
 from pathlib import Path
 import sys
 
+import sympy as sp
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
@@ -41,3 +43,27 @@ def test_kinetic_bridge_numeric_bindings_follow_source_formulae():
     assert close(values["epsBetaCore"][0], expected_eps)
     assert close(values["epsBetaWhole"], expected_whole)
     assert close(values["qFloorCore"][1], expected_scale * Decimal("1.5") * Decimal("0.20") / rr0)
+
+
+def test_kinetic_bridge_corrugation_chain_preserves_the_source_abs_detuning():
+    module = _load_target()
+    values = module.results()
+
+    rr0 = 4.41 / 2.57
+    delta = 0.05
+    eta0 = 2.41e-9
+    j_core = 2.5e6
+    abs_detuning = sp.Function("Abs")(sp.Float("0.01"))
+    resolved = {
+        abs_detuning: sp.Float("0.01"),
+    }
+    d_over_b = float(sp.N(values["dOverB"].xreplace(resolved), 15))
+    deficit = float(sp.N(values["deficitCorr"].xreplace(resolved), 15))
+    field = float(sp.N(values["eDynCorr"].xreplace(resolved), 15))
+
+    expected_d_over_b = 0.01 / rr0
+    expected_deficit = 1.5 * (delta * expected_d_over_b) ** 2
+    expected_field = eta0 * j_core * expected_deficit
+    assert d_over_b == pytest.approx(expected_d_over_b, rel=1e-14)
+    assert deficit == pytest.approx(expected_deficit, rel=1e-14)
+    assert field == pytest.approx(expected_field, rel=1e-14)

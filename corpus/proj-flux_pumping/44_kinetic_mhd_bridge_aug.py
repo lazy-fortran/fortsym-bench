@@ -14,6 +14,8 @@ from fortsym_bench.wl_to_sympy import evaluate_assignments
 # Keep the integral and the derived kinetic scales structural: their remaining
 # differences are not rounding differences.
 COMPARE = {
+    'dOverB': 'numeric',
+    'dqOhm': 'numeric',
     'nuEff': 'numeric',
     'deficitCorr': 'numeric',
     'eDynCorr': 'numeric',
@@ -67,4 +69,7 @@ _ASSIGNMENTS = [
 ]
 
 def results():
-    return evaluate_assignments(_ASSIGNMENTS, 'corpus/proj-flux_pumping/44_kinetic_mhd_bridge_aug.wl')
+    return evaluate_assignments(
+        _ASSIGNMENTS,
+        'corpus/proj-flux_pumping/44_kinetic_mhd_bridge_aug.wl',
+    )
