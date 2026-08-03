@@ -14,7 +14,11 @@ import json
 from pathlib import Path
 import re
 
-from fortsym_bench.wl_to_sympy import extract_assignments
+from fortsym_bench.wl_to_sympy import (
+    Assignment,
+    DerivativeDefinition,
+    extract_assignments,
+)
 
 
 MANUAL_TRANSLATIONS = {
@@ -92,6 +96,7 @@ def render_module(source: str, assignments, skipped: int) -> str:
     policies = {
         assignment.name: "numeric"
         for assignment in assignments
+        if isinstance(assignment, Assignment)
         if re.search(
             r"(?<![A-Za-z0-9$])(?:N|SetPrecision)\s*\[",
             assignment.rhs,
@@ -105,7 +110,7 @@ def render_module(source: str, assignments, skipped: int) -> str:
         "their count is recorded in translation-manifest.json.",
         '"""',
         "",
-        "from fortsym_bench.wl_to_sympy import evaluate_assignments",
+        "from fortsym_bench.wl_to_sympy import DerivativeDefinition, evaluate_assignments",
         "",
         f"# NOT TRANSLATED: {skipped} non-assignment statement(s) remain.",
     ]
@@ -122,6 +127,12 @@ def render_module(source: str, assignments, skipped: int) -> str:
         "_ASSIGNMENTS = [",
     ])
     for assignment in assignments:
+        if isinstance(assignment, DerivativeDefinition):
+            lines.append(
+                f"    DerivativeDefinition({assignment.function!r}, "
+                f"{assignment.order!r}, {assignment.rhs!r}),"
+            )
+            continue
         delayed = (
             f", {assignment.delayed!r}"
             if assignment.parameters and not assignment.delayed

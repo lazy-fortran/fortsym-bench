@@ -1332,9 +1332,9 @@
   "skipped_statements": 61,
   "status": "generated"
  },
- "corpus/proj-flux_pumping/37_memo_update_20260717.wl": {
-  "assignments": 49,
-  "skipped_statements": 21,
+  "corpus/proj-flux_pumping/37_memo_update_20260717.wl": {
+    "assignments": 51,
+    "skipped_statements": 19,
   "status": "generated"
  },
  "corpus/proj-flux_pumping/38_naive_vs_serious_comparison.wl": {
