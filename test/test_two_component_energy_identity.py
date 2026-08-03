@@ -225,3 +225,21 @@ def test_pressure_slope_preserves_the_source_mu0_force_balance_assignment():
         ) / point[r]
         observed = values['pressureSlope'].subs(point)
         assert sp.simplify(observed - expected) == 0
+
+
+def test_flux_t_slope_is_the_source_radial_derivative_at_two_points():
+    values = _load().results()
+    r = sp.Symbol('r')
+    bz = sp.Function('bz')
+    derivative1 = sp.Function('Derivative1')
+    bz_prime = derivative1(sp.Symbol('bz'), 1, r)
+
+    # Independent numerical evaluation of D[2 Pi r bz[r], r], retaining the
+    # source's two contributions at each radius.
+    for point in (
+        {r: sp.Rational(3, 2), bz(r): 5, bz_prime: 7},
+        {r: 4, bz(r): sp.Rational(1, 3), bz_prime: -2},
+    ):
+        expected = 2 * sp.pi * (point[bz(r)] + point[r] * point[bz_prime])
+        observed = values['fluxTslope'].subs(point)
+        assert sp.simplify(observed - expected) == 0
