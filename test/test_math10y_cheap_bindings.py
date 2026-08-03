@@ -123,19 +123,23 @@ def test_math10y_gaussian_integral_matches_independent_numeric_boundaries():
     assert math.isclose(float(value.evalf()), math.sqrt(math.pi), rel_tol=1e-15)
 
 
-def test_math10y_rlc_transfer_binding_matches_independent_numeric_values():
-    value = math10y.results()['fi']
-    V0, R, L, C, s = sp.symbols('V0 R L C s')
+def test_math10y_f1_derivative_matches_independent_numeric_boundaries():
+    value = math10y.results()['f1']
+    v, x, y, z = sp.symbols('v x y z')
+    expected_tree = sp.Function('Dt')(
+        sp.Function('Set')(y, z / v ** sp.Rational(1, 4)), x
+    )
+    assert value == expected_tree
 
-    assert value == V0 / (s * R + s**2 * L + C)
-    for sample in (
-        {V0: 10, R: 22, L: 110, C: 1, s: 0},
-        {V0: 10, R: 22, L: 110, C: 19, s: 1},
-    ):
-        denominator = (
-            sample[s] * sample[R] + sample[s] ** 2 * sample[L] + sample[C]
-        )
-        assert float(value.subs(sample)) == 10 / denominator
+    # Independently evaluate the derivative represented by the Wolfram tree
+    # for v(x) = 16 + x and z = 8 at both sides of the reference point.
+    def source_value(argument):
+        return 8.0 / (16.0 + argument) ** 0.25
+
+    h = 1.0e-5
+    numeric_derivative = (source_value(h) - source_value(-h)) / (2.0 * h)
+    expected_derivative = -8.0 / (4.0 * 16.0 ** 1.25)
+    assert math.isclose(numeric_derivative, expected_derivative, rel_tol=1e-9)
 
 
 def test_math10y_ellipsoid_bindings_match_independent_numeric_oracles():

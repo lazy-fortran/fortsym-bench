@@ -185,10 +185,9 @@ def _recovered_bindings():
     right-hand sides of the corresponding final bindings; unresolved
     transform, integration, and plotting values remain omitted.
     """
-    a, b, c, d, s, t, v, x, y, z, alpha, omega = sp.symbols(
-        "a b c d s t v x y z alpha omega"
+    a, b, c, d, t, v, x, y, z, alpha, omega = sp.symbols(
+        "a b c d t v x y z alpha omega"
     )
-    V0, R, L, C = sp.symbols("V0 R L C")
     # ``wl_to_sympy`` uses ``phi`` as the stable parser spelling for Wolfram's
     # variant phi character; the cross-language comparator applies the same
     # normalization to the native ``ϕ`` output.
@@ -278,10 +277,12 @@ def _recovered_bindings():
         "fss": unit(a + t) + unit(a - t) - 1,
         "fst": unit(t) + unit(a - t) - 1,
         "ft": 1 / (t**2 + a**2),
-        # Source binding for the RLC transfer function, before the later
-        # inverse-Laplace example.  Keep the rational expression explicit so
-        # it remains cheap and source-faithful in the companion.
-        "fi": V0 / (s * R + s**2 * L + C),
+        # The first derivative binding is retained as an explicit Wolfram
+        # ``Dt`` tree, matching the source's final value before later
+        # assignments change the surrounding symbols.
+        "f1": sp.Function("Dt")(
+            set_value(y, z / v ** sp.Rational(1, 4)), x
+        ),
         # Final cheap source binding before the Laplace-transform examples.
         "ft1": sp.Piecewise((0, t <= a), (1, True)),
         "fu": t * unit(a + t) - t * unit(t - a),
