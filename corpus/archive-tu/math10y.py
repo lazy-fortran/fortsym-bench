@@ -185,9 +185,10 @@ def _recovered_bindings():
     right-hand sides of the corresponding final bindings; unresolved
     transform, integration, and plotting values remain omitted.
     """
-    a, b, c, d, t, v, x, y, z, alpha, omega = sp.symbols(
-        "a b c d t v x y z alpha omega"
+    a, b, c, d, t, v, x, y, z, alpha = sp.symbols(
+        "a b c d t v x y z alpha"
     )
+    omega = sp.Symbol("ω")
     s, v0, resistance, inductance, capacitance = sp.symbols(
         "s V0 R L C"
     )
@@ -322,6 +323,18 @@ def _recovered_bindings():
             t,
         ),
         "fu": t * unit(a + t) - t * unit(t - a),
+        # The source's final Fourier-cosine inverse is intentionally kept as
+        # an opaque transform tree: the independent Wolfram oracle preserves
+        # this unsupported transform head rather than evaluating it.
+        "fi": sp.Function("InverseFourierCosTransform")(
+            sp.Function("FourierCosTransform")(
+                unit(a + t) + unit(a - t) - 1,
+                t,
+                omega,
+            ),
+            omega,
+            t,
+        ),
         "f": final_f,
         # Final source binding from the two repeated ``Which`` examples.
         "theta": theta,
