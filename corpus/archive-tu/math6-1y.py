@@ -208,4 +208,13 @@ def results():
         sp.Tuple(2 * sp.cos(phi), sp.sin(phi)),
         sp.Tuple(phi, 0, 2 * sp.pi),
     )
+
+    # ``ParametricPlot`` also has HoldAll semantics for its iterator.  The
+    # later ``k1`` assignment therefore keeps its local ``t`` instead of
+    # inheriting the earlier global value assigned to ``t``.
+    parametric_plot = sp.Function('ParametricPlot')
+    values['k1'] = parametric_plot(
+        sp.Tuple(sp.Float('0.5') + sp.cos(t), 1 + sp.sin(t)),
+        sp.Tuple(t, 0, 2 * sp.pi),
+    )
     return values
