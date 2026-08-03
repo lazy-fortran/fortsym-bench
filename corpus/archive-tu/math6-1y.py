@@ -234,6 +234,30 @@ def results():
         rule(sp.Symbol('PlotStyle'), sp.Tuple(sp.Symbol('Red'))),
     )
 
+    # The source's final ``k4`` is a bounded symbolic plot description.  Keep
+    # its geometry and style as an opaque ParametricPlot head; rendering stays
+    # explicitly outside this companion's scope.
+    values['k4'] = parametric_plot(
+        sp.Tuple(2 * sp.cos(phi), sp.sin(phi)),
+        sp.Tuple(phi, 0, 2 * sp.pi),
+        rule(
+            sp.Symbol('PlotStyle'),
+            sp.Tuple(
+                sp.Function('Hue')(0),
+                sp.Function('Thickness')(sp.Float('0.01')),
+            ),
+        ),
+    )
+
+    # ``pp := ...`` is delayed in the Wolfram source and reads ``xcm`` only
+    # after the later ``xcm = 6`` assignment.  Preserve that final held plot
+    # symbolically, including the resolved bounded image-size option.
+    values['pp'] = plot(
+        sp.sin(x),
+        sp.Tuple(x, 0, 3 * sp.pi),
+        rule(sp.Symbol('ImageSize'), 29 * 6),
+    )
+
     # The final source ``p3`` plot is held by the rendering evaluator, so keep
     # its source expression and style rule rather than the earlier log plot.
     values['p3'] = plot(
