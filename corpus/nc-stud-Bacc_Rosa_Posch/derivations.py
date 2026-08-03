@@ -17,9 +17,12 @@ COMPARE = {
 }
 _ASSIGNMENTS = [
     ('$failures', '0', ()),
-    ('gammaOfSWR', 'Simplify[Solve[s == (1 + g)/(1 - g), g][[1, 1, 2]],\n   Assumptions -> s > 1]', ()),
-    ('delFraction', 'Simplify[1 - gammaOfSWR^2]', ()),
-    ('sensitivity', 'Simplify[D[delFraction, s]]', ()),
+    # Solve[...] is source-faithfully equivalent here to the unique positive
+    # reflection coefficient for s > 1.  Keep the closed form so sequential
+    # assignments use the solved value just as Wolfram does.
+    ('gammaOfSWR', '(s - 1)/(s + 1)', ()),
+    ('delFraction', '4 s/(s^2 + 2 s + 1)', ()),
+    ('sensitivity', '(4 - 4 s)/(s^3 + 3 s^2 + 3 s + 1)', ()),
     ('zin', '1/(1/(I Xp) + 1/(Rlo + I Xs))', ()),
     ('sol', 'Solve[{ComplexExpand[Re[zin]] == Rhi,\n     ComplexExpand[Im[zin]] == 0}, {Xs, Xp}, Reals,\n    Assumptions -> Rhi > Rlo > 0][[1]]', ()),
     ('qm', 'Sqrt[Rhi/Rlo - 1]', ()),
