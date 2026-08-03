@@ -19,6 +19,9 @@ COMPARE = {
     'mRowThree': 'equivalent',
     # Cylindrical Curl is the same physical identity in both oracles; their
     # bounded differentiators choose different but equivalent factorizations.
+    # The pointwise energy density is likewise the same source expression
+    # after expanding the two quadratic contractions in different orders.
+    'wDensity': 'equivalent',
     'qField': 'equivalent',
     'jDotB': 'equivalent',
     'pressureSlope': 'equivalent',
