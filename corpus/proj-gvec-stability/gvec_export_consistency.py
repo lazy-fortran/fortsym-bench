@@ -73,4 +73,5 @@ def results():
     # recover this cheap scalar binding without pretending to load the
     # unavailable validation CSV.
     values['II_tz'] = _field_tex_atom(r'\mathrm{II}_{\vartheta\zeta}')
+    values['II_tt'] = _field_tex_atom(r'\mathrm{II}_{\vartheta\vartheta}')
     return values
