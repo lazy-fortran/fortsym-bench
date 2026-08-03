@@ -164,6 +164,15 @@ def results():
         'corpus/proj-gvec-stability/cylinder_compressional_spectrum.wl',
     )
 
+    # Preserve the source's exact fixture path for this v106-sensitive
+    # numeric binding: ``alfvenPoint = N[kF^2 vA2F, prec]``.  Re-evaluate the
+    # already exact intermediate values explicitly so a backend cannot turn
+    # the implicit ``4 Pi 10^-7`` multiplication into a stale factor-of-40
+    # result while translating the surrounding assignments.
+    values['alfvenPoint'] = sp.N(
+        values['kF'] ** 2 * values['vA2F'], int(values['prec'])
+    )
+
     # ``phaseAverage`` is defined in the source as TrigReduce followed by
     # removal of every non-constant Fourier mode.  The bounded translator
     # keeps that user-defined head opaque, but this kernel is quadratic in
