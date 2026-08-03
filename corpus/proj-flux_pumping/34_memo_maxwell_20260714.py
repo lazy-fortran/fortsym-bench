@@ -74,7 +74,9 @@ _ASSIGNMENTS = [
     ('fixtureCurrent', 's Exp[-s]', ('s',)),
     ('printedNegativeM', '-2 Pi (Integrate[fixtureCurrent[s], {s, 0, 1}] -\n    Integrate[s^2 fixtureCurrent[s], {s, 1, Infinity}])', ()),
     ('correctNegativeM', '-2 Pi (Integrate[s^2 fixtureCurrent[s], {s, 0, 1}] -\n    Integrate[fixtureCurrent[s], {s, 1, Infinity}])', ()),
-    ('kernelRelativeError', 'Abs[\n  BesselI[1, 1/10] BesselK[1, 1/10]/(1/2) - 1]', ()),
+    # At the fixed positive argument the Bessel product is below 1/2, so the
+    # source's numeric Abs has the exact equivalent positive branch below.
+    ('kernelRelativeError', '1 - 2 BesselI[1, 1/10] BesselK[1, 1/10]', ()),
 ]
 
 def results():
