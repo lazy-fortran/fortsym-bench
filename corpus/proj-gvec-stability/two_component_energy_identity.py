@@ -104,7 +104,25 @@ def results():
         * (btheta(r) + r * derivative1(sp.Symbol('btheta'), 1, r))
         / r
     )
-    values['pressureSlope'] = pressure_rhs
+    # Preserve the source assignment ``mu0 Derivative[1][p][r] /.
+    # forceBalance``.  The explicit outer multiplication is significant to
+    # the structural oracle: the native Wolfram result retains the
+    # ``mu0*(.../mu0)`` tree, while ordinary SymPy multiplication cancels it.
+    pressure_balance = sp.Add(
+        sp.Mul(
+            -1, sp.Pow(mu0, -1),
+            derivative1(sp.Symbol('bz'), 1, r), bz(r),
+            evaluate=False,
+        ),
+        sp.Mul(
+            -1, sp.Pow(mu0, -1), sp.Pow(r, -1),
+            btheta(r),
+            btheta(r) + r * derivative1(sp.Symbol('btheta'), 1, r),
+            evaluate=False,
+        ),
+        evaluate=False,
+    )
+    values['pressureSlope'] = sp.Mul(mu0, pressure_balance, evaluate=False)
 
     # The source defines jDotB as mu0 times the cylindrical current dotted
     # with the magnetic field.  Expanding Curl for

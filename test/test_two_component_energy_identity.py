@@ -194,3 +194,34 @@ def test_physical_weighted_applies_source_phase_and_force_balance_numerically():
         sp.Subs(sp.Derivative(bz(r), r), r, radius): bz_prime,
     })
     assert sp.simplify(observed - expected) == 0
+
+
+def test_pressure_slope_preserves_the_source_mu0_force_balance_assignment():
+    values = _load().results()
+    r = sp.Symbol('r')
+    mu0 = sp.Symbol('mu0')
+    btheta = sp.Function('btheta')
+    bz = sp.Function('bz')
+    derivative1 = sp.Function('Derivative1')
+
+    # The Wolfram source computes mu0 Derivative[1][p][r] by substituting
+    # forceBalance.  Check the resulting value independently at two points;
+    # the assertion deliberately does not depend on the generated binding's
+    # expression as its expected value.
+    for point in (
+        {r: 2, mu0: 3, btheta(r): 5, bz(r): 7,
+         derivative1(sp.Symbol('btheta'), 1, r): 11,
+         derivative1(sp.Symbol('bz'), 1, r): 13},
+        {r: 4, mu0: 2, btheta(r): -3, bz(r): 6,
+         derivative1(sp.Symbol('btheta'), 1, r): 17,
+         derivative1(sp.Symbol('bz'), 1, r): -19},
+    ):
+        expected = -point[bz(r)] * point[
+            derivative1(sp.Symbol('bz'), 1, r)
+        ] - point[btheta(r)] * (
+            point[btheta(r)] + point[r] * point[
+                derivative1(sp.Symbol('btheta'), 1, r)
+            ]
+        ) / point[r]
+        observed = values['pressureSlope'].subs(point)
+        assert sp.simplify(observed - expected) == 0
