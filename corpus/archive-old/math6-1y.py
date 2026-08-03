@@ -184,6 +184,15 @@ def results():
     # the translator's eager replacement of the earlier ``t`` assignment.
     values['r'] = sp.Symbol('t')
 
+    # The final Ticks example binds a fresh local plot parameter ``t``.  The
+    # shared evaluator otherwise reuses the earlier global ``t = (-8)^(1/3)``
+    # assignment and changes the plotted expression and range.
+    t = sp.Symbol('t')
+    values['s'] = sp.Function('Plot')(
+        sp.sin(t),
+        sp.Tuple(t, 0, 2 * sp.pi),
+    )
+
     # The source's ellipse plot uses a Greek parameter name.  The shared
     # assignment evaluator leaves that plotting binding opaque, so preserve
     # the source expression explicitly instead of dropping ``k``.
