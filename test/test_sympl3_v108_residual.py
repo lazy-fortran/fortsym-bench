@@ -41,3 +41,30 @@ def test_vpdot_keeps_the_source_guiding_center_formula_after_normalization():
         sp.Function("vp")(sp.Symbol("t")): vp,
     })
     assert sp.simplify(actual - expected) == 0
+
+
+def test_orbit_equations_match_source_guiding_center_rhs_at_an_independent_point():
+    values = _load_companion().results()
+    r, th, vp = sp.symbols("r th vp")
+    c = sp.cos(th)
+    h0ph = sp.sqrt(1 - sp.Float("0.99") ** 2)
+    hth = sp.Float("0.99") * r
+    hph = (r * c + 1) * h0ph
+    ath = h0ph * (r**2 / 2 - r**3 * c / 3)
+    aph = -sp.Float("0.99") * r
+    u = sp.Float("0.1") * (r * c - sp.Float("0.3") * sp.cos(sp.Float("1.5")))
+    sqrtg = r * (r * c + 1)
+    bstarpar = hth * (-sp.diff(aph, r) - vp * sp.diff(hph, r)) / sqrtg
+    bstarpar += hph * (sp.diff(ath, r) + vp * sp.diff(hth, r)) / sqrtg
+    expected = {
+        "eq1a": (2 * u * sp.diff(hph, th) + hph * sp.diff(u, th)) / (bstarpar * sqrtg),
+        "eq2a": (vp * (-sp.diff(aph, r)) - 2 * u * sp.diff(hph, r) - hph * sp.diff(u, r)) / (bstarpar * sqrtg),
+        "eq3a": (vp * sp.diff(ath, r) + 2 * u * sp.diff(hth, r) + hth * sp.diff(u, r)) / (bstarpar * sqrtg),
+        "eq4a": (sp.diff(u, r) * vp * sp.diff(hph, th) - sp.diff(u, th) * (sp.diff(aph, r) + vp * sp.diff(hph, r))) / (bstarpar * sqrtg),
+    }
+    sample = {r: sp.Rational(2, 5), th: sp.Rational(4, 5), vp: sp.Rational(17, 100)}
+    t = sp.Symbol("t")
+    functions = {sp.Function(name)(t): symbol for name, symbol in (("r", r), ("th", th), ("vp", vp))}
+    for name, rhs in expected.items():
+        actual = values[name].rhs.xreplace(functions).xreplace(sample)
+        assert abs(float(sp.N(actual - rhs.subs(sample)))) < 1e-12, name
