@@ -92,6 +92,13 @@ def test_math10y_final_which_binding_matches_independent_numeric_oracle():
     ]
 
 
+def test_math10y_theta_binding_matches_independent_numeric_oracle():
+    value = math10y.results()['theta']
+    x = sp.Symbol('x')
+
+    assert [value.subs(x, sample) for sample in (-1, 0, 1)] == [0, sp.Rational(1, 2), 1]
+
+
 def test_math10y_ellipsoid_bindings_match_independent_numeric_oracles():
     values = math10y.results()
     a, b, c, x, phi = sp.symbols('a b c x phi')
