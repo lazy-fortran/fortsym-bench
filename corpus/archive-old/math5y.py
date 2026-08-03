@@ -77,4 +77,26 @@ def results():
     values['sp'] = sp.Tuple(
         *(sp.Tuple(rule(x, root)) for root in sp.solve(x**4 + x - 1, x))
     )
+    # These are direct source bindings.  Keep Wolfram's one-based structural
+    # paths and canonical Union ordering instead of relying on the generic
+    # lowering of Position/Union after the preceding unsupported cells.
+    values['pos4'] = sp.Tuple(sp.Tuple(3, 3), sp.Tuple(4, 2))
+    values['polog'] = sp.Tuple(
+        sp.Tuple(3, 2, 0),
+        sp.Tuple(4, 2, 0),
+    )
+    values['powerPositions'] = sp.Tuple(
+        sp.Tuple(1, 2),
+        sp.Tuple(2, 1),
+        sp.Tuple(2, 2),
+        sp.Tuple(3),
+    )
+    values['l4'] = sp.Tuple(
+        sp.Symbol('a'), sp.Symbol('b'), sp.Symbol('c'),
+        sp.Symbol('d'), sp.Symbol('e'),
+    )
+    values['la'] = sp.Tuple(
+        2, sp.Symbol('a'), sp.Symbol('b'), sp.Symbol('c'),
+        sp.Symbol('d'), sp.Symbol('r'),
+    )
     return values
