@@ -80,4 +80,8 @@ def results():
     # matrix lowering cannot invert the source-shaped Mtri definition. Keep
     # that exact Wolfram head visible instead of silently dropping Minv.
     values['Minv'] = sp.Function('Inverse')(sp.Symbol('Mtri'))
+    # The native subset leaves the preceding ``Integrate`` binding opaque.
+    # Preserve the source assignment ``Aphi = Aphsol2`` as that exact symbol
+    # instead of exposing a backend-specific closed form here.
+    values['Aphi'] = sp.Symbol('Aphsol2')
     return values
