@@ -401,9 +401,10 @@ disagreements, and 354 oracle-missing bindings. Its warm run took 0.66
 seconds at 337 MiB RSS. The v69 audit on 2026-08-03 reports 3,863
 agreements, 465 declared differences, 7 unsupported outcomes, 76 timeouts, 61
 errors, 208 oracle disagreements, and 349 oracle-missing bindings across 4,888
-bindings. The v74 cold one-worker pass took 1:10.89 at a 1.61 GiB peak RSS;
-its warm compact-cache pass reused 378 native, 376 SymPy, and 255 Mathics rows
-in 0.90 seconds at 492 MiB RSS. The v74 cycle adds named-derivative SymPy
+bindings. The v75 cache-preserving refresh took 6.10 seconds at about 491 MiB
+RSS; its warm compact-cache pass reused 378 native, 376 SymPy, and 255 Mathics
+rows in 0.81 seconds at about 491 MiB RSS. The preceding v74 cold one-worker
+pass took 1:10.89 at a 1.61 GiB peak RSS. The v75 cycle adds named-derivative SymPy
 lowering, two joined-plot recoveries, and bounded source-to-Fortran `Do`
 lowering; the v71 cycle adds bounded `Do` assignment loops and six
 source-faithful `math10y` companion recoveries. The v70 cycle adds exact
@@ -465,8 +466,8 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
 the complete Python companion inventory, and the native Fortran backend are in
-place. The v74 audit on 2026-08-03 produced 3,864 agreements, 472 declared
-differences, 7 unsupported outcomes, 76 timeouts, 61 errors, 205 oracle
+place. The v75 audit on 2026-08-03 produced 3,864 agreements, 474 declared
+differences, 7 unsupported outcomes, 76 timeouts, 61 errors, 203 oracle
 disagreements, and 340 oracle-missing bindings across 4,884 bindings. Mathics3
 10.0.1 is installed with UV. The independent regression suites cover the v70
 through v74 changes. Translation quality and the remaining backend parity work
