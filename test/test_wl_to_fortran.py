@@ -9,6 +9,7 @@ import pytest
 
 from fortsym_bench.wl_to_fortran import (
     normalize_assignment_stream,
+    translate_bounded_for,
     translate_wolfram_to_fortran,
 )
 
@@ -21,6 +22,53 @@ def test_normalization_removes_only_top_level_null_fragments() -> None:
         'b = "Null, still text"\n'
         'c = Null\n'
     )
+
+
+@pytest.mark.skipif(shutil.which("gfortran") is None, reason="gfortran is required")
+def test_bounded_for_generates_and_runs_against_independent_oracle(
+    tmp_path: Path,
+) -> None:
+    generated = translate_bounded_for(
+        "Null, For[i = 1, i <= 4, i++, result = x + 2*i], Null"
+    )
+    generated_path = tmp_path / "generated.f90"
+    driver_path = tmp_path / "driver.f90"
+    executable = tmp_path / "driver"
+    generated_path.write_text(generated)
+    driver_path.write_text(
+        """program independent_bounded_for_oracle
+  use, intrinsic :: iso_fortran_env, only: real64
+  implicit none
+  real(real64) :: x, result
+  x = 2.5_real64
+  call fortsym_generated_assignment(x, result)
+  if (abs(result - 10.5_real64) > 1.0e-14_real64) error stop 1
+  print *, "PASS independent bounded For oracle"
+end program independent_bounded_for_oracle
+"""
+    )
+
+    compile = subprocess.run(
+        [
+            "gfortran",
+            "-std=f2018",
+            "-Wall",
+            "-Werror",
+            "-o",
+            str(executable),
+            str(generated_path),
+            str(driver_path),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert compile.returncode == 0, compile.stderr
+    run = subprocess.run(
+        [str(executable)], capture_output=True, text=True, check=False
+    )
+    assert run.returncode == 0, run.stderr
+    assert "PASS independent bounded For oracle" in run.stdout
 
 
 @pytest.mark.skipif(shutil.which("gfortran") is None, reason="gfortran is required")
