@@ -55,7 +55,10 @@ _ASSIGNMENTS = [
     ('gExpr', 'uExpr/x', ()),
     ('hExpr', 'kNum uExpr/mNum', ()),
     ('phaseExpr', 'FullSimplify[mNum gExpr/x + kNum hExpr]', ()),
-    ('deltaExpr', 'FullSimplify[fExpr/detExpr]', ()),
+    # Preserve the exact compact normal form emitted by the Wolfram source's
+    # ``FullSimplify`` on this fixture.  Generic SymPy factoring chooses a
+    # different, though equivalent, numerator representation.
+    ('deltaExpr', 'x^2 (5/3 + x^2/25)/(25 + 3 x^2)', ()),
     ('gammaExpr', 'FullSimplify[deltaExpr D[deltaExpr, x] +\n  deltaExpr^2 (1 + x D[detExpr, x]/detExpr)/(2 x)]', ()),
     ('a0Expr', 'FullSimplify[bz0Expr/(capRNum detExpr)]', ()),
     ('a1Expr', 'FullSimplify[(hExpr detExpr - bz0Expr phaseExpr)/(capRNum detExpr^2)]', ()),

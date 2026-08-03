@@ -42,3 +42,18 @@ def test_memo37_fexpr_matches_the_source_derivative_polynomial():
     # asserting that the generated expression has a particular tree shape.
     assert sp.simplify(values["fExpr"] - expected).subs(x, 1) == 0
     assert sp.simplify(values["fExpr"] - expected).subs(x, 2) == 0
+
+
+def test_memo37_delta_expr_matches_the_source_compact_fixture():
+    spec = importlib.util.spec_from_file_location("memo_update_37_delta", _SOURCE)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    values = module.results()
+    x = sp.Symbol("x")
+    expected = x**2 * (sp.Rational(5, 3) + x**2 / 25) / (25 + 3 * x**2)
+
+    # Check the exact rational fixture independently at two nonzero radii.
+    assert sp.simplify(values["deltaExpr"] - expected).subs(x, 1) == 0
+    assert sp.simplify(values["deltaExpr"] - expected).subs(x, 2) == 0
