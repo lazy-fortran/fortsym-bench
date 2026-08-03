@@ -118,6 +118,27 @@ def results():
         _ASSIGNMENTS, 'corpus/proj-cpp-derivation/large_step_check.wl'
     )
 
+    # The source samples the symbolic Hessian explicitly with ``N[..., 30]``.
+    # Keep ``qc`` symbolic (it is intentionally not in the source replacement
+    # list), but perform the six state substitutions and precision conversion
+    # here rather than relying on the generic indexed-list lowering.  This
+    # preserves the source's sampled polynomial in the cyclotron parameter.
+    r, th, ph, p1, p2, p3 = sp.symbols("r th ph p1 p2 p3")
+    sample = {
+        r: sp.Rational(1, 2),
+        th: sp.Rational(7, 10),
+        ph: sp.Rational(1, 5),
+        p1: sp.Rational(3, 100),
+        p2: sp.Rational(1, 4),
+        p3: -sp.Rational(2, 5),
+    }
+    values["SqcAt"] = sp.Tuple(
+        *(
+            sp.Tuple(*(sp.N(entry.subs(sample), 30) for entry in row))
+            for row in values["SqcSym"]
+        )
+    )
+
     # The source constructs the midpoint series by repeatedly substituting
     # the previous coefficients into
     #   Y = y0 + dt F((y0 + Y)/2).
