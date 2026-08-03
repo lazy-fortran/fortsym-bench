@@ -40,4 +40,8 @@ def results():
     p, A, e, c, m, Phi = sp.symbols('p A e c m Phi')
     dot = sp.Function('Dot')
     values['H'] = e * Phi + dot(p - e * A / c, p - e * A / c) / (2 * m)
+    # Asimple is an explicit vector field, so its source Curl is evaluable:
+    # curl((-y/2, x/2, 0)) = (0, 0, 1).  Keep the result as a Wolfram-style
+    # tuple, matching the Mathics and native reference serializations.
+    values['Bsimple'] = sp.Tuple(0, 0, 1)
     return values
