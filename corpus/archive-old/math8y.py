@@ -145,20 +145,37 @@ _ASSIGNMENTS = [
     ('pso', 'pia . mb', ()),
 ]
 
-def _recovered_minors2():
-    """Evaluate the source's ``Minors[Array[a, {3, 4}], 2]`` binding."""
+def _recovered_minors(order):
+    """Evaluate the source's ``Minors[Array[a, {3, 4}], order]`` binding."""
     subscript = sp.Function('Subscript')
     matrix = [[subscript(sp.Symbol('a'), i, j) for j in range(1, 5)]
               for i in range(1, 4)]
     return tuple(
         tuple(sp.det(sp.Matrix([[matrix[i][j] for j in cols]
                                 for i in rows]))
-              for cols in itertools.combinations(range(4), 2))
-        for rows in itertools.combinations(range(3), 2)
+              for cols in itertools.combinations(range(4), order))
+        for rows in itertools.combinations(range(3), order)
     )
 
 
 def results():
     values = evaluate_assignments(_ASSIGNMENTS, 'corpus/archive-old/math8y.wl')
-    values['mi2'] = _recovered_minors2()
+    values['mi2'] = _recovered_minors(2)
+    values['mi3'] = _recovered_minors(3)
+    values['mi1'] = sp.Function('MatrixForm')(_recovered_minors(1))
+
+    # The final source block replaces the first row of A before taking its
+    # null space.  The generic assignment stream cannot represent that part
+    # assignment, so restore the final matrix and its deterministic basis.
+    matrix = sp.Matrix([
+        [1, 2, 3, 4],
+        [2, 3, 0, -5],
+        [2, -1, 1, 1],
+        [-2, 2, 0, -5],
+    ])
+    matrix[0, :] = matrix[1, :]
+    values['G'] = sp.Tuple(*(sp.Tuple(*row) for row in matrix.tolist()))
+    values['v'] = sp.Tuple(*(
+        sp.Tuple(*vector) for vector in matrix.nullspace()
+    ))
     return values
