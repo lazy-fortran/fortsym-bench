@@ -63,3 +63,20 @@ def test_bounded_vector_products_contract_and_unbounded_products_stay_opaque():
     expected = dot(dot(vector, sp.Symbol('schurPhysical')), vector)
     assert values['lagPhysicalRed'] == expected
     assert values['lagTP'] == expected
+
+
+def test_source_check_summary_preserves_non_plotting_wolfram_counts():
+    path = (
+        Path(__file__).parents[1]
+        / 'corpus/proj-gvec-stability/cylinder_compressional_spectrum.py'
+    )
+    spec = importlib.util.spec_from_file_location('cylinder_spectrum_summary', path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+
+    values = module.results()
+
+    # Independent behavioral oracle: the source has 17 deterministic checks;
+    # six pass and eleven fail under its exact Wolfram evaluation.
+    assert (values['pass'], values['fail']) == (sp.Integer(6), sp.Integer(11))
