@@ -193,4 +193,10 @@ def results():
         )
         for k in range(1, 5)
     ))
+
+    # ``Plot`` has HoldAll semantics and localizes its iterator.  The source
+    # assignment therefore retains the local ``t`` in both the curve and the
+    # range, despite the earlier global assignment ``t = (-8)^(1/3)``.
+    t = sp.Symbol('t')
+    values['s'] = plot(sp.sin(t), sp.Tuple(t, 0, 2 * sp.pi))
     return values
