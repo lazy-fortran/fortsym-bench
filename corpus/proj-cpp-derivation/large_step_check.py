@@ -143,12 +143,71 @@ def results():
         p2: sp.Rational(1, 4),
         p3: -sp.Rational(2, 5),
     }
+    # Rebuild the Hessian and its block projections from the source's fixed
+    # six-variable list.  This keeps the companion independent of the generic
+    # lowering of Table/Part and makes every residual block a real source
+    # value, rather than a placeholder produced by an unsupported index.
+    hessian = sp.hessian(values["Hqc"], (r, th, ph, p1, p2, p3))
+    values["SqcSym"] = sp.Tuple(
+        *(sp.Tuple(*(hessian[i, j] for j in range(6))) for i in range(6))
+    )
     values["SqcAt"] = sp.Tuple(
         *(
             sp.Tuple(*(sp.N(entry.subs(sample), 30) for entry in row))
             for row in values["SqcSym"]
         )
     )
+    values["qqB"] = sp.Tuple(*(sp.Tuple(*row[:3]) for row in values["SqcAt"][:3]))
+    values["qpB"] = sp.Tuple(*(sp.Tuple(*row[3:]) for row in values["SqcAt"][:3]))
+    values["ppB"] = sp.Tuple(*(sp.Tuple(*row[3:]) for row in values["SqcAt"][3:]))
+
+    # The source evaluates hessFull at each eps after sampling the state, so
+    # retain the sampled polynomial in qc and only then substitute qc=1/eps.
+    qc_symbol = sp.Symbol("qc")
+    full_hessians = []
+    for eps_value in values["epsList"]:
+        rows = [
+            sp.Tuple(*(sp.N(entry.subs(qc_symbol, 1 / eps_value), 30)
+                       for entry in row))
+            for row in values["SqcAt"]
+        ]
+        full_hessians.append(sp.Tuple(*rows))
+    values["SfullList"] = sp.Tuple(*full_hessians)
+
+    # Recover the reduced geometry directly from the source's coordinate
+    # formulas.  Matrix multiplication and the three fixed curl components
+    # are independent of the generic indexed-list lowering used above.
+    eps, vpar = sp.symbols("eps vpar")
+    Rr = 3 + r * sp.cos(th)
+    metric = sp.diag(1, r**2, Rr**2)
+    sqrt_metric = sp.sqrt(metric.det())
+    a_cov = sp.Tuple(0, r**2 / 2 - r**3 * sp.cos(th) / 9,
+                     -(r**2 / 2 - r**4 / 4))
+    b_ctr = sp.Tuple(*(entry / sqrt_metric for entry in (
+        sp.diff(a_cov[2], th), -sp.diff(a_cov[2], r), sp.diff(a_cov[1], r)
+    )))
+    b_cov = sp.Tuple(*(entry for entry in metric * sp.Matrix(b_ctr)))
+    b_mag = sp.sqrt(sp.simplify((sp.Matrix(b_ctr).T * metric * sp.Matrix(b_ctr))[0]))
+    h_cov = sp.Tuple(*(entry / b_mag for entry in b_cov))
+    h_ctr = sp.Tuple(*(entry / b_mag for entry in b_ctr))
+    grad_b = sp.Tuple(sp.diff(b_mag, r), sp.diff(b_mag, th), 0)
+    kappa = eps * vpar
+    a_star = sp.Tuple(*(a_cov[i] + kappa * h_cov[i] for i in range(3)))
+    b_star = sp.Tuple(*(entry / sqrt_metric for entry in (
+        sp.diff(a_star[2], th), -sp.diff(a_star[2], r), sp.diff(a_star[1], r)
+    )))
+    b_star_par = sp.expand(sum(h_cov[i] * b_star[i] for i in range(3)))
+    vpar_dot = -sp.Rational(1, 10) * sum(h_ctr[i] * grad_b[i] for i in range(3))
+    values.update({
+        "BcovS": sp.Tuple(*(entry for entry in metric * sp.Matrix(b_ctr))),
+        "BmagS": b_mag,
+        "hcovS": h_cov,
+        "hctrS": h_ctr,
+        "gradB": grad_b,
+        "Astar": a_star,
+        "BstarPar": b_star_par,
+        "vpardot": vpar_dot,
+    })
 
     # The source applies SingularValueList to five numeric 6x6 matrices.
     # The generic lowering leaves that bounded numeric operation opaque, so
