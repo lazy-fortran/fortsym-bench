@@ -78,3 +78,22 @@ def test_math10y_step_binding_matches_independent_numeric_oracle():
     assert step.subs({t: -1, a: 0}) == 0
     assert step.subs({t: 0, a: 0}) == 0
     assert step.subs({t: 1, a: 0}) == 1
+
+
+def test_math10y_ellipsoid_bindings_match_independent_numeric_oracles():
+    values = math10y.results()
+    a, b, c, x, phi = sp.symbols('a b c x phi')
+
+    # Integrating dz dy dx over the positive octant of an ellipsoid gives
+    # one eighth of 4*pi*a*b*c/3, independently of the Wolfram translation.
+    assert values['v'] == sp.pi * a * b * c / 6
+
+    sample = {a: 2, b: 3, c: 4, x: sp.Rational(1, 2), phi: sp.Rational(1, 3)}
+    expected_vvy = 4 * sp.sqrt(
+        1 - sp.Rational(1, 2) ** 2 / 2**2
+        - (1 - sp.Rational(1, 2) ** 2 / 2**2) * sp.sin(sp.Rational(1, 3)) ** 2
+    )
+    assert abs(values['vvy'].subs(sample).evalf() - expected_vvy.evalf()) < 1e-14
+    assert values['vy'].subs(sample) == (
+        sp.pi * 3 * 4 * (1 - sp.Rational(1, 2) ** 2 / 2**2) / 4
+    )

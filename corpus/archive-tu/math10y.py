@@ -239,6 +239,14 @@ def _recovered_bindings():
         "r": r,
         "rr": rr,
         "dy": dy,
+        # The ellipsoid-volume block is elementary once the nested bounds
+        # are evaluated.  Keep these as explicit recovered bindings rather
+        # than invoking SymPy's (potentially slow) Integrate path.
+        "vvy": c * sp.sqrt(
+            1 - x**2 / a**2 - (1 - x**2 / a**2) * sp.sin(phi) ** 2
+        ),
+        "vy": sp.pi * b * c * (1 - x**2 / a**2) / 4,
+        "v": sp.pi * a * b * c / 6,
         "gn": g331,
         "g11": sp.N(g331.subs({x: sp.Float("0.9"), y: sp.Float("0.7")}), 16),
         "g01": sp.N(g331.subs({x: sp.Float("0.2"), y: sp.Float("0.7")}), 16),
