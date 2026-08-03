@@ -16,3 +16,11 @@ _SPEC.loader.exec_module(_MODULE)
 def test_math15y_b_preserves_the_source_transpose_of_held_a():
     values = _MODULE.results()
     assert values['B'] == sp.Function('Transpose')(sp.Symbol('A'))
+
+
+def test_math15y_k_preserves_the_source_precision_sensitive_value():
+    values = _MODULE.results()
+    expected_k = sp.exp(-60).evalf(20)
+
+    assert values['k'] == expected_k
+    assert abs(float(values['k'])) < 1e-20

@@ -11,6 +11,7 @@ import sympy as sp
 # NOT TRANSLATED: 4 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
     ('B', 'Transpose[A]', ()),
+    ('k', 'N[Exp[-60], 20]', ()),
 ]
 
 def results():
