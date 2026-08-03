@@ -11,6 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 import re
 import subprocess
+import sys
 import tempfile
 from typing import Sequence
 
@@ -38,6 +39,7 @@ _BOUNDED_DO = re.compile(
     re.DOTALL | re.VERBOSE,
 )
 MAX_BOUNDED_DO_ITERATIONS = 128
+MAX_ADAPTER_SOURCE_BYTES = 1_048_576
 
 
 def normalize_assignment_stream(source: str) -> str:
@@ -135,6 +137,47 @@ def translate_wolfram_to_fortran(
         return output_path.read_text()
 
 
+def translate_wolfram_file_to_fortran(
+    input_path: Path,
+    output_path: Path,
+    translator: Sequence[str] = ("fortsym_wl_to_f90",),
+    max_source_bytes: int = MAX_ADAPTER_SOURCE_BYTES,
+) -> None:
+    """Translate one real source file through the bounded assignment adapter.
+
+    The inventory calls this explicit file-level adapter instead of passing a
+    corpus path directly to the native executable.  The size check happens
+    before reading the source, so an accidentally huge notebook cannot cause
+    an unbounded allocation in the inventory worker.
+    """
+
+    if max_source_bytes <= 0:
+        raise ValueError("max_source_bytes must be positive")
+    try:
+        source_bytes = input_path.stat().st_size
+    except OSError as error:
+        raise WolframFortranTranslationError(
+            f"cannot inspect input source: {error}"
+        ) from error
+    if source_bytes > max_source_bytes:
+        raise WolframFortranTranslationError(
+            f"source exceeds the {max_source_bytes}-byte adapter limit"
+        )
+    try:
+        source = input_path.read_text()
+    except (OSError, UnicodeError) as error:
+        raise WolframFortranTranslationError(
+            f"cannot read input source: {error}"
+        ) from error
+    generated = translate_wolfram_to_fortran(source, translator)
+    try:
+        output_path.write_text(generated)
+    except OSError as error:
+        raise WolframFortranTranslationError(
+            f"cannot write output source: {error}"
+        ) from error
+
+
 def translate_bounded_for(
     source: str,
     translator: Sequence[str] = ("fortsym_wl_to_f90",),
@@ -203,3 +246,44 @@ def translate_bounded_do(
             f"bounded Do exceeds the {max_iterations}-iteration limit"
         )
     return translate_wolfram_to_fortran(normalized, translator)
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI for the explicit assignment-stream adapter used by inventory."""
+
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Normalize a bounded Wolfram assignment stream and emit Fortran"
+    )
+    parser.add_argument(
+        "--mode",
+        choices=("assignment-adapter",),
+        default="assignment-adapter",
+        help="explicit safe adapter mode (native command mode is separate)",
+    )
+    parser.add_argument(
+        "--max-source-bytes",
+        type=int,
+        default=MAX_ADAPTER_SOURCE_BYTES,
+    )
+    parser.add_argument("input", type=Path)
+    parser.add_argument("output", type=Path)
+    args = parser.parse_args(argv)
+    if args.max_source_bytes <= 0:
+        parser.error("--max-source-bytes must be positive")
+
+    try:
+        translate_wolfram_file_to_fortran(
+            args.input,
+            args.output,
+            max_source_bytes=args.max_source_bytes,
+        )
+    except (ValueError, WolframFortranTranslationError) as error:
+        print(f"translation refused: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
