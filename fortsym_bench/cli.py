@@ -173,6 +173,7 @@ def main(argv: list[str] | None = None) -> int:
         cache.flush()
         comparison_cache.flush()
 
+    report["summary"] = build_summary(report)
     if args.report:
         args.report.write_text(json.dumps(report, indent=1))
     return summarise(report)
@@ -488,8 +489,8 @@ def _cross_check(
     return disagreements
 
 
-def summarise(report: dict) -> int:
-    """Tally outcomes, and report bindings as well as scripts.
+def build_summary(report: dict) -> dict:
+    """Build a stable machine-readable coverage summary.
 
     Script-level counts alone hide progress: a script that emits twenty
     bindings and refuses one is indistinguishable from one that emits one and
@@ -500,15 +501,36 @@ def summarise(report: dict) -> int:
     tally = {AGREE: 0, DIFFER: 0, UNSUPPORTED: 0, UNTRANSLATED: 0,
              UNAVAILABLE: 0, TIMEOUT: 0, ERROR: 0, ORACLE_DISAGREEMENT: 0,
              ORACLE_MISSING: 0}
+    per_backend = {}
+
+    def backend_stats(name: str) -> dict:
+        return per_backend.setdefault(
+            name,
+            {outcome: 0 for outcome in tally if outcome != ORACLE_DISAGREEMENT}
+            | {"bindings": 0},
+        )
+
     for script in report["scripts"].values():
-        for results in script["outcomes"].values():
+        for name, results in script["outcomes"].items():
+            stats = backend_stats(name)
             for entry in results.values():
                 tally[entry["outcome"]] = tally.get(entry["outcome"], 0) + 1
-        for entry in script["failures"].values():
+                stats[entry["outcome"]] = stats.get(entry["outcome"], 0) + 1
+                stats["bindings"] += 1
+        for name, entry in script["failures"].items():
             tally[entry["outcome"]] = tally.get(entry["outcome"], 0) + 1
-        # Native outcomes carry oracle disagreement per binding. Keep the
-        # separate ``oracles`` mapping as diagnostic detail without counting
-        # those findings a second time.
+            stats = backend_stats(name)
+            stats[entry["outcome"]] = stats.get(entry["outcome"], 0) + 1
+        # Native outcomes carry oracle disagreement per binding. Count only
+        # diagnostic disagreements that were not already represented there.
+        native_disagreements = sum(
+            entry["outcome"] == ORACLE_DISAGREEMENT
+            for results in script["outcomes"].values()
+            for entry in results.values()
+        )
+        tally[ORACLE_DISAGREEMENT] += max(
+            0, len(script["oracles"]) - native_disagreements
+        )
 
     bindings = sum(
         len(results)
@@ -520,16 +542,30 @@ def summarise(report: dict) -> int:
         1 for s in report["scripts"].values()
         if not s["failures"] or any(s["outcomes"].values())
     )
+    return {
+        "outcomes": tally,
+        "per_backend": per_backend,
+        "scripts": {"produced": produced, "total": scripts},
+        "bindings": bindings,
+        "exit_code": 1 if tally[DIFFER] or tally[ERROR] else 0,
+    }
+
+
+def summarise(report: dict) -> int:
+    """Print the stable summary and return the benchmark exit code."""
+    summary = report.get("summary") or build_summary(report)
+    tally = summary["outcomes"]
 
     for name, count in tally.items():
         print(f"{name:22s} {count}")
-    print(f"{'scripts':22s} {produced}/{scripts}")
-    print(f"{'bindings':22s} {bindings}")
+    print(f"{'scripts':22s} {summary['scripts']['produced']}/"
+          f"{summary['scripts']['total']}")
+    print(f"{'bindings':22s} {summary['bindings']}")
 
     # Only a wrong answer is a failure. An honest refusal is the expected state
     # for most of this corpus today, and counting it as failure would create
     # pressure to guess instead.
-    return 1 if tally[DIFFER] or tally[ERROR] else 0
+    return summary["exit_code"]
 
 
 if __name__ == "__main__":
