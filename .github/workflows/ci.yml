@@ -1,0 +1,44 @@
+name: bench
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: harness tests and oracle smoke run
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install the harness and open-source oracles
+        run: python -m pip install '.[dev,mathics]'
+
+      - name: Test the harness
+        run: python -m pytest -q
+
+      - name: Run the four-binding oracle smoke fixture
+        run: |
+          mkdir -p artifacts
+          fortsym-bench run corpus/mhd1d \
+            --backend sympy mathics \
+            --timeout 60 \
+            --report artifacts/example.json
+
+      - name: Publish the machine-readable report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: corpus-smoke-report
+          path: artifacts/example.json

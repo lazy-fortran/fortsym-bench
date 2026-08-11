@@ -15,6 +15,9 @@ dependencies = ["sympy>=1.12"]
 dev = ["pytest>=8"]
 mathics = ["Mathics3>=6"]
 
+[tool.pytest.ini_options]
+testpaths = ["test", "tests"]
+
 [project.scripts]
 fortsym-bench = "fortsym_bench.cli:main"
 
