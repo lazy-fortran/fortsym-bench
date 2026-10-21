@@ -571,6 +571,15 @@ def _certified_canonical_equal(a, b):
 def _exact_zero_witness(a, b, method):
     """Recheck an exact identity, without force rewrites or numeric tolerance."""
     import sympy as s
+    if method.startswith('exact-binary-'):
+        # Rational(Float) is the exact represented binary value. This grants
+        # no tolerance, decimal rounding, or cross-precision approximation.
+        a = a.xreplace({f: s.Rational(f) for f in a.atoms(s.Float)
+                        if f.is_finite})
+        b = b.xreplace({f: s.Rational(f) for f in b.atoms(s.Float)
+                        if f.is_finite})
+        a, b = _normalize_subs(a), _normalize_subs(b)
+        method = method.removeprefix('exact-binary-')
     if a == b:
         return True
     if isinstance(a, s.Tuple) or isinstance(b, s.Tuple):

@@ -34,3 +34,15 @@ def test_registration_without_a_zero_witness_never_passes(monkeypatch):
     key = tuple(sorted((s.srepr(a), s.srepr(b))))
     monkeypatch.setattr(comparator, '_exact_cases', lambda: {key: 'symbolic-zero'})
     assert compare(a, b, 'structural').outcome == DIFFER
+
+
+def test_exact_binary_witness_retains_every_represented_bit():
+    from fortsym_bench.compare import _exact_zero_witness
+
+    assert _exact_zero_witness(s.Integer(2), s.Float(2),
+                               'exact-binary-structural')
+    # One binary64 ulp is still a counterexample, however small it is.
+    assert not _exact_zero_witness(s.Integer(1), s.Float(1 + 2**-52),
+                                   'exact-binary-symbolic-zero')
+    assert not _exact_zero_witness(s.Rational(1, 10), s.Float(0.1),
+                                   'exact-binary-symbolic-zero')
