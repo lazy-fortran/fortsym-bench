@@ -46,3 +46,13 @@ def test_exact_binary_witness_retains_every_represented_bit():
                                    'exact-binary-symbolic-zero')
     assert not _exact_zero_witness(s.Rational(1, 10), s.Float(0.1),
                                    'exact-binary-symbolic-zero')
+
+
+def test_equation_certificate_checks_both_sides_exactly():
+    from fortsym_bench.compare import _exact_zero_witness
+    x, y = s.symbols('x y')
+    a = s.Eq(s.Tuple((x + 1)**2, x), s.Tuple(y, 0))
+    b = s.Eq(s.Tuple(x*x + 2*x + 1, x), s.Tuple(y, 0))
+    bad = s.Eq(b.lhs, s.Tuple(y, 1))
+    assert _exact_zero_witness(a, b, 'symbolic-zero')
+    assert not _exact_zero_witness(a, bad, 'symbolic-zero')

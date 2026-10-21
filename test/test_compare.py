@@ -456,3 +456,11 @@ def test_oversized_nonidentical_result_is_bounded():
 
     assert result.outcome == ERROR
     assert "too large to parse" in result.detail
+
+
+def test_numeric_powers_preserve_decimal_exponents_and_identifier_suffixes():
+    from fortsym_bench.compare import parse
+    assert parse('10.0^0.0', 'inputform') == sp.Float(1)
+    assert parse('10.0^0.5', 'inputform') == sp.Pow(sp.Float(10), sp.Float('.5'))
+    assert parse('Mu0^2', 'inputform') == sp.Symbol('Mu0')**2
+    assert parse('alpha10^-2', 'inputform') == sp.Symbol('alpha10')**-2

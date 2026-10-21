@@ -6,7 +6,6 @@ their count is recorded in translation-manifest.json.
 """
 
 import hashlib
-import re
 
 import sympy as sp
 
@@ -35,7 +34,6 @@ _ASSIGNMENTS = [
 def _native_string_atom(literal):
     """Match the comparison atom emitted for a native Wolfram string."""
     digest = hashlib.sha256(f'"{literal}"'.encode('utf-8')).hexdigest()
-    digest = re.sub(r'([eE][+-]?)0+(\d+)', r'\1\2', digest)
     return sp.Symbol('fortsymString' + digest)
 
 

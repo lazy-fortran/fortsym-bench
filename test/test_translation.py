@@ -693,3 +693,33 @@ def test_generated_numeric_assignments_declare_numeric_comparison_policy():
     assert "COMPARE = {" in module
     assert "'value': 'numeric'" in module
     assert "'exact'" not in module.split("COMPARE = {", 1)[1].split("}", 1)[0]
+
+
+def test_decimal_numeric_power_is_not_split_at_its_integer_prefix():
+    from fortsym_bench.wl_to_sympy import evaluate_assignments
+    values = evaluate_assignments([('a', '10.0^0.0', ()),
+                                   ('b', '10.0^0.5', ()),
+                                   ('c', 'Mu0^2', ())], 'decimal-power-fixture')
+    import sympy as s
+    assert values['a'] == s.Float(1)
+    assert values['b'] == s.Pow(s.Float(10), s.Float('.5'))
+    assert values['c'] == s.Symbol('Mu0')**2
+
+
+def test_part_all_keeps_axes_and_list_selections():
+    from fortsym_bench.wl_to_sympy import evaluate_assignments, extract_assignments
+    import sympy as s
+    values = evaluate_assignments(extract_assignments(
+        'm={{1,2,3},{4,5,6}}; column=m[[All,2]]; '
+        'row=m[[2,All]]; reordered=m[[{2,1},1]];')[0])
+    assert values['column'] == s.Tuple(2, 5)
+    assert values['row'] == s.Tuple(4, 5, 6)
+    assert values['reordered'] == s.Tuple(4, 1)
+
+
+def test_function_definition_cannot_replace_imaginary_unit():
+    from fortsym_bench.wl_to_sympy import evaluate_assignments, extract_assignments
+    import sympy as s
+    values = evaluate_assignments(extract_assignments('I[x_]:=1; q=I^2; z=I;')[0])
+    assert values['q'] == -1
+    assert values['z'] == s.I

@@ -38,7 +38,7 @@ def test_inventory_reports_acceptance_boundary_without_writing_corpus(tmp_path: 
         "timeout": 0,
         "unavailable": 0,
         "error": 0,
-    }
+    }, report["sources"]
     assert report["sources"][2]["source"] == "refused.wl"
     assert report["sources"][2]["detail"] == "plot is unsupported"
     assert "semantic parity are not assessed" in report["acceptance_boundary"]

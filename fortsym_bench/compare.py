@@ -185,7 +185,7 @@ def _normalise_inputform(text: str) -> tuple[str, dict[str, str]]:
     # ``4 Pi^(10^-7)``.  Parenthesize only numeric-base integer powers; this
     # preserves ordinary symbol products and function/application syntax.
     text = re.sub(
-        r"(?<![A-Za-z0-9_$.)])((?:\d+(?:\.\d*)?|\.\d+))\s*\^\s*([+-]?\d+)",
+        r"(?<![A-Za-z0-9_$.)])((?:\d+(?:\.\d*)?|\.\d+))\s*\^\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+))(?![A-Za-z0-9_$.])",
         r"(\1^\2)",
         text,
     )
@@ -582,6 +582,10 @@ def _exact_zero_witness(a, b, method):
         method = method.removeprefix('exact-binary-')
     if a == b:
         return True
+    if isinstance(a, s.Equality) or isinstance(b, s.Equality):
+        return (isinstance(a, s.Equality) and isinstance(b, s.Equality)
+                and all(_exact_zero_witness(x, y, method)
+                        for x, y in zip(a.args, b.args)))
     if isinstance(a, s.Tuple) or isinstance(b, s.Tuple):
         return (isinstance(a, s.Tuple) and isinstance(b, s.Tuple)
                 and len(a) == len(b)
@@ -610,6 +614,9 @@ def _exact_zero_witness(a, b, method):
         return True
     if method == 'rational-zero':
         return False
+    if method == 'exponent-zero':
+        return s.cancel(s.powsimp(s.expand(s.expand_power_exp(delta)),
+                                  combine='exp')) == 0
     if s.trigsimp(s.expand_trig(delta)) == 0:
         return True
     if method == 'trigonometric-zero':
