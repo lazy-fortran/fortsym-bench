@@ -40,3 +40,10 @@ def test_refinement_difference_ratio_matches_independent_power_law_oracle():
         )
         - fine / coarse
     ) == 0
+
+
+def test_string_atom_retains_every_digest_digit():
+    import hashlib
+    value = _module()._native_string_atom('pair_errors')
+    expected = hashlib.sha256(b'"pair_errors"').hexdigest()
+    assert value == sp.Symbol('fortsymString' + expected)

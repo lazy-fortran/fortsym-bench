@@ -64,13 +64,11 @@ def results():
         -u12 * r_general[0] / (u11 * u22) + r_general[1] / u22,
     )
 
-    # Native fortsym-wl retains ``rayleigh`` here because the preceding
-    # matrix Dot is outside its simplification boundary.  Keep that
-    # source-visible form rather than silently replacing it with a guessed
-    # closed form.
-    lambda1, lambda2, theta, rayleigh = sp.symbols(
-        'lambda1 lambda2 theta rayleigh'
-    )
+    # Follow the source's normalized trial vector and diagonal operator.
+    # The oracle must retain the actual Rayleigh quotient independently of
+    # how a candidate backend evaluates the preceding matrix operations.
+    lambda1, lambda2, theta = sp.symbols('lambda1 lambda2 theta')
+    rayleigh = lambda1 * sp.cos(theta)**2 + lambda2 * sp.sin(theta)**2
     values['residualNorm'] = sp.sqrt(
         (lambda1 * sp.cos(theta) - rayleigh * sp.cos(theta)) ** 2
         + (lambda2 * sp.sin(theta) - rayleigh * sp.sin(theta)) ** 2
