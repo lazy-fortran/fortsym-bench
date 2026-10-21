@@ -36,9 +36,8 @@ def test_source_residual_bindings_are_preserved_independently():
         + expected_general[1] / u22,
     )
 
-    lambda1, lambda2, theta, rayleigh = sp.symbols(
-        'lambda1 lambda2 theta rayleigh'
-    )
+    lambda1, lambda2, theta = sp.symbols('lambda1 lambda2 theta')
+    rayleigh = lambda1 * sp.cos(theta)**2 + lambda2 * sp.sin(theta)**2
     assert values['residualNorm'] == sp.sqrt(
         (lambda1 * sp.cos(theta) - rayleigh * sp.cos(theta)) ** 2
         + (lambda2 * sp.sin(theta) - rayleigh * sp.sin(theta)) ** 2

@@ -260,6 +260,8 @@ def evaluate_assignments(
                     assignment.function, assignment.order
                 )] = evaluate_expression(assignment.rhs, environment)
                 continue
+            if assignment.name in {"I", "Pi", "E"}:
+                raise NotImplementedError("assignment to a protected Wolfram constant")
             if assignment.parameters:
                 if assignment.delayed:
                     environment[assignment.name] = WolframFunction(
@@ -2320,10 +2322,14 @@ def _replace_all(arguments: tuple[object, ...]):
 def _part(arguments: tuple[object, ...]):
     if len(arguments) < 2:
         raise NotImplementedError("Part needs an index")
-    value = arguments[0]
-    for index in arguments[1:]:
-        value = _select_part(value, index)
-    return value
+    value, index, *remaining = arguments
+    selected = _select_part(value, index)
+    if not remaining:
+        return selected
+    if _is_all(index) or _is_sequence(index):
+        return sp.Tuple(*(_part((item, *remaining))
+                          for item in _sequence_items(selected)))
+    return _part((selected, *remaining))
 
 
 def _piecewise(arguments: tuple[object, ...]):
@@ -2693,7 +2699,7 @@ def _normalise_numeric_powers(text: str) -> str:
     power = re.compile(
         r"(?<![A-Za-z0-9_.$])"
         r"(?:\d+(?:\.\d*)?|\.\d+)"
-        r"\s*\^\s*[+-]?\d+"
+        r"\s*\^\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?![A-Za-z0-9_$.])"
     )
     pieces: list[str] = []
     start = 0

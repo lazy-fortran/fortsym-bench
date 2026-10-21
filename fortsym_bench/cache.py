@@ -33,7 +33,8 @@ CACHE_VERSION = 1
 # Version 21 preserves collision-safe string atoms while normalising numeric
 # exponent spelling around them.
 # Version 22 rechecks pinned, exact per-case canonicalization witnesses.
-COMPARISON_CACHE_VERSION = 22
+# Version 23 preserves identifier suffixes and complete decimal powers.
+COMPARISON_CACHE_VERSION = 23
 
 
 @dataclass(frozen=True)
