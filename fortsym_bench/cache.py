@@ -32,7 +32,8 @@ CACHE_VERSION = 1
 # Version 20 bounds algebraic equivalence before SymPy polynomial simplify.
 # Version 21 preserves collision-safe string atoms while normalising numeric
 # exponent spelling around them.
-COMPARISON_CACHE_VERSION = 21
+# Version 22 rechecks pinned, exact per-case canonicalization witnesses.
+COMPARISON_CACHE_VERSION = 22
 
 
 @dataclass(frozen=True)

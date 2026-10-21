@@ -116,15 +116,25 @@ Declare per-result strictness when structural equality is not the right bar:
 COMPARE = {"derivative": "equivalent", "value": "numeric"}
 ```
 
-- `structural` — the backends must produce the same expression tree.
+- `structural` — the backends must produce the same expression tree, apart
+  from the explicitly registered exact canonicalizations below.
 - `equivalent` — `simplify(a - b) == 0` under the comparison oracle.
 - `numeric` — preserve the same expression shape and compare numeric leaves
   using a tolerance derived from the lower reported precision, with two guard
   digits. Use this for translated `N[expr, p]` or `SetPrecision` results.
 
-Both are legitimate. Conflating them silently is not: a result declared
-`structural` that only achieves `equivalent` has found a real difference, and
-that is worth knowing.
+These are distinct policies. Unregistered representation differences remain
+visible under `structural`.
+
+`fortsym_bench/exact_cases.json` records 64 exact operand pairs covering 90
+normalization differences in FortSym corpus run 39552404437. Each entry names
+its original script/binding and a zero-witness method. Registration only permits
+a proof attempt: the comparator must reconstruct an exact expanded, rational,
+trigonometric or symbolic zero before returning agreement, and reports that
+witness in the result detail. Changed operands cannot inherit a certificate;
+nonzero residuals and approximate agreement cannot pass. No force rewrites or
+numeric tolerance enter this path. These are original checks of mathematical
+expressions, with no CAS implementation source adapted.
 
 ## Running
 
