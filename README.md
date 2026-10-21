@@ -629,14 +629,35 @@ and every derivation it emits is checked by Mathics and SymPy. See `LEGAL.md`
 
 ## Status
 
-Harness runs. Corpus ingestion, persistent raw-output and comparison caching,
-the complete Python companion inventory, and the native Fortran backend are in
-place. The v122 audit on 2026-08-03 produced 4,015 agreements, 400 declared
-differences, 7 unsupported outcomes, 75 timeouts, 59 errors, 2 unavailable
-oracle rows, 197 oracle disagreements, and 265 oracle-missing bindings across
-4,879 emitted bindings from 384 corpus sources. Mathics3 10.0.1 is installed
-with UV. The independent regression suites cover the v70 through v122 changes.
-Translation quality and
-the remaining backend parity work
-stay measured by the independent oracle report; the report is the source of
-truth for current counts.
+The controlled 2026-10-21 checkpoint uses fresh native output at FortSym
+307e2be20af1f0e931bcf42e87fc35bf0cdc3a73 and harness
+9d4bbd2734bfde32ca570bbc15b6a92bcf51d7e5, scored against the retained
+independent raw oracle outputs. Native execution completed in aCluster 21817108;
+controlled rescoring completed in 21817111. The native backend produced results
+for 377 of 384 scripts and 4597 binding comparisons:
+
+| Native comparison outcome | Count |
+|---|---:|
+| Agreement | 3693 |
+| Native/reference difference | 188 |
+| Independent oracles disagree | 535 |
+| Independent oracle missing | 180 |
+| Native timeout | 1 |
+
+Six scripts are unsupported and one is unavailable. No native execution error
+was recorded. The report exits nonzero: full parity remains unproved. The
+remaining native timeout is `mag_drift` under the unchanged 60-second limit;
+`large_step_check` also retains its separately diagnosed 20-second native
+operation cutoff and partial series output.
+
+A second score that refreshed Mathics outputs gave 3959 agreements, 192
+differences, 238 oracle disagreements and 207 missing-oracle comparisons.
+Mathics timeouts reduced independent coverage, so that agreement increase is
+not evidence of a native improvement. Use the controlled frozen-oracle cohort
+above for comparisons. The earlier v122 audit and cache-only scores elsewhere
+in this document are historical checkpoints with different coverage.
+
+Corpus ingestion, persistent raw-output/comparison caching, the Python
+companion inventory and the native Fortran backend are in place. The remaining
+translation, backend and independent-oracle gaps stay explicit; agreement
+alone does not establish mathematical correctness.
