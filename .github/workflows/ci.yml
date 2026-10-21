@@ -11,7 +11,11 @@ permissions:
 
 jobs:
   tests:
-    name: harness tests and oracle smoke run
+    name: harness tests shard ${{ matrix.shard }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -25,10 +29,14 @@ jobs:
       - name: Install the harness and open-source oracles
         run: python -m pip install '.[dev,mathics]'
 
+      - run: mkdir -p artifacts
+
       - name: Test the harness
-        run: python -m pytest -q
+        run: python tools/pytest_shard.py --shard ${{ matrix.shard }} --junitxml artifacts/tests-${{ matrix.shard }}.xml
+
 
       - name: Run the four-binding oracle smoke fixture
+        if: matrix.shard == 0
         run: |
           mkdir -p artifacts
           fortsym-bench run corpus/mhd1d \
@@ -40,5 +48,44 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: corpus-smoke-report
-          path: artifacts/example.json
+          name: harness-shard-${{ matrix.shard }}
+          path: artifacts/
+
+  native-translation:
+    name: native translation and compiled independent oracles
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: lazy-fortran/fortsym
+          ref: 01c3353125dfdc13a215da6fa16b5b5b49c564ca
+          path: native
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - name: Build the actual translator
+        working-directory: native
+        run: |
+          nix develop --command cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DFORTSYM_BUILD_TESTING=OFF
+          nix develop --command cmake --build build --target fortsym_wl_to_f90 -j
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install '.[dev,mathics]'
+      - name: Exercise generated Fortran with the native translator
+        run: |
+          mkdir -p artifacts
+          cd native
+          nix develop --command env PATH="$GITHUB_WORKSPACE/native/build/bin:$PATH" \
+            python "$GITHUB_WORKSPACE/tools/pytest_shard.py" --integration \
+              --junitxml "$GITHUB_WORKSPACE/artifacts/native.xml"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-translation-results
+          path: artifacts/
