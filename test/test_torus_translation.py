@@ -5,7 +5,7 @@ from pathlib import Path
 import sympy as sp
 
 
-_SOURCE = Path(__file__).parents[1] / "corpus" / "nc-stud-Bacc_FEM" / "torus.py"
+_SOURCE = Path(__file__).parents[1] / "corpus" / "nc-toroidal-fem" / "torus.py"
 _SPEC = importlib.util.spec_from_file_location("torus_translation", _SOURCE)
 _MODULE = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(_MODULE)

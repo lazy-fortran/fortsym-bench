@@ -8,7 +8,7 @@ from pathlib import Path
 def _results():
     path = (
         Path(__file__).parents[1]
-        / "corpus/nc-stud-Bacc_Rosa_Posch/derivations.py"
+        / "corpus/nc-rf-resonance/derivations.py"
     )
     spec = importlib.util.spec_from_file_location("bacc_derivations_v108", path)
     module = importlib.util.module_from_spec(spec)

@@ -78,7 +78,7 @@ def test_corpus_null_separators_generate_numerically_correct_fortran(
     source_path = (
         Path(__file__).parents[1]
         / "corpus"
-        / "nc-stud-Bacc_Verena_Eselbauer"
+        / "nc-grad-shafranov-polynomial"
         / "schreckliches_problem.wl"
     )
     source = source_path.read_text()

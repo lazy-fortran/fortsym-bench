@@ -23,7 +23,7 @@ def test_assignment_adapter_inventories_and_compiles_real_corpus_source(
     source = (
         repo
         / "corpus"
-        / "nc-stud-Bacc_Verena_Eselbauer"
+        / "nc-grad-shafranov-polynomial"
         / "schreckliches_problem.wl"
     )
     report_path = tmp_path / "inventory.json"
