@@ -142,7 +142,7 @@ def run_case(
         execution["inventory_sha256"] = _digest(inventory)
         execution["case_index"] = case_index
     _write(output / "identity.json", execution)
-    raw, timing, failures = {}, {}, {}
+    raw, timing, failures, coverage = {}, {}, {}, {}
     baseline = None
     retained_entries = {}
     if oracle_case is not None:
@@ -169,6 +169,8 @@ def run_case(
                 results = baseline["raw"][name]
                 raw[name] = results
                 timing[name] = {"cached": True, "fixed_reference": True}
+                if name in baseline.get("coverage", {}):
+                    coverage[name] = baseline["coverage"][name]
             elif name in baseline["failures"]:
                 failures[name] = baseline["failures"][name]
             else:
@@ -190,6 +192,8 @@ def run_case(
                 cache.put_failure(BACKENDS[name], script.with_suffix(BACKENDS[name].source), timeout, failure)
         else:
             raw[name] = results
+            if getattr(results, "coverage", None):
+                coverage[name] = results.coverage
             if name not in CACHEABLE_BACKENDS:
                 cache.put_result(BACKENDS[name], script.with_suffix(BACKENDS[name].source), timeout, results)
             timing[name] = {
@@ -197,8 +201,9 @@ def run_case(
                 "min": min(times), "n": len(times),
             }
         cache.flush()
-        _write(output / "raw.json", {"raw": raw, "timing": timing, "failures": failures})
-    payload = {"raw": raw, "timing": timing, "failures": failures}
+        _write(output / "raw.json", {"raw": raw, "timing": timing, "failures": failures,
+                                      "coverage": coverage})
+    payload = {"raw": raw, "timing": timing, "failures": failures, "coverage": coverage}
     _write(output / "raw.json", payload)
     cache.flush()
     cache_payload = (
@@ -226,6 +231,7 @@ def run_case(
                 for name, results in raw.items() if not BACKENDS[name].is_oracle
             },
             "failures": failures, "timing": timing, "oracles": {},
+            "coverage": coverage,
         }
         report["comparison_timeout"] = comparison_error is None
         if comparison_error:
@@ -353,7 +359,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "_score":
         payload = json.loads(args.raw.read_text())
-        _write(args.out, score_raw(payload["raw"], payload["timing"], payload["failures"]))
+        _write(args.out, score_raw(payload["raw"], payload["timing"], payload["failures"],
+                                   coverage=payload.get("coverage")))
         return 0
     if args.command == "merge":
         cache_output = args.out.with_name(args.out.stem + ".raw-cache.json")

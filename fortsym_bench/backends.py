@@ -47,7 +47,7 @@ BACKENDS = {
         # The assignment extractor and expression-layout normalisation are
         # part of the oracle contract, so invalidate old raw results when
         # either changes.
-        Backend("sympy", ".py", "srepr", is_oracle=True, cache_version=30),
+        Backend("sympy", ".py", "srepr", is_oracle=True, cache_version=31),
         Backend("fortsym-sympy", ".py", "srepr", cache_version=2),
         Backend("mathics", ".wl", "inputform", is_oracle=True,
                 command=("mathics", "-q", "--no-readline", "-c"),
@@ -57,7 +57,7 @@ BACKENDS = {
                 # parsed`` rows through the wrapper again.
                 cache_version=6),
         Backend("fortsym-wl", ".wl", "inputform", command=("fortsym_wl_run",),
-                cache_version=2),
+                cache_version=3),
     )
 }
 
@@ -75,6 +75,14 @@ class RunFailure(Exception):
         super().__init__(message)
         #: "unsupported", "error" or "timeout" — never silently "differ".
         self.kind = kind
+
+
+class RawResults(dict):
+    """Bindings with execution coverage kept separate from their values."""
+
+    def __init__(self, values, coverage=None):
+        super().__init__(values)
+        self.coverage = coverage or {}
 
 
 def _signal_group(proc: subprocess.Popen, sig: int) -> None:
@@ -195,7 +203,13 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
         raise RunFailure(kind, detail)
 
     if backend.syntax == "inputform":
-        return _parse_wolfram_output(stdout, protocol)
+        results, seconds = _parse_wolfram_output(stdout, protocol)
+        refusals = [line for line in stderr.splitlines()
+                    if line.startswith(("UNSUPPORTED:", "UNAVAILABLE:"))]
+        return RawResults(results, {
+            "status": "partial" if refusals else "complete",
+            "refusals": refusals,
+        }), seconds
 
     try:
         payload = json.loads(stdout)

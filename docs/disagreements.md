@@ -53,7 +53,9 @@ evaluation. These limits can decline valid identities; they cannot establish
 equivalence by sampling.
 
 Skipped companion statements are attached as coverage information. Partial
-coverage alone is not classified as a translation defect. Timeout, execution
+coverage alone is not classified as a translation defect. Explicit refusals
+inside successful executions attach incomplete execution context to affected
+comparisons; they may have changed later state. Timeout, execution
 error, unavailable backend and absent reference results remain unknown unless a
 reviewed argument establishes a cause.
 

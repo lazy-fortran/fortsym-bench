@@ -639,6 +639,67 @@ def test_cached_oracle_result_survives_a_missing_executable(tmp_path, monkeypatc
     assert cached.results == {"answer": "2"}
 
 
+def test_missing_oracle_preserves_only_matching_runtime_provenance(tmp_path, monkeypatch):
+    source = tmp_path / "case.wl"
+    source.write_text("answer = 2\n")
+    executable = tmp_path / "mathics"
+    executable.write_bytes(b"mathics-v1")
+    manifest = tmp_path / "runtime.json"
+    manifest.write_text('{"candidate": "first"}\n')
+    monkeypatch.setenv("FORTSYM_BENCH_RUNTIME_MANIFEST", str(manifest))
+    monkeypatch.setattr("fortsym_bench.cache.shutil.which", lambda name: str(executable))
+    path = tmp_path / "cache.json"
+    ReferenceCache(path).put_result(BACKENDS["mathics"], source, 5, {"answer": "2"})
+    monkeypatch.setattr("fortsym_bench.cache.shutil.which", lambda name: None)
+    assert ReferenceCache(path).get(BACKENDS["mathics"], source, 5).results == {"answer": "2"}
+    manifest.write_text('{"candidate": "second"}\n')
+    assert ReferenceCache(path).get(BACKENDS["mathics"], source, 5) is None
+
+
+def test_parser_source_change_invalidates_reference_without_changing_python(tmp_path, monkeypatch):
+    import sympy.parsing.mathematica as parser
+
+    source = tmp_path / "case.py"
+    source.write_text("def results(): return {'answer': 2}\n")
+    parser_source = tmp_path / "mathematica.py"
+    parser_source.write_text("parser revision one\n")
+    monkeypatch.setattr(parser, "__file__", str(parser_source))
+    path = tmp_path / "cache.json"
+    ReferenceCache(path).put_result(BACKENDS["sympy"], source, 5, {"answer": "Integer(2)"})
+    assert ReferenceCache(path).get(BACKENDS["sympy"], source, 5) is not None
+    parser_source.write_text("parser revision two\n")
+    assert ReferenceCache(path).get(BACKENDS["sympy"], source, 5) is None
+
+
+def test_verified_runtime_manifest_change_invalidates_unchanged_native_wrapper(tmp_path, monkeypatch):
+    source = tmp_path / "case.wl"
+    source.write_text("answer = 2\n")
+    executable = tmp_path / "fortsym_wl_run"
+    executable.write_bytes(b"unchanged-wrapper")
+    monkeypatch.setattr("fortsym_bench.cache.shutil.which", lambda name: str(executable))
+    manifest = tmp_path / "runtime-manifest.json"
+    manifest.write_text(json.dumps({"library_sha256": {"libfortsym.so": "first-build"}}))
+    monkeypatch.setenv("FORTSYM_BENCH_RUNTIME_MANIFEST", str(manifest))
+    path = tmp_path / "cache.json"
+    ReferenceCache(path).put_result(BACKENDS["fortsym-wl"], source, 5, {"answer": "2"})
+    assert ReferenceCache(path).get(BACKENDS["fortsym-wl"], source, 5) is not None
+    manifest.write_text(json.dumps({"library_sha256": {"libfortsym.so": "second-build"}}))
+    assert ReferenceCache(path).get(BACKENDS["fortsym-wl"], source, 5) is None
+
+
+def test_native_delegate_setting_invalidates_result_cache(tmp_path, monkeypatch):
+    source = tmp_path / "case.wl"
+    source.write_text("answer = 2\n")
+    executable = tmp_path / "fortsym_wl_run"
+    executable.write_bytes(b"unchanged-wrapper")
+    monkeypatch.setattr("fortsym_bench.cache.shutil.which", lambda name: str(executable))
+    monkeypatch.delenv("FORTSYM_DISABLE_FLINT_EXACT", raising=False)
+    path = tmp_path / "cache.json"
+    ReferenceCache(path).put_result(BACKENDS["fortsym-wl"], source, 5, {"answer": "2"})
+    monkeypatch.setenv("FORTSYM_DISABLE_FLINT_EXACT", "1")
+    assert ReferenceCache(path).get(BACKENDS["fortsym-wl"], source, 5) is None
+
+
 def test_deferred_cache_updates_are_written_on_flush(tmp_path):
     source = tmp_path / "case.py"
     source.write_text(
@@ -704,3 +765,19 @@ def test_comparison_cache_keys_both_operands_and_policy(tmp_path):
     )
     assert loaded.get("1", "inputform", "Integer(1)", "srepr", "equivalent") is None
     assert loaded.get("2", "inputform", "Integer(1)", "srepr", "structural") is None
+
+
+def test_comparison_cache_rechecks_unchanged_text_after_parser_source_change(tmp_path, monkeypatch):
+    import sympy.parsing.mathematica as parser
+
+    parser_source = tmp_path / "mathematica.py"
+    parser_source.write_text("first parser\n")
+    monkeypatch.setattr(parser, "__file__", str(parser_source))
+    path = tmp_path / "comparisons.json"
+    ComparisonCache(path).put("r^-1 x", "inputform", "Symbol('x')/Symbol('r')",
+                              "srepr", "structural", "differ", "old parse")
+    assert ComparisonCache(path).get("r^-1 x", "inputform", "Symbol('x')/Symbol('r')",
+                                      "srepr", "structural") is not None
+    parser_source.write_text("second parser\n")
+    assert ComparisonCache(path).get("r^-1 x", "inputform", "Symbol('x')/Symbol('r')",
+                                      "srepr", "structural") is None

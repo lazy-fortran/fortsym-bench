@@ -379,8 +379,8 @@ def evaluate_expression(text: str, environment: dict[str, object] | None = None)
     environment = {} if environment is None else environment
     normalised = _normalise_expression_layout(_normalise_named_characters(text))
     normalised = _protect_string_literals(normalised)
-    normalised = _normalise_numeric_powers(normalised)
     normalised = _normalise_prefix_calls(normalised)
+    normalised = _normalise_signed_exponents(normalised)
     normalised = _normalise_derivative_calls(normalised)
     normalised = _protect_thread_equal(normalised)
     normalised = _wrap_string_predicates(normalised)
@@ -2685,49 +2685,59 @@ def _normalise_prefix_calls(text: str) -> str:
     return text
 
 
-def _normalise_numeric_powers(text: str) -> str:
-    """Parenthesize numeric powers before SymPy parses implicit products.
+def _normalise_signed_exponents(text: str) -> str:
+    """Keep a signed exponent from absorbing a following implicit product."""
 
-    Wolfram input commonly writes constants such as ``4 Pi 10^-7``.  The
-    Mathematica parser in SymPy gives the exponent tighter binding than the
-    implicit multiplication in that spelling, effectively reading it as
-    ``(4 Pi 10)^-7``.  Parenthesizing only a numeric base and numeric exponent
-    preserves Wolfram precedence without rewriting identifiers or calls such
-    as ``f[10^-7]``.
-    """
+    atom = re.compile(r"(?:\d+(?:\.\d*)?|\.\d+)|(?:[^\W\d]|\$)[\w$]*")
 
-    power = re.compile(
-        r"(?<![A-Za-z0-9_.$])"
-        r"(?:\d+(?:\.\d*)?|\.\d+)"
-        r"\s*\^\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?![A-Za-z0-9_$.])"
-    )
-    pieces: list[str] = []
-    start = 0
-    index = 0
-    in_string = False
-    escaped = False
-    while index < len(text):
-        char = text[index]
-        if in_string:
-            if escaped:
-                escaped = False
-            elif char == "\\":
-                escaped = True
-            elif char == '"':
-                in_string = False
+    def power_end(start: int) -> int | None:
+        index = start
+        while index < len(text) and (text[index].isspace() or text[index] in "+-"):
             index += 1
+        if index == len(text):
+            return None
+        if text[index] in "({[":
+            closing = _matching_delimiter(text, index)
+            if closing < 0:
+                return None
+            index = closing + 1
+        else:
+            match = atom.match(text, index)
+            if match is None:
+                return None
+            index = match.end()
+        while index < len(text):
+            following = index
+            while following < len(text) and text[following].isspace():
+                following += 1
+            while following < len(text) and text[following] == "'":
+                following += 1
+            if following > index and text[following - 1] == "'":
+                index = following
+            if (following < len(text) and text[following] == "!"
+                    and not text.startswith("!=", following)):
+                index = following + (2 if text.startswith("!!", following) else 1)
+                continue
+            if following < len(text) and text[following] == "[":
+                closing = _matching_delimiter(text, following)
+                if closing < 0:
+                    return None
+                index = closing + 1
+            elif following < len(text) and text[following] == "^":
+                return power_end(following + 1)
+            else:
+                return index
+        return index
+
+    # Work from the right so a power in an exponent retains right associativity.
+    for index in reversed(range(len(text))):
+        if text[index] != "^":
             continue
-        if char == '"':
-            in_string = True
-            index += 1
-            continue
-        match = power.match(text, index)
-        if match is None:
-            index += 1
-            continue
-        pieces.append(text[start:index])
-        pieces.append("(" + match.group(0) + ")")
-        index = match.end()
-        start = index
-    pieces.append(text[start:])
-    return "".join(pieces)
+        start = index + 1
+        while start < len(text) and text[start].isspace():
+            start += 1
+        if start < len(text) and text[start] in "+-":
+            end = power_end(start)
+            if end is not None:
+                text = text[:start] + "(" + text[start:end] + ")" + text[end:]
+    return text
