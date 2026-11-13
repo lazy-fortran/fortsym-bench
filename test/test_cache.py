@@ -765,3 +765,19 @@ def test_comparison_cache_keys_both_operands_and_policy(tmp_path):
     )
     assert loaded.get("1", "inputform", "Integer(1)", "srepr", "equivalent") is None
     assert loaded.get("2", "inputform", "Integer(1)", "srepr", "structural") is None
+
+
+def test_comparison_cache_rechecks_unchanged_text_after_parser_source_change(tmp_path, monkeypatch):
+    import sympy.parsing.mathematica as parser
+
+    parser_source = tmp_path / "mathematica.py"
+    parser_source.write_text("first parser\n")
+    monkeypatch.setattr(parser, "__file__", str(parser_source))
+    path = tmp_path / "comparisons.json"
+    ComparisonCache(path).put("r^-1 x", "inputform", "Symbol('x')/Symbol('r')",
+                              "srepr", "structural", "differ", "old parse")
+    assert ComparisonCache(path).get("r^-1 x", "inputform", "Symbol('x')/Symbol('r')",
+                                      "srepr", "structural") is not None
+    parser_source.write_text("second parser\n")
+    assert ComparisonCache(path).get("r^-1 x", "inputform", "Symbol('x')/Symbol('r')",
+                                      "srepr", "structural") is None

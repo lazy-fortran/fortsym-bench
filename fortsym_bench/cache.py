@@ -986,6 +986,8 @@ class ComparisonCache:
     ) -> str:
         identity = {
             "version": COMPARISON_CACHE_VERSION,
+            "parser_source_sha256": _sha256(Path(importlib.import_module(
+                "sympy.parsing.mathematica").__file__).read_bytes()),
             "candidate_sha256": _sha256(candidate_text.encode()),
             "candidate_syntax": candidate_syntax,
             "reference_sha256": _sha256(reference_text.encode()),
