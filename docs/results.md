@@ -1,25 +1,16 @@
 # Results
 
-Latest controlled checkpoint (2026-10-21): fresh native output from fortsym commit
-`307e2be2`, scored against retained raw oracle outputs. The native backend produced
-results for 377 of 384 scripts (six unsupported, one unavailable) and 4597
-comparable bindings:
+Full agreement between fortsym, SymPy and Mathics has not been established.
+The benchmark reports agreement, differences, explicit refusals, timeouts,
+execution errors and disagreements between the two reference systems separately.
+Agreement between partial reference systems does not prove mathematical
+correctness.
 
-| Outcome | Count |
-|---|---:|
-| Agreement | 3693 |
-| Native result differs from oracle | 188 |
-| Oracles disagree with each other | 535 |
-| Oracle result missing | 180 |
-| Native timeout | 1 |
+A measured result is the JSON report from `fortsym-bench run`, together with
+its backend versions and raw-output cache. Compare implementations using the
+same corpus, reference outputs, timeout and comparison policy. A larger agreement
+count caused by missing or timed-out reference results does not establish an
+improvement. Keep such results in the coverage totals and out of timing samples.
 
-No native execution error was recorded. The remaining timeout is the `mag_drift`
-script under a 60-second limit.
-
-Rescoring against freshly regenerated Mathics output gave a higher agreement count
-(3959), but only because Mathics timeouts reduced oracle coverage; it is not evidence
-of a native improvement. Comparisons between fortsym versions should use a fixed set
-of oracle outputs.
-
-Agreement with two partial oracles does not by itself establish mathematical
-correctness, and full parity has not been reached.
+[Running the benchmark](running.md) describes report generation and cache
+invalidation; [Comparison and outcomes](comparison.md) defines the verdicts.

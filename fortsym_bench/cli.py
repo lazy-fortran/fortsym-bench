@@ -215,6 +215,19 @@ def evaluate(
                 }
             )
 
+    return score_raw(raw, timing, failures, parsed_cache, comparison_cache)
+
+
+def score_raw(
+    raw: dict,
+    timing: dict,
+    failures: dict,
+    parsed_cache: dict | None = None,
+    comparison_cache: ComparisonCache | None = None,
+) -> dict:
+    """Score retained backend output without executing the backends again."""
+    if parsed_cache is None:
+        parsed_cache = {}
     strictness = _strictness(raw)
     outcomes = {}
     for name, results in raw.items():

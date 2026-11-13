@@ -8,7 +8,7 @@ import sympy as sp
 _SOURCE = (
     Path(__file__).parents[1]
     / 'corpus'
-    / 'nc-stud-Master_Florian_Seeber'
+    / 'nc-toroidal-vector'
     / 'test_vector_torus.py'
 )
 _SPEC = importlib.util.spec_from_file_location('vector_torus_translation', _SOURCE)

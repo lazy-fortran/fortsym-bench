@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
+import signal
 import shutil
+import subprocess
 import sys
+import time
 
 import pytest
 
@@ -85,3 +89,60 @@ def test_nonzero_wolfram_runner_reports_stdout_when_stderr_is_empty(
 
     with pytest.raises(RunFailure, match="child diagnostic"):
         run(backend, source, 5.0)
+
+
+def _process_running(pid: int) -> bool:
+    state = subprocess.run(
+        ["ps", "-p", str(pid), "-o", "stat="], capture_output=True, text=True,
+        check=False,
+    ).stdout.strip()
+    return bool(state) and not state.startswith("Z")
+
+
+@pytest.mark.parametrize("parent_exits", [False, True])
+def test_backend_cleans_up_child_processes(tmp_path: Path, parent_exits: bool):
+    source = tmp_path / "case.wl"
+    source.write_text("answer = 1\n", encoding="utf-8")
+    pid_file = tmp_path / "child.pid"
+    child_code = (
+        "import os, signal, time\n"
+        "from pathlib import Path\n"
+        "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+        f"Path({str(pid_file)!r}).write_text(str(os.getpid()))\n"
+        "time.sleep(60)\n"
+    )
+    runner = tmp_path / "runner.py"
+    runner.write_text(
+        "import subprocess, sys, time\n"
+        "from pathlib import Path\n"
+        f"subprocess.Popen([sys.executable, '-c', {child_code!r}], "
+        f"stdout={'subprocess.DEVNULL' if parent_exits else 'None'}, "
+        f"stderr={'subprocess.DEVNULL' if parent_exits else 'None'})\n"
+        f"while not Path({str(pid_file)!r}).exists(): time.sleep(0.01)\n"
+        + ("print('R\\tanswer\\t1'); print('T\\t0.0')\n" if parent_exits
+           else "time.sleep(60)\n"),
+        encoding="utf-8",
+    )
+    backend = Backend(
+        "fortsym-wl", ".wl", "inputform",
+        command=(sys.executable, str(runner)),
+    )
+
+    try:
+        if parent_exits:
+            results, _ = run(backend, source, 1.0)
+            assert results == {"answer": "1"}
+        else:
+            with pytest.raises(RunFailure, match="exceeded") as failure:
+                run(backend, source, 0.5)
+            assert failure.value.kind == "timeout"
+        pid = int(pid_file.read_text())
+        deadline = time.monotonic() + 1.0
+        while _process_running(pid) and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert not _process_running(pid)
+    finally:
+        if pid_file.exists():
+            pid = int(pid_file.read_text())
+            if _process_running(pid):
+                os.kill(pid, signal.SIGKILL)

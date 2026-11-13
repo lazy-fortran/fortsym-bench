@@ -1,4 +1,4 @@
-"""Independent checks for the hand-lowered Bacc/Rosa/Posch translation."""
+"""Independent checks for the hand-lowered RF-resonance translation."""
 
 import importlib.util
 import math
@@ -10,7 +10,7 @@ import sympy as sp
 
 
 def _results():
-    path = Path(__file__).parents[1] / "corpus/nc-stud-Bacc_Rosa_Posch/derivations.py"
+    path = Path(__file__).parents[1] / "corpus/nc-rf-resonance/derivations.py"
     spec = importlib.util.spec_from_file_location("bacc_derivations", path)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None

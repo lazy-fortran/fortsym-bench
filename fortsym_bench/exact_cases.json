@@ -195,7 +195,7 @@
     "right": "Add(Mul(Pow(Symbol('a'), Integer(2)), Symbol('nu'), Pow(Symbol('t'), Integer(2)), exp(Mul(Integer(-1), Symbol('a'), Symbol('t'), Add(Mul(Rational(1, 3), Symbol('a'), Symbol('nu'), Pow(Symbol('t'), Integer(2))), Mul(I, Symbol('s')))))), Mul(I, Symbol('a'), Symbol('s'), exp(Add(Mul(Integer(-1), Rational(1, 3), Pow(Symbol('a'), Integer(2)), Symbol('nu'), Pow(Symbol('t'), Integer(3))), Mul(Integer(-1), I, Symbol('a'), Symbol('s'), Symbol('t'))))))",
     "method": "expanded-zero",
     "cases": [
-      "nc-stud-Bacc_Rosa_Posch/03_transversal:applied"
+      "nc-rf-resonance/03_transversal:applied"
     ]
   },
   {
@@ -269,7 +269,7 @@
     "method": "expanded-zero",
     "cases": [
       "gh-krystophny-Diss_Albert/pendulum_:J2",
-      "nc-stud-Bacc_Tim_Sagaster/pendulum:J2"
+      "nc-pendulum-action/pendulum:J2"
     ]
   },
   {
@@ -277,7 +277,7 @@
     "right": "Tuple(Tuple(Mul(Add(Mul(Integer(-1), sin(Symbol('th')), cos(Symbol('th')), sinh(Symbol('eta'))), Mul(sin(Symbol('th')), sinh(Symbol('eta')), cosh(Symbol('eta')))), Pow(Add(Mul(Integer(-1), Symbol('a'), sin(Symbol('th')), sinh(Symbol('th')), cosh(Symbol('eta'))), Mul(Integer(-1), Symbol('a'), cos(Symbol('th')), cosh(Symbol('eta')), cosh(Symbol('th'))), Mul(Integer(-1), Symbol('a'), Pow(sinh(Symbol('eta')), Integer(2)), cosh(Symbol('th'))), Mul(Symbol('a'), Pow(cosh(Symbol('eta')), Integer(2)), cosh(Symbol('th')))), Integer(-1))), Mul(Pow(Add(Mul(Integer(-1), Symbol('a'), sin(Symbol('th')), sinh(Symbol('th')), cosh(Symbol('eta'))), Mul(Integer(-1), Symbol('a'), cos(Symbol('th')), cosh(Symbol('eta')), cosh(Symbol('th'))), Mul(Integer(-1), Symbol('a'), Pow(sinh(Symbol('eta')), Integer(2)), cosh(Symbol('th'))), Mul(Symbol('a'), Pow(cosh(Symbol('eta')), Integer(2)), cosh(Symbol('th')))), Integer(-1)), Add(Mul(sin(Symbol('th')), cos(Symbol('th')), sinh(Symbol('th'))), Mul(Integer(-1), sin(Symbol('th')), sinh(Symbol('th')), cosh(Symbol('eta'))), Mul(Pow(cos(Symbol('th')), Integer(2)), cosh(Symbol('th'))), Mul(Integer(-1), Integer(2), cos(Symbol('th')), cosh(Symbol('eta')), cosh(Symbol('th'))), Mul(Pow(cosh(Symbol('eta')), Integer(2)), cosh(Symbol('th'))))), Integer(0)), Tuple(Mul(Pow(Add(Mul(Integer(-1), Symbol('a'), sin(Symbol('th')), sinh(Symbol('th')), cosh(Symbol('eta'))), Mul(Integer(-1), Symbol('a'), cos(Symbol('th')), cosh(Symbol('eta')), cosh(Symbol('th'))), Mul(Integer(-1), Symbol('a'), Pow(sinh(Symbol('eta')), Integer(2)), cosh(Symbol('th'))), Mul(Symbol('a'), Pow(cosh(Symbol('eta')), Integer(2)), cosh(Symbol('th')))), Integer(-1)), Add(Mul(Pow(cos(Symbol('th')), Integer(2)), cosh(Symbol('eta'))), Mul(cos(Symbol('th')), Pow(sinh(Symbol('eta')), Integer(2))), Mul(Integer(-1), Integer(2), cos(Symbol('th')), Pow(cosh(Symbol('eta')), Integer(2))), Mul(Integer(-1), Pow(sinh(Symbol('eta')), Integer(2)), cosh(Symbol('eta'))), Pow(cosh(Symbol('eta')), Integer(3)))), Mul(Add(Mul(Integer(-1), cos(Symbol('th')), sinh(Symbol('eta')), sinh(Symbol('th'))), Mul(sinh(Symbol('eta')), sinh(Symbol('th')), cosh(Symbol('eta')))), Pow(Add(Mul(Integer(-1), Symbol('a'), sin(Symbol('th')), sinh(Symbol('th')), cosh(Symbol('eta'))), Mul(Integer(-1), Symbol('a'), cos(Symbol('th')), cosh(Symbol('eta')), cosh(Symbol('th'))), Mul(Integer(-1), Symbol('a'), Pow(sinh(Symbol('eta')), Integer(2)), cosh(Symbol('th'))), Mul(Symbol('a'), Pow(cosh(Symbol('eta')), Integer(2)), cosh(Symbol('th')))), Integer(-1))), Integer(0)), Tuple(Integer(0), Integer(0), Integer(1)))",
     "method": "componentwise",
     "cases": [
-      "nc-stud-Bacc_FEM/torfunc:Jinv"
+      "nc-toroidal-fem/torfunc:Jinv"
     ]
   },
   {
@@ -285,7 +285,7 @@
     "right": "Mul(Integer(-1), Pow(Symbol('R0'), Integer(-1)), Pow(Symbol('r'), Integer(2)), Pow(Mul(Pow(Symbol('r'), Integer(-1)), Add(Symbol('R0'), Mul(Integer(-1), Symbol('r')))), Rational(1, 2)), Pow(Mul(Pow(Symbol('r'), Integer(-1)), Add(Symbol('R0'), Symbol('r'))), Rational(1, 2)), Function('Derivative1')(Symbol('u'), Integer(1), Symbol('r'), Symbol('th'), Symbol('Z')))",
     "method": "expanded-zero",
     "cases": [
-      "nc-stud-Bacc_FEM/torus:dudet"
+      "nc-toroidal-fem/torus:dudet"
     ]
   },
   {
@@ -293,7 +293,7 @@
     "right": "Mul(Pow(Symbol('R0'), Integer(-2)), Symbol('r'), Add(Mul(Integer(-1), Pow(Symbol('R0'), Integer(2)), Function('Derivative1')(Symbol('u'), Integer(1), Symbol('r'), Symbol('th'), Symbol('Z'))), Mul(Symbol('r'), Add(Symbol('R0'), Mul(Integer(-1), Symbol('r'))), Add(Symbol('R0'), Symbol('r')), Function('Derivative2')(Symbol('u'), Integer(1), Integer(1), Symbol('r'), Symbol('th'), Symbol('Z'))), Mul(Integer(2), Add(Symbol('R0'), Mul(Integer(-1), Symbol('r'))), Add(Symbol('R0'), Symbol('r')), Function('Derivative1')(Symbol('u'), Integer(1), Symbol('r'), Symbol('th'), Symbol('Z')))))",
     "method": "expanded-zero",
     "cases": [
-      "nc-stud-Bacc_FEM/torus:d2udet2"
+      "nc-toroidal-fem/torus:d2udet2"
     ]
   },
   {
@@ -341,7 +341,7 @@
     "right": "Mul(Integer(4), Symbol('Pf'), Symbol('S'), Pow(Add(Pow(Symbol('S'), Integer(2)), Mul(Integer(2), Symbol('S')), Integer(1)), Integer(-1)))",
     "method": "rational-zero",
     "cases": [
-      "nc-stud-Bacc_Rosa_Posch/rf_model:deliveredFromSWR"
+      "nc-rf-resonance/rf_model:deliveredFromSWR"
     ]
   },
   {
@@ -398,7 +398,7 @@
     "right": "Mul(Integer(24), Pow(Add(Symbol('R1'), Symbol('R2')), Integer(-1)), Add(Pow(Symbol('R'), Integer(2)), Mul(Integer(-1), Symbol('R'), Symbol('R1')), Mul(Integer(-1), Symbol('R'), Symbol('R2')), Mul(Symbol('R1'), Symbol('R2'))), Pow(Add(Pow(Symbol('R1'), Integer(3)), Mul(Integer(-1), Integer(3), Pow(Symbol('R1'), Integer(2)), Symbol('R2')), Mul(Integer(3), Symbol('R1'), Pow(Symbol('R2'), Integer(2))), Mul(Integer(-1), Pow(Symbol('R2'), Integer(3)))), Integer(-1)))",
     "method": "rational-zero",
     "cases": [
-      "nc-stud-Bacc_Kevin_Moazedi/analytical2:rho0"
+      "nc-polar-poisson/analytical2:rho0"
     ]
   },
   {
@@ -616,7 +616,7 @@
     "right": "Add(Mul(Integer(24), Pow(Symbol('R0'), Integer(2)), Symbol('dR2'), Pow(Symbol('z'), Integer(2)), Function('c')(Integer(3), Integer(2))), Mul(Integer(24), Pow(Symbol('R0'), Integer(2)), Symbol('dR2'), Function('c')(Integer(3), Integer(0))), Mul(Integer(8), Pow(Symbol('R0'), Integer(2)), Pow(Symbol('z'), Integer(2)), Function('c')(Integer(2), Integer(2))), Mul(Integer(8), Pow(Symbol('R0'), Integer(2)), Function('c')(Integer(2), Integer(0))), Mul(Integer(2), Pow(Symbol('dR2'), Integer(3)), Function('c')(Integer(3), Integer(2))), Mul(Integer(24), Pow(Symbol('dR2'), Integer(2)), Pow(Symbol('z'), Integer(2)), Function('c')(Integer(3), Integer(2))), Mul(Integer(2), Pow(Symbol('dR2'), Integer(2)), Function('c')(Integer(2), Integer(2))), Mul(Integer(24), Pow(Symbol('dR2'), Integer(2)), Function('c')(Integer(3), Integer(0))), Mul(Integer(8), Symbol('dR2'), Pow(Symbol('z'), Integer(2)), Function('c')(Integer(2), Integer(2))), Mul(Integer(2), Symbol('dR2'), Function('c')(Integer(1), Integer(2))), Mul(Integer(8), Symbol('dR2'), Function('c')(Integer(2), Integer(0))), Mul(Integer(2), Function('c')(Integer(0), Integer(2))))",
     "method": "expanded-zero",
     "cases": [
-      "nc-stud-Bacc_Verena_Eselbauer/grad:lhs"
+      "nc-grad-shafranov-polynomial/grad:lhs"
     ]
   },
   {

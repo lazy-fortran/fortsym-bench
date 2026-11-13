@@ -12,7 +12,7 @@ import sympy as sp
 def _results():
     path = (
         Path(__file__).parents[1]
-        / 'corpus/nc-stud-Bacc_Rosa_Posch/derivations_bef7e6.py'
+        / 'corpus/nc-rf-resonance/derivations_bef7e6.py'
     )
     spec = importlib.util.spec_from_file_location('derivations_bef7e6', path)
     module = importlib.util.module_from_spec(spec)
