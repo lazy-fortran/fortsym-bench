@@ -762,6 +762,21 @@
   "skipped_statements": 30,
   "status": "generated"
  },
+ "corpus/nc-grad-shafranov-polynomial/grad.wl": {
+  "assignments": 10,
+  "skipped_statements": 6,
+  "status": "generated"
+ },
+ "corpus/nc-grad-shafranov-polynomial/schreckliches_problem.wl": {
+  "assignments": 2,
+  "skipped_statements": 1,
+  "status": "generated"
+ },
+ "corpus/nc-grad-shafranov-solovev/GradShafranov.wl": {
+  "assignments": 2,
+  "skipped_statements": 1,
+  "status": "generated"
+ },
  "corpus/nc-kineq-old/geomint2d.wl": {
   "assignments": 58,
   "skipped_statements": 64,
@@ -780,6 +795,11 @@
  "corpus/nc-lv-plasma/coulomb.wl": {
   "assignments": 0,
   "skipped_statements": 3,
+  "status": "generated"
+ },
+ "corpus/nc-pendulum-action/pendulum.wl": {
+  "assignments": 9,
+  "skipped_statements": 6,
   "status": "generated"
  },
  "corpus/nc-plasma-DOCUMENTS/2_henon.wl": {
@@ -872,26 +892,6 @@
   "skipped_statements": 11,
   "status": "generated"
  },
- "corpus/nc-toroidal-fem/green.wl": {
-  "assignments": 2,
-  "skipped_statements": 3,
-  "status": "generated"
- },
- "corpus/nc-toroidal-fem/stokes.wl": {
-  "assignments": 1,
-  "skipped_statements": 2,
-  "status": "generated"
- },
- "corpus/nc-toroidal-fem/torfunc.wl": {
-  "assignments": 16,
-  "skipped_statements": 17,
-  "status": "generated"
- },
- "corpus/nc-toroidal-fem/torus.wl": {
-  "assignments": 14,
-  "skipped_statements": 9,
-  "status": "generated"
- },
  "corpus/nc-polar-poisson/analytical.wl": {
   "assignments": 17,
   "skipped_statements": 28,
@@ -900,11 +900,6 @@
  "corpus/nc-polar-poisson/analytical2.wl": {
   "assignments": 20,
   "skipped_statements": 15,
-  "status": "generated"
- },
- "corpus/nc-grad-shafranov-solovev/GradShafranov.wl": {
-  "assignments": 2,
-  "skipped_statements": 1,
   "status": "generated"
  },
  "corpus/nc-radial-poisson/poisson.wl": {
@@ -977,24 +972,29 @@
   "skipped_statements": 2,
   "status": "generated"
  },
- "corpus/nc-pendulum-action/pendulum.wl": {
-  "assignments": 9,
-  "skipped_statements": 6,
-  "status": "generated"
- },
- "corpus/nc-grad-shafranov-polynomial/grad.wl": {
-  "assignments": 10,
-  "skipped_statements": 6,
-  "status": "generated"
- },
  "corpus/nc-stud-Bacc_Verena_Eslbauer/onesizefitsall.wl": {
   "assignments": 2,
   "skipped_statements": 7,
   "status": "generated"
  },
- "corpus/nc-grad-shafranov-polynomial/schreckliches_problem.wl": {
+ "corpus/nc-toroidal-fem/green.wl": {
   "assignments": 2,
-  "skipped_statements": 1,
+  "skipped_statements": 3,
+  "status": "generated"
+ },
+ "corpus/nc-toroidal-fem/stokes.wl": {
+  "assignments": 1,
+  "skipped_statements": 2,
+  "status": "generated"
+ },
+ "corpus/nc-toroidal-fem/torfunc.wl": {
+  "assignments": 16,
+  "skipped_statements": 17,
+  "status": "generated"
+ },
+ "corpus/nc-toroidal-fem/torus.wl": {
+  "assignments": 14,
+  "skipped_statements": 9,
   "status": "generated"
  },
  "corpus/nc-toroidal-vector/test_vector_torus.wl": {
@@ -1322,9 +1322,9 @@
   "skipped_statements": 61,
   "status": "generated"
  },
-  "corpus/proj-flux_pumping/37_memo_update_20260717.wl": {
-    "assignments": 51,
-    "skipped_statements": 19,
+ "corpus/proj-flux_pumping/37_memo_update_20260717.wl": {
+  "assignments": 51,
+  "skipped_statements": 19,
   "status": "generated"
  },
  "corpus/proj-flux_pumping/38_naive_vs_serious_comparison.wl": {

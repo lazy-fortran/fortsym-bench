@@ -9,7 +9,7 @@ has not been reached; see [results](docs/results.md).
 
 ## What it does
 
-- Holds 384 Wolfram-language derivation scripts (`.wl`) from plasma-physics research
+- Holds Wolfram-language derivation scripts (`.wl`) from plasma-physics research
   projects and teaching material, each with a SymPy companion (`.py`).
 - Runs every script through three backends and compares the named results:
 
@@ -29,8 +29,9 @@ has not been reached; see [results](docs/results.md).
 - Caches raw backend output and comparison verdicts so that repeated audits only
   rerun what changed.
 
-No Wolfram product is used. Mathics is an independent reimplementation of the
-Wolfram Language with partial coverage, so it serves as a second opinion rather than
+Benchmark execution requires no Wolfram product. The optional notebook-conversion
+tool uses Wolfram only to extract input text. Mathics independently implements a
+subset of the Wolfram Language, so it serves as a second opinion rather than
 ground truth.
 
 ## Install
@@ -74,10 +75,13 @@ TRANSLATION.md                rules for translating .wl to SymPy
 - [Running the benchmark](docs/running.md): options, caching, regenerating companions
 - [Comparison and outcomes](docs/comparison.md): strictness levels, outcome classes, timing
 - [Corpus](docs/corpus.md): contents, provenance, writing a corpus pair, notebook conversion
-- [Results](docs/results.md): latest measured agreement
+- [Interpreting results](docs/results.md): scope and limits of measured agreement
+- [Retaining benchmark evidence](docs/campaigns.md): bounded comparisons and fixed reference outputs
 - [Translating .wl to SymPy](TRANSLATION.md)
 
 ## License
 
-MIT. See [LICENSE](LICENSE). Mathics3 is GPL-3.0 and is called only as a separate
-process.
+The harness and Christopher Albert's derivations use the MIT licence. See
+[LICENSE](LICENSE) and [corpus sources and credits](SOURCES.md) for attribution
+and the recorded terms for contributed material. Mathics3 is GPL-3.0 and is
+called only as a separate process.

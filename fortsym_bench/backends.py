@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import os
 import secrets
+import signal
 import subprocess
 import sys
 import tempfile
@@ -76,6 +77,30 @@ class RunFailure(Exception):
         self.kind = kind
 
 
+def _signal_group(proc: subprocess.Popen, sig: int) -> None:
+    try:
+        os.killpg(proc.pid, sig)
+    except ProcessLookupError:
+        pass
+
+
+def _stop_group(proc: subprocess.Popen) -> None:
+    _signal_group(proc, signal.SIGTERM)
+    try:
+        proc.communicate(timeout=1.0)
+    except subprocess.TimeoutExpired:
+        pass
+    finally:
+        _signal_group(proc, signal.SIGKILL)
+    try:
+        proc.communicate(timeout=1.0)
+    except subprocess.TimeoutExpired:
+        # A child that leaves the group can retain a pipe after the runner dies.
+        proc.stdout.close()
+        proc.stderr.close()
+        proc.wait(timeout=1.0)
+
+
 def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
     """Run one script under one backend.
 
@@ -119,8 +144,9 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
         # Scripts are handed an absolute path (above) so the change of
         # directory cannot cost them their own source or a Get'd sibling.
         with tempfile.TemporaryDirectory(prefix="fortsym-bench-") as sandbox:
-            proc = subprocess.run(
-                argv, capture_output=True, text=True, timeout=timeout, env=env,
+            proc = subprocess.Popen(
+                argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                text=True, env=env, start_new_session=True,
                 stdin=subprocess.DEVNULL, cwd=sandbox,
                 # The corpus contains Greek identifiers, and a backend that
                 # slices a multi-byte character emits an invalid sequence.
@@ -129,6 +155,14 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
                 # run's measurement.
                 errors="replace",
             )
+            try:
+                stdout, stderr = proc.communicate(timeout=timeout)
+            except BaseException:
+                _stop_group(proc)
+                raise
+            finally:
+                # Descendants may have closed their pipes before the runner exits.
+                _signal_group(proc, signal.SIGKILL)
     except subprocess.TimeoutExpired:
         raise RunFailure("timeout", f"exceeded {timeout}s") from None
     except FileNotFoundError:
@@ -138,8 +172,8 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
         raise RunFailure("unavailable", f"{argv[0]} not on PATH") from None
 
     if proc.returncode != 0:
-        stderr = proc.stderr.strip()
-        stdout = proc.stdout.strip()
+        stderr = stderr.strip()
+        stdout = stdout.strip()
         # A backend that names what it cannot do is behaving correctly. Keep
         # that distinct from a crash: conflating the two makes an honest
         # refusal look like a wrong answer.
@@ -161,12 +195,12 @@ def run(backend: Backend, script: Path, timeout: float) -> tuple[dict, float]:
         raise RunFailure(kind, detail)
 
     if backend.syntax == "inputform":
-        return _parse_wolfram_output(proc.stdout, protocol)
+        return _parse_wolfram_output(stdout, protocol)
 
     try:
-        payload = json.loads(proc.stdout)
+        payload = json.loads(stdout)
     except json.JSONDecodeError:
-        raise RunFailure("error", f"unparseable output: {proc.stdout[:200]}") from None
+        raise RunFailure("error", f"unparseable output: {stdout[:200]}") from None
 
     return payload["results"], float(payload.get("seconds", 0.0))
 
