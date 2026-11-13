@@ -91,6 +91,35 @@ def test_nonzero_wolfram_runner_reports_stdout_when_stderr_is_empty(
         run(backend, source, 5.0)
 
 
+def test_successful_partial_runner_retains_bindings_and_refusal_context(tmp_path):
+    from fortsym_bench.cache import ReferenceCache
+    from fortsym_bench.cli import score_raw
+
+    source = tmp_path / "case.wl"
+    source.write_text("answer = 5\n")
+    runner = tmp_path / "partial.py"
+    runner.write_text(
+        "import sys\n"
+        "print('R\\tanswer\\t5')\nprint('T\\t0.0')\n"
+        "print('UNSUPPORTED: <statement 2>: declined side effect', file=sys.stderr)\n"
+    )
+    backend = Backend("fortsym-wl", ".wl", "inputform",
+                      command=(sys.executable, str(runner)))
+    results, _ = run(backend, source, 5.0)
+    assert results == {"answer": "5"}
+    assert results.coverage == {
+        "status": "partial",
+        "refusals": ["UNSUPPORTED: <statement 2>: declined side effect"],
+    }
+    cache = ReferenceCache(tmp_path / "cache.json")
+    cache.put_result(backend, source, 5.0, results)
+    restored = ReferenceCache(cache.path).get(backend, source, 5.0).results
+    assert restored.coverage == results.coverage
+    scored = score_raw({"fortsym-wl": restored, "mathics": {"answer": "5"}}, {}, {})
+    assert scored["outcomes"]["fortsym-wl"]["answer"]["outcome"] == "agree"
+    assert scored["coverage"]["fortsym-wl"]["status"] == "partial"
+
+
 def _process_running(pid: int) -> bool:
     state = subprocess.run(
         ["ps", "-p", str(pid), "-o", "stat="], capture_output=True, text=True,

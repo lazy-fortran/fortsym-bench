@@ -224,10 +224,15 @@ def score_raw(
     failures: dict,
     parsed_cache: dict | None = None,
     comparison_cache: ComparisonCache | None = None,
+    coverage: dict | None = None,
 ) -> dict:
     """Score retained backend output without executing the backends again."""
     if parsed_cache is None:
         parsed_cache = {}
+    coverage = coverage or {
+        name: results.coverage for name, results in raw.items()
+        if getattr(results, "coverage", None)
+    }
     strictness = _strictness(raw)
     outcomes = {}
     for name, results in raw.items():
@@ -261,6 +266,7 @@ def score_raw(
         "failures": failures,
         "timing": timing,
         "oracles": _cross_check(raw, strictness, parsed_cache, comparison_cache),
+        "coverage": coverage,
     }
 
 
@@ -515,6 +521,7 @@ def build_summary(report: dict) -> dict:
              UNAVAILABLE: 0, TIMEOUT: 0, ERROR: 0, ORACLE_DISAGREEMENT: 0,
              ORACLE_MISSING: 0}
     per_backend = {}
+    coverage = {}
 
     def backend_stats(name: str) -> dict:
         return per_backend.setdefault(
@@ -524,6 +531,9 @@ def build_summary(report: dict) -> dict:
         )
 
     for script in report["scripts"].values():
+        for name, detail in script.get("coverage", {}).items():
+            counts = coverage.setdefault(name, {"complete": 0, "partial": 0})
+            counts[detail["status"]] += 1
         for name, results in script["outcomes"].items():
             stats = backend_stats(name)
             for entry in results.values():
@@ -560,6 +570,7 @@ def build_summary(report: dict) -> dict:
         "per_backend": per_backend,
         "scripts": {"produced": produced, "total": scripts},
         "bindings": bindings,
+        "execution_coverage": coverage,
         "exit_code": 1 if tally[DIFFER] or tally[ERROR] else 0,
     }
 

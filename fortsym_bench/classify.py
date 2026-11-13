@@ -274,6 +274,17 @@ def classify_report(report: dict, cache: dict | None = None, *,
                 "skipped_statements": coverage["skipped_statements"],
                 "note": "partial companion coverage is not evidence of a translation defect",
             }
+        execution = report["scripts"][script].get("coverage", {})
+        incomplete = {
+            name: execution.get(name, entry.get("coverage", {}))
+            for name, entry in ((backend, candidate_entry), (reference, reference_entry))
+            if name is not None
+            and execution.get(name, entry.get("coverage", {})).get("status") == "partial"
+        }
+        if incomplete:
+            record["execution_context"] = {"status": "incomplete", "backends": incomplete}
+            record["evidence"].append(
+                "explicit refusal may affect subsequent state; binding comparison does not establish whole-script correctness")
         annotation = annotations.get((script, binding, backend))
         if annotation:
             if annotation["comparison_sha256"] != record["comparison_sha256"]:

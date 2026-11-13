@@ -10,6 +10,7 @@ fresh performance measurement.
 from __future__ import annotations
 
 import hashlib
+import importlib
 import json
 import os
 import shutil
@@ -18,7 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from threading import RLock
 
-from .backends import Backend, RunFailure
+from .backends import Backend, RawResults, RunFailure
 
 CACHE_VERSION = 1
 # Bump when comparison parsing/equivalence semantics change; raw backend rows
@@ -34,7 +35,8 @@ CACHE_VERSION = 1
 # exponent spelling around them.
 # Version 22 rechecks pinned, exact per-case canonicalization witnesses.
 # Version 23 preserves identifier suffixes and complete decimal powers.
-COMPARISON_CACHE_VERSION = 23
+# Version 24 preserves the extent of signed exponents before implicit products.
+COMPARISON_CACHE_VERSION = 24
 
 
 @dataclass(frozen=True)
@@ -109,7 +111,7 @@ class ReferenceCache:
         if entry.get("outcome") == "ok":
             results = entry.get("results")
             if isinstance(results, dict):
-                return CachedReference(results=results)
+                return CachedReference(results=RawResults(results, entry.get("coverage")))
             return None
         if entry.get("outcome") == "failure":
             failure = entry.get("failure")
@@ -140,6 +142,7 @@ class ReferenceCache:
                 "timeout": timeout,
                 "outcome": "ok",
                 "results": results,
+                "coverage": getattr(results, "coverage", {}),
             }
             self._remember_touched(key)
             self._dirty = True
@@ -817,6 +820,21 @@ class ReferenceCache:
                 digest = "unreadable"
             fingerprint = f"{interpreter}:{digest}"
 
+        if backend.name in ("sympy", "fortsym-sympy"):
+            parser = importlib.import_module("sympy.parsing.mathematica")
+            parser_source = Path(parser.__file__).resolve()
+            fingerprint += f":parser:{parser_source}:{_sha256(parser_source.read_bytes())}"
+        manifest = os.environ.get("FORTSYM_BENCH_RUNTIME_MANIFEST")
+        if manifest:
+            path = Path(manifest).resolve()
+            fingerprint += f":runtime-manifest:{path}:{_sha256(path.read_bytes())}"
+        if backend.name == "fortsym-wl":
+            settings = {name: os.environ.get(name) for name in (
+                "FORTSYM_DISABLE_FLINT_EXACT", "FORTSYM_DISABLE_FLINT_ALGEBRAIC",
+                "FORTSYM_DISABLE_SYMENGINE_EVAL", "LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH",
+            )}
+            fingerprint += ":settings:" + _sha256(json.dumps(settings, sort_keys=True).encode())
+
         self._backend_fingerprints[backend.name] = fingerprint
         return fingerprint
 
@@ -833,8 +851,16 @@ class ReferenceCache:
         # than replacing a valid cached row with "not on PATH" on every audit.
         # An explicit refresh can still force a new attempt when the backend is
         # available again.
-        if backend.command and current == f"missing:{backend.command[0]}":
-            return True
+        if backend.command:
+            missing = f"missing:{backend.command[0]}"
+            if current == missing or current.startswith(missing + ":"):
+                def provenance(value):
+                    offsets = [value.find(marker) for marker in (
+                        ":runtime-manifest:", ":settings:",
+                    ) if marker in value]
+                    return value[min(offsets):] if offsets else ""
+
+                return provenance(stored) == provenance(current)
         return False
 
     @staticmethod

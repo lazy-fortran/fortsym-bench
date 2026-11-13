@@ -83,6 +83,37 @@ def test_numeric_power_normalization_preserves_function_application():
     }
 
 
+@pytest.mark.parametrize("source, expected", [
+    ("r^-1 x", lambda r, x, y: x / r),
+    ("x^-y r", lambda r, x, y: r * x**(-y)),
+    ("x^-y^2 r", lambda r, x, y: r * x**(-y**2)),
+    ("x^-(1-y/2) r", lambda r, x, y: r * x**(-(1-y/2))),
+    ("x^-Sin[y] r", lambda r, x, y: r * x**(-sp.sin(y))),
+    ("(x+y)^-2 r", lambda r, x, y: r / (x+y)**2),
+    ("x^+y r", lambda r, x, y: r * x**y),
+    ("x^-y^-r", lambda r, x, y: x**(-y**(-r))),
+    ("x^-y! r", lambda r, x, y: r * x**(-sp.Function("Factorial")(y))),
+    ("x^-2^3 r", lambda r, x, y: r / x**8),
+    ("2^3^2 r", lambda r, x, y: 512 * r),
+    ("2^-3^2 r", lambda r, x, y: r / 512),
+    ("x^-f@Sin[y]", lambda r, x, y: x**(-sp.Function("f")(sp.sin(y)))),
+])
+def test_signed_exponent_stops_before_implicit_product(source, expected):
+    assignments, skipped = extract_assignments("answer = " + source)
+    assert skipped == []
+    r, x, y = sp.symbols("r x y")
+    assert evaluate_assignments(assignments)["answer"] == expected(r, x, y)
+
+
+def test_signed_power_in_integral_prefactor_has_exact_independent_answer():
+    assignments, skipped = extract_assignments(
+        "answer = r^-1 Integrate[s^3 (1-s)^2, {s, 0, 1}]/2"
+    )
+    assert skipped == []
+    # Integrating s^3 - 2 s^4 + s^5 gives 1/4 - 2/5 + 1/6 = 1/60.
+    assert evaluate_assignments(assignments)["answer"] == 1 / (120 * sp.Symbol("r"))
+
+
 def test_replace_all_evaluates_derivative_at_the_replacement_point():
     assignments, skipped = extract_assignments(
         "value = D[f[x], x] /. x -> y"

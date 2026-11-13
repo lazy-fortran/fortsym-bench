@@ -88,6 +88,19 @@ def test_oracle_majority_never_establishes_a_wrong_result(tmp_path):
     assert classify_report(_report(), cache, root=tmp_path)["counts"] == {"unknown": 1}
 
 
+def test_partial_execution_marks_mismatch_context_incomplete(tmp_path):
+    cache = _cache(tmp_path, "0", "1")
+    report = _report()
+    report["scripts"]["corpus/example"]["coverage"] = {
+        "fortsym-wl": {"status": "partial", "refusals": ["UNSUPPORTED: mutation"]},
+    }
+    result = classify_report(report, cache, root=tmp_path)
+    record = result["records"][0]
+    assert record["classification"] == "unknown"
+    assert record["execution_context"]["status"] == "incomplete"
+    assert record["execution_context"]["backends"]["fortsym-wl"]["refusals"]
+
+
 def test_missing_mathics_binding_uses_available_sympy_operand(tmp_path):
     cache = _cache(tmp_path, "(x + 1)^2", "x^2 + 2*x + 1")
     cache["entries"]["mathics"].update(outcome="failure", results={})

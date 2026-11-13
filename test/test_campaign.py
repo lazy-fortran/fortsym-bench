@@ -37,6 +37,25 @@ def test_case_retains_outputs_and_scores_in_a_separate_process(tmp_path, monkeyp
     assert Path(combined["cache"]).exists()
 
 
+def test_partial_execution_context_survives_raw_scoring_and_merge(tmp_path, monkeypatch):
+    source = _case(tmp_path, monkeypatch)
+    runner = tmp_path / "native.py"
+    runner.write_text(
+        "import sys\nprint('R\\tx\\t1')\nprint('T\\t0.001')\n"
+        "print('UNSUPPORTED: side effect declined', file=sys.stderr)\n"
+    )
+    case = tmp_path / "run" / "case-0000"
+    result = run_case(source, case, ["sympy", "fortsym-wl"], 5, 10, {})
+    assert result["outcomes"]["fortsym-wl"]["x"]["outcome"] == "agree"
+    for name in ("raw.json", "report.json"):
+        row = json.loads((case / name).read_text())
+        assert row["coverage"]["fortsym-wl"]["status"] == "partial"
+    merged = merge(case.parent, tmp_path / "merged.json", expected_cases=1)
+    assert merged["summary"]["execution_coverage"]["fortsym-wl"] == {
+        "complete": 0, "partial": 1,
+    }
+
+
 def test_comparison_timeout_preserves_raw_results_without_calling_them_wrong(tmp_path, monkeypatch):
     source = _case(tmp_path, monkeypatch)
     case = tmp_path / "case-0000"
