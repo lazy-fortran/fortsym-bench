@@ -267,6 +267,16 @@ def merge(
     scripts, entries, provenance = {}, {}, {}
     configuration = None
     cases = sorted(root.glob("case-*"))
+    cache_path = output.with_name(output.stem + ".raw-cache.json")
+    for destination in (output, cache_path):
+        for case in cases:
+            if destination.resolve().is_relative_to(case.resolve()):
+                raise ValueError("merged outputs must be outside retained case directories")
+            if destination.exists() and any(
+                artifact.is_file() and destination.samefile(artifact)
+                for artifact in case.rglob("*")
+            ):
+                raise ValueError("merged output aliases a retained case artifact")
     if inventory is not None:
         if expected_cases is not None and expected_cases != len(inventory["cases"]):
             raise ValueError("expected count differs from the frozen inventory")
@@ -302,7 +312,6 @@ def merge(
         raise ValueError("no completed corpus cases")
     if expected_cases is not None and len(scripts) != expected_cases:
         raise ValueError(f"expected {expected_cases} cases, found {len(scripts)}")
-    cache_path = output.with_name(output.stem + ".raw-cache.json")
     _write(cache_path, {"version": 1, "entries": entries})
     report = {"cache": str(cache_path), "scripts": scripts, "provenance": provenance}
     report["summary"] = build_summary(report)
@@ -347,6 +356,12 @@ def main(argv: list[str] | None = None) -> int:
         _write(args.out, score_raw(payload["raw"], payload["timing"], payload["failures"]))
         return 0
     if args.command == "merge":
+        cache_output = args.out.with_name(args.out.stem + ".raw-cache.json")
+        for destination in (args.out, cache_output):
+            if (destination.resolve() == args.inventory.resolve()
+                    or destination.exists() and args.inventory.exists()
+                    and destination.samefile(args.inventory)):
+                parser.error("merged outputs cannot replace the frozen inventory")
         merge(args.root, args.out, args.expected_cases,
               inventory=json.loads(args.inventory.read_text()))
         return 0

@@ -188,3 +188,38 @@ def test_comparison_cancellation_reaps_the_process(tmp_path, monkeypatch):
             if process.poll() is None:
                 os.killpg(process.pid, signal.SIGKILL)
                 process.wait()
+
+
+
+@pytest.mark.parametrize("alias", ["inside", "hardlink", "cache-symlink"])
+def test_merge_cannot_overwrite_retained_case_artifacts(tmp_path, monkeypatch, alias):
+    import os
+
+    source = _case(tmp_path, monkeypatch)
+    case = tmp_path / "run" / "case-0000"
+    run_case(source, case, ["sympy", "fortsym-wl"], 5, 10, {})
+    original = {path: path.read_bytes() for path in case.iterdir() if path.is_file()}
+    output = tmp_path / "merged.json"
+    if alias == "inside":
+        output = case / "report.json"
+    elif alias == "hardlink":
+        os.link(case / "report.json", output)
+    else:
+        output.with_name("merged.raw-cache.json").symlink_to(case / "raw.json")
+    with pytest.raises(ValueError, match="retained case"):
+        merge(case.parent, output, expected_cases=1)
+    assert all(path.read_bytes() == content for path, content in original.items())
+
+
+
+def test_merge_cli_cannot_replace_the_frozen_inventory(tmp_path):
+    from fortsym_bench.campaign import main
+
+    inventory = tmp_path / "inventory.json"
+    inventory.write_text('{"cases": []}\n')
+    original = inventory.read_bytes()
+    with pytest.raises(SystemExit) as stopped:
+        main(["merge", str(tmp_path / "run"), "--inventory", str(inventory),
+              "--out", str(inventory)])
+    assert stopped.value.code == 2
+    assert inventory.read_bytes() == original

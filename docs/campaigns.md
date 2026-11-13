@@ -33,7 +33,9 @@ python -m fortsym_bench.campaign merge results/full --out results/full.json \
 ```
 
 The merge rejects missing or duplicate cases, changed sources and mixed runtime
-or experiment configurations. The merged report uses the ordinary benchmark's
+or experiment configurations. Merged outputs must be outside retained case
+directories and cannot replace an input artifact or the frozen inventory.
+The merged report uses the ordinary benchmark's
 verdicts and coverage totals.
 Backend timings exclude comparison time. The separate per-case wall time
 includes backend startup and comparison. A comparison that exceeds its wall-time
