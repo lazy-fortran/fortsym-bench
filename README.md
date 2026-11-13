@@ -76,6 +76,7 @@ TRANSLATION.md                rules for translating .wl to SymPy
 - [Comparison and outcomes](docs/comparison.md): strictness levels, outcome classes, timing
 - [Corpus](docs/corpus.md): contents, provenance, writing a corpus pair, notebook conversion
 - [Interpreting results](docs/results.md): scope and limits of measured agreement
+- [Retaining benchmark evidence](docs/campaigns.md): bounded comparisons and fixed reference outputs
 - [Translating .wl to SymPy](TRANSLATION.md)
 
 ## License
