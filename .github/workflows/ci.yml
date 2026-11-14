@@ -60,7 +60,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: lazy-fortran/fortsym
-          ref: 01c3353125dfdc13a215da6fa16b5b5b49c564ca
+          ref: c753af89bd43b7481624a6272bab613f940fbcfe
           path: native
       - uses: cachix/install-nix-action@v31
         with:
