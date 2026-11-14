@@ -9,7 +9,7 @@ from fortsym_bench.wl_to_sympy import evaluate_assignments
 
 # NOT TRANSLATED: 17 non-assignment statement(s) remain.
 _ASSIGNMENTS = [
-    ('bcPath', 'FileNameJoin[{DirectoryName[$InputFileName], "..", "sources",\n    "faepcr35", "NEO2", "HELCORE", "simple_l1", "reference",\n    "helcore.bc"}]', ()),
+    ('bcPath', 'FileNameJoin[{DirectoryName[$InputFileName], "..", "sources",\n    "cluster-runs", "NEO2", "HELCORE", "simple_l1", "reference",\n    "helcore.bc"}]', ()),
     ('tokens', 'StringSplit /@ ReadList[bcPath, String]', ()),
     ('number', 'ToExpression[StringReplace[s, "E" -> "*^"]]', ('s',)),
     ('modeRows', 'Map[number,\n  Select[tokens, Length[#] == 6 &&\n      StringMatchQ[#[[1]], NumberString] &&\n      StringMatchQ[#[[2]], NumberString] &], {2}]', ()),

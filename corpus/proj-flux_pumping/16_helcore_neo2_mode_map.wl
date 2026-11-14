@@ -16,7 +16,7 @@ ClearAll[phiH, phiS, theta, theta0, zetaR, iotaH, iotaS, iotaR,
   mH, nH, mS, nS, mR, nR, ar, ai];
 
 bcPath = FileNameJoin[{DirectoryName[$InputFileName], "..", "sources",
-    "faepcr35", "NEO2", "HELCORE", "simple_l1", "reference",
+    "cluster-runs", "NEO2", "HELCORE", "simple_l1", "reference",
     "helcore.bc"}];
 tokens = StringSplit /@ ReadList[bcPath, String];
 number[s_] := ToExpression[StringReplace[s, "E" -> "*^"]];
