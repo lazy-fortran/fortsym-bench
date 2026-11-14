@@ -1,5 +1,7 @@
 # fortsym-bench
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24223537.svg)](https://doi.org/10.5281/zenodo.24223537)
+
 A corpus of real symbolic derivations, used to check the correctness and speed of
 [fortsym](https://github.com/lazy-fortran/fortsym), a computer algebra system written
 in Fortran, against two independent open-source oracles.
@@ -85,3 +87,11 @@ The harness and Christopher Albert's derivations use the MIT licence. See
 [LICENSE](LICENSE) and [corpus sources and credits](SOURCES.md) for attribution
 and the recorded terms for contributed material. Mathics3 is GPL-3.0 and is
 called only as a separate process.
+
+## Citation
+
+Cite fortsym-bench through its Zenodo record,
+[doi:10.5281/zenodo.24223537](https://doi.org/10.5281/zenodo.24223537), which
+always resolves to the latest release; release 0.1.0 is
+[doi:10.5281/zenodo.24223538](https://doi.org/10.5281/zenodo.24223538).
+`CITATION.cff` holds the full citation metadata.

@@ -10,5 +10,6 @@ url: "https://github.com/lazy-fortran/fortsym-bench"
 abstract: >-
   A corpus and comparison harness for symbolic derivations using fortsym,
   SymPy and Mathics. Corpus contributors are credited in SOURCES.md.
+doi: "10.5281/zenodo.24223537"
 version: "0.1.0"
 date-released: "2026-11-14"
