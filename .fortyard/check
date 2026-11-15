@@ -1,0 +1,50 @@
+#!/bin/sh
+# The runner image has no Python packages: build an environment from
+# conda-forge and PyPI once per pyproject.toml, kept between checks, then run
+# the harness tests in disjoint shards, one per CPU.
+set -eu
+version=2.10.0-0
+key=$(sha256sum pyproject.toml | cut -c1-12)
+root=${TMPDIR:-/tmp}/fortsym-bench-env
+env=$root/env-$key
+if [ ! -x "$env/bin/fortsym-bench" ]; then
+    mkdir -p "$root"
+    if [ ! -x "$root/micromamba" ]; then
+        curl -fsSL -o "$root/micromamba" \
+            "https://github.com/mamba-org/micromamba-releases/releases/download/$version/micromamba-linux-64"
+        chmod 755 "$root/micromamba"
+    fi
+    rm -rf "$root"/env-*
+    MAMBA_ROOT_PREFIX=$root/mamba "$root/micromamba" create -y -q -p "$env" \
+        -c conda-forge python=3.12 pip
+    "$env/bin/python" -m pip install -q --no-cache-dir '.[dev,mathics]'
+fi
+export PATH="$env/bin:$PATH"
+# nproc ignores the container's CPU quota; oversubscribed, Mathics times out.
+n=$(nproc)
+if [ -r /sys/fs/cgroup/cpu.max ]; then
+    read -r quota period </sys/fs/cgroup/cpu.max
+    if [ "$quota" != max ] && [ $((quota / period)) -ge 1 ] && [ $((quota / period)) -lt "$n" ]; then
+        n=$((quota / period))
+    fi
+fi
+fails=0
+i=0
+pids=
+while [ "$i" -lt "$n" ]; do
+    python tools/pytest_shard.py --count "$n" --shard "$i" >"$root/shard-$i.log" 2>&1 &
+    pids="$pids $!"
+    i=$((i + 1))
+done
+i=0
+for pid in $pids; do
+    if wait "$pid"; then
+        echo "shard $i of $n: $(tail -n 1 "$root/shard-$i.log")"
+    else
+        echo "shard $i of $n failed:"
+        tail -n 60 "$root/shard-$i.log"
+        fails=$((fails + 1))
+    fi
+    i=$((i + 1))
+done
+[ "$fails" -eq 0 ]

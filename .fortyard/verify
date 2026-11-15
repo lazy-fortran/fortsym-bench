@@ -1,0 +1,9 @@
+#!/bin/sh
+# The landing check plus the oracle smoke run of the GitHub workflow. The
+# native translation tests need fortsym's translator, which the runner image
+# lacks; they skip without it.
+set -eu
+./.fortyard/check
+env=$(ls -d "${TMPDIR:-/tmp}"/fortsym-bench-env/env-*)
+out=${TMPDIR:-/tmp}/fortsym-bench-env/example.json
+"$env/bin/fortsym-bench" run corpus/mhd1d --backend sympy mathics --timeout 60 --report "$out"
