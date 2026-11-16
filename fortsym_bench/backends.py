@@ -90,6 +90,9 @@ def _signal_group(proc: subprocess.Popen, sig: int) -> None:
         os.killpg(proc.pid, sig)
     except ProcessLookupError:
         pass
+    except PermissionError:
+        # Darwin answers EPERM for a group whose remaining members are zombies.
+        pass
 
 
 def _stop_group(proc: subprocess.Popen) -> None:

@@ -17,10 +17,16 @@ from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
 import time
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from fortsym_bench.backends import _signal_group, _stop_group
 
 
 STATUSES = (
@@ -79,6 +85,21 @@ def _command_available(command: tuple[str, ...]) -> bool:
     return shutil.which(command[0]) is not None or Path(command[0]).exists()
 
 
+def _run(command: list[str], *, timeout: float, cwd: Path) -> subprocess.CompletedProcess:
+    process = subprocess.Popen(
+        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        text=True, cwd=cwd, start_new_session=True,
+    )
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+    except BaseException:
+        _stop_group(process)
+        raise
+    finally:
+        _signal_group(process, signal.SIGKILL)
+    return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+
+
 def translate_one(
     source: Path,
     command: tuple[str, ...],
@@ -93,13 +114,10 @@ def translate_one(
     with tempfile.TemporaryDirectory(prefix="fortsym-f90-inventory-") as work:
         output = Path(work) / "translated.f90"
         try:
-            completed = subprocess.run(
+            completed = _run(
                 [*command, str(source), str(output)],
-                capture_output=True,
-                text=True,
                 timeout=timeout,
                 cwd=cwd,
-                check=False,
             )
         except subprocess.TimeoutExpired:
             return TranslationResult(
@@ -131,7 +149,7 @@ def translate_one(
 
                 object_file = Path(work) / "translated.o"
                 try:
-                    compiled = subprocess.run(
+                    compiled = _run(
                         [
                             *compiler,
                             "-c",
@@ -139,11 +157,8 @@ def translate_one(
                             "-o",
                             str(object_file),
                         ],
-                        capture_output=True,
-                        text=True,
                         timeout=timeout,
                         cwd=work,
-                        check=False,
                     )
                 except subprocess.TimeoutExpired:
                     return TranslationResult(
